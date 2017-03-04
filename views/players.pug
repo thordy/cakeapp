@@ -1,0 +1,23 @@
+extends layout.pug
+
+block content
+	h2 Players
+	p.
+		This is an overview of all players who are participating in Cake Darts
+
+	table(class='table table-striped table-bordered')
+		thead
+			tr
+				th #
+				th Name
+				th Played
+				th Won
+				th Win %
+		tbody
+			each player in players
+				tr
+					th(scope='row')= player.id
+					td= player.name
+					td= player.games_played
+					td= player.games_won
+					td= (player.games_won / player.games_played) * 100 + ' %'

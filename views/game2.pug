@@ -1,0 +1,176 @@
+extends layout.pug
+
+block scripts
+	link(rel='stylesheet', href='/css/site.css')
+	script.
+		$(function() {
+			$('#submit_score').click(function() {
+				var first = $('#first');
+				var second = $('#second');
+				var third = $('#third');
+
+				var json = {
+						player_id: 1, // TODO Find current player
+						first_dart: +first.attr('title'),
+						second_dart: +second.attr('title'),
+						third_dart: +third.attr('title')
+				}
+				console.log(json);
+
+				$.ajax({
+					url: window.location.pathname + '/throw',
+					type: 'PUT',
+					data: JSON.stringify(json),
+					contentType: 'application/json',
+					success: function(response) {
+						// TODO Error handling
+						console.log(response);
+					}
+				});
+
+				// Reset UI elements
+				first.css('background-color', 'white');
+				second.css('background-color', 'white');
+				third.css('background-color', 'white');
+
+				first.text('-');
+				second.text('-');
+				third.text('-');
+
+				$('#total').text('0');
+			});
+		});
+		$(function() {
+			$('#score_selector_table tr :button').click(function() {
+				var score = $(this).text();
+				var scoreNumeric = $(this).attr('title');
+
+				var currentScore = $('#total');
+
+				if (window.darts_thrown === undefined || window.darts_thrown >= 3) {
+					window.darts_thrown = 0;
+				}
+				var dart;
+				if (window.darts_thrown === 0) {
+					dart = $('#first');
+				}
+				else if (window.darts_thrown === 1) {
+					dart = $('#second');
+				}
+				else if (window.darts_thrown === 2) {
+					dart = $('#third');
+				}
+				dart.attr('title', scoreNumeric);
+				dart.text(score);
+
+				if (score.search('D') !== -1) {
+					dart.css('background-color', '#ffd11a');
+				}
+				else if (score.search('T') !== -1) {
+					dart.css('background-color', '#ff3333');
+				}
+				else {
+					dart.css('background-color', 'white');
+				}
+
+				currentScore.text(+currentScore.text() + +$(this).attr('title'));
+				window.darts_thrown++;
+			});
+		});
+
+block content
+	h2= 'Match (' + game.id + ')'
+	div
+		p Players
+		ol
+			each player in game.players
+				li(id='player_' + player.id)= player.name + ' [' + game.starting_score + ']'
+	table(id='thrown_table' class='table')
+		thead
+			tr
+				th: p First
+				th: p Second
+				th: p Third
+				th: p Total
+				th: p
+		tbody
+			tr
+				td: label(id='first' text='0') -
+				td: label(id='second' text='0') -
+				td: label(id='third' text='0') -
+				td: label(id='total' text='0') 0
+				td: button(id='submit_score' type='button', class='btn-score btn-info btn-lg') Submit
+
+	div
+		table(id='score_selector_table' class='table')
+			tbody
+				tr
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0') Miss
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20') 20
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='19') 19
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='18') 18
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='17') 17
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='40') 20
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='38') 19
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='36') 18
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='34') 17
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='60') 20
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='57') 19
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='54') 18
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='51') 17
+				tr
+					td(rowspan='2')
+						button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='25') Bull
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='16') 16
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='15') 15
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='14') 14
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='13') 13
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='32') 16
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='30') 15
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='28') 14
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='26') 13
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='48') 16
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='45') 15
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='42') 14
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='39') 13
+				tr
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='12') 12
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='11') 11
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='10') 10
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='9') 9
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='24') 12
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='22') 11
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='20') 10
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='18') 9
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='36') 12
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='33') 11
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='30') 10
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27') 9
+				tr
+					td(rowspan='2')
+						button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='50') Bull
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8') 8
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='7') 7
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='6') 6
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='5') 5
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='16') 8
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='14') 7
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='12') 6
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='10') 5
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='24') 8
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='21') 7
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='18') 6
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='15') 5
+				tr
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='4') 4
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='3') 3
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='2') 2
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='1') 1
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='8') 4
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='6') 3
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='4') 2
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='2') 1
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='12') 4
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='9') 3
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='6') 2
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='3') 1

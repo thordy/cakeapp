@@ -11,6 +11,7 @@ var connection = mysql.createConnection({
 });
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
+router.use(bodyParser.urlencoded( {extended: true} ));
 
 function sendError(error, res) {
 	console.log(error);
@@ -27,13 +28,35 @@ function sendResponse(res, json, statusCode) {
 }
 
 /* Render the match view */
-router.get('/match/:id', function (req, res) {
+router.get('/:id', function (req, res) {
+	// TODO Read from database
 	var game = {};
 	game.id = req.params.id;
 	game.starting_score = 301;
 	game.players = [{id: 1, name: 'Player 1'}, {id: 2, name: 'Player 2'}, {id: 3, name: 'Player 3'}];
 
-	res.render('game', {game: game});
+	res.render('game2', {game: game});
+});
+
+router.get('/:id/results', function (req, res) {
+	// TODO Read from Database
+	var game = {};
+	game.id = req.params.id;
+	game.starting_score = 301;
+	game.start_time = '2017-03-04 17:51';
+	game.end_time = '2017-03-04 18:21';
+	game.players = [
+		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
+		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
+	];
+	game.darts_thrown = [
+		{player: 'Player 1', first_dart: 20, second_dart: 20, third_dart: 3}, 
+		{player: 'Player 2', first_dart: 60, second_dart: 5, third_dart: 20},
+		{player: 'Player 1', first_dart: 19, second_dart: 7, third_dart: 21},
+		{player: 'Player 2', first_dart: 60, second_dart: 60, third_dart: 5}
+	];
+
+	res.render('results', {game: game});
 });
 
 
@@ -45,7 +68,9 @@ router.get('/match/:id', function (req, res) {
 	}
 */
 router.post('/start', function (req, res) {
-	connection.beginTransaction(function(error) {
+	var matchId = 2;
+	res.redirect('/match/' + matchId);
+	/*connection.beginTransaction(function(error) {
 		if (error) {
 			return sendError(error, res);
 		}
@@ -86,6 +111,7 @@ router.post('/start', function (req, res) {
 			});
 		});
 	});
+	*/
 });
 
 /* Method to register three thrown darts

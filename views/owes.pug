@@ -1,0 +1,21 @@
+extends layout.pug
+
+block content
+	h2 Owes
+	p.
+		This table shows which players owe eachother items for lost matches
+
+	table(class='table table-striped table-bordered')
+		thead
+			tr
+				th Ower
+				th Owee
+				th Item
+				th Amount
+		tbody
+			each owe in owes
+				tr
+					td= owe.ower
+					td= owe.owee
+					td= owe.item
+					td= owe.amount

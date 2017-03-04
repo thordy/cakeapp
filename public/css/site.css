@@ -2,26 +2,15 @@
     background-color: white;
     color: black;
     border: 2px solid #e7e7e7;
-    width: 50px;
 }
 .btn-double {
     background-color: #ffe6cc;
     color: black;
     border: 2px solid #e7e7e7;
-    width: 50px;
 }
 
 .btn-triple {
     background-color: #ffcc66;
     color: black;
     border: 2px solid #e7e7e7;
-    width: 50px;
-}
-
-
-.btn:hover {background-color: #e7e7e7;}
-
-
-#thrown_table.th {
-	width: 400px;
 }
