@@ -15,16 +15,17 @@ block scripts
 						second_dart: +second.attr('title'),
 						third_dart: +third.attr('title')
 				}
-				console.log(json);
-
 				$.ajax({
 					url: window.location.pathname + '/throw',
 					type: 'PUT',
 					data: JSON.stringify(json),
 					contentType: 'application/json',
 					success: function(response) {
-						// TODO Error handling
 						console.log(response);
+					}
+					error: function(error) {
+						// TODO Error handling
+						console.err(error);
 					}
 				});
 
@@ -78,13 +79,35 @@ block scripts
 			});
 		});
 
+		$(function() {
+			$('#cancelMatchButton').click(function() {
+				$.ajax({
+					url: window.location.pathname + '/cancel',
+					type: 'DELETE',
+					contentType: 'application/json',
+					success: function(response) {
+						location.href = '/matches';
+					},
+					error: function(error) {
+						var alert = $('#cancelMatchFailedAlert');
+						alert.show();
+						alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
+
+					}
+				});
+			});
+		});
+
 block content
-	h2= 'Match (' + game.id + ')'
+	div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
+		Unable to cancel match
+
+	h2= 'Match (' + match.id + ')'
 	div
 		p Players
 		ol
-			each player in game.players
-				li(id='player_' + player.id)= player.name + ' [' + game.starting_score + ']'
+			each player in match.players
+				li(id='player_' + player.id)= player.name + ' [' + match.starting_score + ']'
 	table(id='thrown_table' class='table')
 		thead
 			tr
@@ -174,3 +197,10 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='9') 3
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='6') 2
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='3') 1
+
+	div(class='btn-group')
+		button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced 
+			span(class='caret')
+		ul(class='dropdown-menu')
+			li: a(id='cancelMatchButton') Cancel Match
+

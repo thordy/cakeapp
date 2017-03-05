@@ -1,5 +1,6 @@
 extends layout.pug
 
+
 block content
 	h2 Owes
 	p.
@@ -19,3 +20,21 @@ block content
 					td= owe.owee
 					td= owe.item
 					td= owe.amount
+
+	h2 Payback Log
+	p This is an overview showing payback between players
+	
+	table(class='table table-striped table-bordered')
+		thead
+			tr
+				th When
+				th Payer
+				th Payee
+				th Item
+		tbody
+			each payback in owes.paybacks
+				tr
+					td= payback.when
+					td= payback.payer
+					td= payback.payee
+					td= payback.item

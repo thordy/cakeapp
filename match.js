@@ -27,48 +27,75 @@ function sendResponse(res, json, statusCode) {
 		.end();
 }
 
+/* Get a list of all matches */
+router.get('/list', function (req, res) {
+	var rows = [
+		{id: 1, start_time: '2017-03-04 17:51', end_time: '2017-03-04 18:23', starting_score: 301,
+			winner: 'Player 1', players: ['Player 1', 'Player 2'], is_finished: true},
+		{id: 2, start_time: '2017-03-04 17:51', starting_score: 301, players: ['Player 1', 'Player 2'], is_finished: false}
+	];
+
+	res.render('matches', {matches: rows});
+
+	/*
+	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", GROUP_CONCAT(p2.name SEPARATOR ", ") AS "players" FROM matches m \
+			JOIN match_players mp ON mp.match_id = m.id \
+			JOIN player p ON p.id = m.winner_player_id \
+			JOIN player p2 ON p2.id = mp.player_id \
+			GROUP BY m.id ORDER BY m.id';
+	connection.query(query, function (error, rows, fields) {
+	  if (error) {
+	  	return sendError(error, res);
+	  }
+	  for (var i = 0; i < rows.length; i++) {
+	  	var row = rows[i];
+		row.start_time = moment(row.start_time).format('YYYY-MM-DD HH:mm:ss z');
+		row.end_time = moment(row.end_time).format('YYYY-MM-DD HH:mm:ss z');
+	  }
+	  res.render('matches', {matches: rows});
+	});
+	*/
+});
+
 /* Render the match view */
 router.get('/:id', function (req, res) {
 	// TODO Read from database
-	var game = {};
-	game.id = req.params.id;
-	game.starting_score = 301;
-	game.players = [{id: 1, name: 'Player 1'}, {id: 2, name: 'Player 2'}, {id: 3, name: 'Player 3'}];
+	var match = {};
+	match.id = req.params.id;
+	match.starting_score = 301;
+	match.players = [{id: 1, name: 'Player 1'}, {id: 2, name: 'Player 2'}, {id: 3, name: 'Player 3'}];
 
-	res.render('game2', {game: game});
+	res.render('match', {match: match});
 });
 
 router.get('/:id/results', function (req, res) {
 	// TODO Read from Database
-	var game = {};
-	game.id = req.params.id;
-	game.starting_score = 301;
-	game.start_time = '2017-03-04 17:51';
-	game.end_time = '2017-03-04 18:21';
-	game.players = [
+	var match = {};
+	match.id = req.params.id;
+	match.starting_score = 301;
+	match.start_time = '2017-03-04 17:51';
+	match.end_time = '2017-03-04 18:21';
+	match.players = [
 		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
 		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
 	];
-	game.darts_thrown = [
+	match.darts_thrown = [
 		{player: 'Player 1', first_dart: 20, second_dart: 20, third_dart: 3}, 
 		{player: 'Player 2', first_dart: 60, second_dart: 5, third_dart: 20},
 		{player: 'Player 1', first_dart: 19, second_dart: 7, third_dart: 21},
 		{player: 'Player 2', first_dart: 60, second_dart: 60, third_dart: 5}
 	];
 
-	res.render('results', {game: game});
+	res.render('results', {match: match});
 });
 
 
-/*Method for starting a new match
-	Expects a JSON body like the following:
-	{
-		"players": [<id>],
-		"starting_score": <score>
-	}
-*/
+/* Method for starting a new match */
 router.post('/start', function (req, res) {
 	var matchId = 2;
+	var players = req.body.players;
+	var startingScore = req.body.startingScore;
+
 	res.redirect('/match/' + matchId);
 	/*connection.beginTransaction(function(error) {
 		if (error) {
@@ -147,11 +174,14 @@ router.put('/:id/throw/', function (req, res) {
 /* Method to cancel a match in progress. Will remove all information about the match */
 router.delete('/:id/cancel', function(req, res) {
 	var matchId = req.params.id;
+	console.log("Cancelled match " + matchId);
+	//sendResponse(res, '', 204);
 	connection.query('DELETE FROM matches WHERE id = ?', [matchId], function (error, results, fields) {
 		if (error) {
 			return sendError(error, res);
 		}
-		sendResponse(res, '', 204);
+		// sendResponse(res, '', 204);
+		res.redirect('/matches');
 	});
 });
 
@@ -218,3 +248,4 @@ function finalize(matchId, winnerPlayerId, res, error, results, fields) {
 }
 
 module.exports = router
+

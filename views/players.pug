@@ -1,5 +1,26 @@
 extends layout.pug
 
+block scripts
+	script.
+		$(function() {
+			$('#addPlayerButton').click(function() {
+				$.ajax({
+					url: window.location.pathname + '/cancel',
+					type: 'POST',
+					contentType: 'application/json',
+					success: function(response) {
+						location.href = '/matches';
+					},
+					error: function(error) {
+						var alert = $('#cancelMatchFailedAlert');
+						alert.show();
+						alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
+
+					}
+				});
+			});
+		});
+
 block content
 	h2 Players
 	p.
@@ -21,3 +42,21 @@ block content
 					td= player.games_played
 					td= player.games_won
 					td= (player.games_won / player.games_played) * 100 + ' %'
+
+	button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
+	div(class='modal modal-sm fade' id='addPlayerModal' tabindex='-1' role='dialog' aria-labelledby='addPlayerModalLabel')
+		div(class='modal-dialog' role='document')
+			div(class='modal-content')
+				div(class='modal-header')
+					button(type='button' class='close' data-dismiss='modal' aria-label='Close')
+						span(aria-hidden='true') &times;
+				h4(class='modal-title' id='addPlayerModalLabel') Add Player
+		div(class='modal-body')
+			form
+				div(class='form-group')
+					label(for='player-name' class='control-label') Player Name:
+					input(type='text' class='form-control' id='player-name')
+			div(class='modal-footer')
+				button(type='button' class='btn btn-default' data-dismiss='modal') Close
+				button(type='button' class='btn btn-primary') Add Player
+

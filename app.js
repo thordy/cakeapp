@@ -14,8 +14,10 @@ var connection = mysql.createConnection({
 // Register all the routes
 var match = require('./match');
 var cake = require('./cake');
+var player = require('./players');
 app.use('/match', match);
 app.use('/cake', cake);
+app.use('/player', player)
 
 app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
@@ -41,6 +43,8 @@ function sendResponse(res, json, statusCode) {
 		.send(json)
 		.end();
 }
+
+/* Default route serving index.pug page */
 app.get('/', function (req, res) {
 	var rows = [
 		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
@@ -58,61 +62,7 @@ app.get('/', function (req, res) {
 */
 });
 
-app.get('/players', function (req, res) {
-	var rows = [
-		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
-		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
-	];
-	res.render('players', {players: rows});
-
-	/*connection.query('SELECT id, name, games_won, games_played, (games_won/games_played) * 100 AS "win_percentage" FROM player', function (error, rows, fields) {
-	  if (error) {
-	  	return sendError(error, res);
-	  }
-	  res.render('players', {players: rows});
-	});*/
-});
-
-app.get('/matches', function (req, res) {
-	var rows = [];
-	var match = {id: 1, start_time: '2017-03-04 17:51', end_time: '2017-03-04 18:23', starting_score: 301,
-			winner: 'Player 1', players: ['Player 1', 'Player 2'], is_finished: true};
-	rows.push(match);
-	var match = {id: 2, start_time: '2017-03-04 17:51', starting_score: 301, players: ['Player 1', 'Player 2'], is_finished: false};
-	rows.push(match);
-
-	res.render('matches', {matches: rows});
-
-	/*
-	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", GROUP_CONCAT(p2.name SEPARATOR ", ") AS "players" FROM matches m \
-			JOIN match_players mp ON mp.match_id = m.id \
-			JOIN player p ON p.id = m.winner_player_id \
-			JOIN player p2 ON p2.id = mp.player_id \
-			GROUP BY m.id ORDER BY m.id';
-	connection.query(query, function (error, rows, fields) {
-	  if (error) {
-	  	return sendError(error, res);
-	  }
-	  for (var i = 0; i < rows.length; i++) {
-	  	var row = rows[i];
-		row.start_time = moment(row.start_time).format('YYYY-MM-DD HH:mm:ss z');
-		row.end_time = moment(row.end_time).format('YYYY-MM-DD HH:mm:ss z');
-	  }
-	  res.render('matches', {matches: rows});
-	});
-	*/
-});
-
-
-app.get('/game', function (req, res) {
-	var game = {};
-	game.isOver = true;
-	game.winner = 'Player 1';
-	res.render('game', {
-		locals: { game: game }
-	});
-});
-
+/* Catch all route used to display custom 404 page */ 
 app.use(function(req, res, next){
   res.status(404);
 

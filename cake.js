@@ -29,7 +29,20 @@ function sendResponse(res, json, statusCode) {
 
 /* Method to get overview over who owes who cake */
 router.get('/owes', function (req, res, next) {
-	connection.query('SELECT p1.name AS "ower",p2.name AS "owee", ot.name as "item", o.amount AS "amount" \
+	var owes = [
+		{ower: "Player 1", owee: "Player 2", item: "Cake", amount: 1},
+		{ower: "Player 1", owee: "Player 2", item: "Beer", amount: 2},
+		{ower: "Player 2", owee: "Player 1", item: "Beer", amount: 1},
+		{ower: "Player 2", owee: "Player 1", item: "Cake", amount: 0}
+	];
+	owes.paybacks = [
+		{when: '2017-04-01 15:49', payer: 'Player 1', payee: 'Player 2', item: 'Cake'},
+		{when: '2017-04-03 15:56', payer: 'Player 2', payee: 'Player 1', item: 'Cake'},
+		{when: '2017-04-05 15:32', payer: 'Player 2', payee: 'Player 1', item: 'Cake'}
+	];
+
+	res.render('owes', {owes: owes});
+	/*connection.query('SELECT p1.name AS "ower",p2.name AS "owee", ot.name as "item", o.amount AS "amount" \
 	  FROM owes o\
 	  JOIN player p1 ON p1.id = o.player_ower_id \
 	  JOIN player p2 ON p2.id = o.player_owee_id \
@@ -58,7 +71,7 @@ router.get('/owes', function (req, res, next) {
 			}
 		}
 		sendResponse(res, owes, 200);
-	});
+	});*/
 });
 
 /* Method to get payback log over who owes who cake */

@@ -1,10 +1,10 @@
 extends layout.pug
 	
 block content
-	h2 Showing Results for Game (#{game.id})
+	h2 Showing Results for Game (#{match.id})
 
 	p.
-		Match #{game.id} was started #{game.start_time} and finished at #{game.end_time}. Starting score was #{game.starting_score}, and a total of #{game.darts_thrown.length * 3} darts were thrown by #{game.players.length} players
+		Match #{match.id} was started #{match.start_time} and finished at #{match.end_time}. Starting score was #{match.starting_score}, and a total of #{match.darts_thrown.length * 3} darts were thrown by #{match.players.length} players
 
 	table(class='table table-striped table-bordered')
 		thead
@@ -15,7 +15,7 @@ block content
 				th Third Dart
 				th Total
 		tbody
-			each throws in game.darts_thrown
+			each throws in match.darts_thrown
 				tr
 					td= throws.player
 					td= throws.first_dart
