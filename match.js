@@ -1,6 +1,7 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 var router = express.Router()
+var moment = require('moment');
 var mysql = require('mysql');
 
 var connection = mysql.createConnection({
@@ -29,16 +30,7 @@ function sendResponse(res, json, statusCode) {
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-	var rows = [
-		{id: 1, start_time: '2017-03-04 17:51', end_time: '2017-03-04 18:23', starting_score: 301,
-			winner: 'Player 1', players: ['Player 1', 'Player 2'], is_finished: true},
-		{id: 2, start_time: '2017-03-04 17:51', starting_score: 301, players: ['Player 1', 'Player 2'], is_finished: false}
-	];
-
-	res.render('matches', {matches: rows});
-
-	/*
-	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", GROUP_CONCAT(p2.name SEPARATOR ", ") AS "players" FROM matches m \
+	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", "TRUE" as "is_finished", GROUP_CONCAT(p2.name SEPARATOR ", ") AS "players" FROM matches m \
 			JOIN match_players mp ON mp.match_id = m.id \
 			JOIN player p ON p.id = m.winner_player_id \
 			JOIN player p2 ON p2.id = mp.player_id \
@@ -54,7 +46,6 @@ router.get('/list', function (req, res) {
 	  }
 	  res.render('matches', {matches: rows});
 	});
-	*/
 });
 
 /* Render the match view */
@@ -80,7 +71,7 @@ router.get('/:id/results', function (req, res) {
 		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
 	];
 	match.darts_thrown = [
-		{player: 'Player 1', first_dart: 20, second_dart: 20, third_dart: 3}, 
+		{player: 'Player 1', first_dart: 20, second_dart: 20, third_dart: 3},
 		{player: 'Player 2', first_dart: 60, second_dart: 5, third_dart: 20},
 		{player: 'Player 1', first_dart: 19, second_dart: 7, third_dart: 21},
 		{player: 'Player 2', first_dart: 60, second_dart: 60, third_dart: 5}
@@ -92,17 +83,12 @@ router.get('/:id/results', function (req, res) {
 
 /* Method for starting a new match */
 router.post('/start', function (req, res) {
-	var matchId = 2;
-	var players = req.body.players;
-	var startingScore = req.body.startingScore;
-
-	res.redirect('/match/' + matchId);
-	/*connection.beginTransaction(function(error) {
+	connection.beginTransaction(function(error) {
 		if (error) {
 			return sendError(error, res);
 		}
 		var playersArray = req.body.players;
-		var startingScore = req.body.starting_score;
+		var startingScore = req.body.matchType;
 		connection.query('INSERT INTO matches(start_time, starting_score) VALUES(NOW(), ?)', [startingScore], function (error, results, fields) {
 			if (error) {
 			  return connection.rollback(function() { throw error; });
@@ -124,21 +110,11 @@ router.post('/start', function (req, res) {
 				  		return connection.rollback(function() { throw error; });
 					}
 					console.log('Match successfuly started with ID: ' + matchId);
-
-					var query = 'SELECT m.id AS match_id, m.start_time, m.starting_score, CONCAT("[", GROUP_CONCAT(mp.player_id), "]") AS players FROM matches m JOIN match_players mp ON mp.match_id = m.id WHERE m.id = ?';
-					connection.query(query, [matchId], function (error, rows, fields) {
-						if (error) {
-							return sendError(error, res);
-						}
-						var startedMatch = rows[0];
-						startedMatch.players = JSON.parse(startedMatch.players);
-						sendResponse(res, startedMatch, 201);
-					});
+					res.redirect('/match/' + matchId);
 				});
 			});
 		});
 	});
-	*/
 });
 
 /* Method to register three thrown darts

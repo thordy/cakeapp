@@ -2,6 +2,7 @@ var express = require('express')
 var bodyParser = require('body-parser')
 var router = express.Router()
 var mysql = require('mysql');
+var moment = require('moment');
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -29,7 +30,7 @@ function sendResponse(res, json, statusCode) {
 
 /* Method to get overview over who owes who cake */
 router.get('/owes', function (req, res, next) {
-	var owes = [
+	/*var owes = [
 		{ower: "Player 1", owee: "Player 2", item: "Cake", amount: 1},
 		{ower: "Player 1", owee: "Player 2", item: "Beer", amount: 2},
 		{ower: "Player 2", owee: "Player 1", item: "Beer", amount: 1},
@@ -41,8 +42,8 @@ router.get('/owes', function (req, res, next) {
 		{when: '2017-04-05 15:32', payer: 'Player 2', payee: 'Player 1', item: 'Cake'}
 	];
 
-	res.render('owes', {owes: owes});
-	/*connection.query('SELECT p1.name AS "ower",p2.name AS "owee", ot.name as "item", o.amount AS "amount" \
+	res.render('owes', {owes: owes});*/
+	connection.query('SELECT p1.name AS "ower",p2.name AS "owee", ot.name as "item", o.amount AS "amount" \
 	  FROM owes o\
 	  JOIN player p1 ON p1.id = o.player_ower_id \
 	  JOIN player p2 ON p2.id = o.player_owee_id \
@@ -70,21 +71,24 @@ router.get('/owes', function (req, res, next) {
 				owes[name] = player
 			}
 		}
-		sendResponse(res, owes, 200);
-	});*/
-});
 
-/* Method to get payback log over who owes who cake */
-router.get('/paybacklog', function (req, res, next) {
-	connection.query('SELECT pb.id, p1.name AS "payer", p2.name AS "payee", ot.name as "item", payback_date AS "when" FROM payback pb\
+		owes = rows;
+		connection.query('SELECT pb.id, p1.name AS "payer", p2.name AS "payee", ot.name as "item", payback_date AS "when" FROM payback pb\
 			LEFT JOIN player p1 ON p1.id = pb.player_ower_id\
 			LEFT JOIN player p2 ON p2.id = pb.player_owee_id\
 			JOIN owe_type ot ON ot.id = pb.owe_type_id\
 			ORDER BY pb.id', function (error, rows, fields) {
-		if (error) {
-			return sendError(error, res);
-		}
-		sendResponse(res, rows, 200);
+			if (error) {
+				return sendError(error, res);
+			}
+			for (var i = 0; i < rows.length; i++) {
+				var row = rows[i];
+				row.when = moment(row.when).format('YYYY-MM-DD HH:mm:ss z');
+			}
+
+			owes.paybacks = rows;
+			res.render('owes', {owes: owes});
+		});
 	});
 });
 

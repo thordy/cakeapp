@@ -2,7 +2,6 @@ var express = require('express')
 var bodyParser = require('body-parser')
 var app = express()
 var mysql = require('mysql');
-var moment = require('moment');
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -46,23 +45,15 @@ function sendResponse(res, json, statusCode) {
 
 /* Default route serving index.pug page */
 app.get('/', function (req, res) {
-	var rows = [
-		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
-		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
-	];
-	res.render('index', {players: rows});
-
-/*
 	connection.query('SELECT id, name, games_won, games_played FROM player', function (error, rows, fields) {
 		if (error) {
   			return sendError(error, res);
   		}
 		res.render('index', { players: rows});
 	});
-*/
 });
 
-/* Catch all route used to display custom 404 page */ 
+/* Catch all route used to display custom 404 page */
 app.use(function(req, res, next){
   res.status(404);
 

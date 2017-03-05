@@ -41,7 +41,7 @@ block content
 					td= player.name
 					td= player.games_played
 					td= player.games_won
-					td= (player.games_won / player.games_played) * 100 + ' %'
+					td= player.win_percentage
 
 	button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
 	div(class='modal modal-sm fade' id='addPlayerModal' tabindex='-1' role='dialog' aria-labelledby='addPlayerModalLabel')
