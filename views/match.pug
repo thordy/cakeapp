@@ -107,7 +107,7 @@ block content
 		p Players
 		ol
 			each player in match.players
-				li(id='player_' + player.id)= player.name + ' [' + match.starting_score + ']'
+				li(id='player_' + player)= player + ' [' + match.starting_score + ']'
 	table(id='thrown_table' class='table')
 		thead
 			tr
@@ -199,7 +199,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='3') 1
 
 	div(class='btn-group')
-		button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced 
+		button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced
 			span(class='caret')
 		ul(class='dropdown-menu')
 			li: a(id='cancelMatchButton') Cancel Match

@@ -1,10 +1,15 @@
 extends layout.pug
-	
+
 block content
 	h2 Showing Results for Game (#{match.id})
 
 	p.
-		Match #{match.id} was started #{match.start_time} and finished at #{match.end_time}. Starting score was #{match.starting_score}, and a total of #{match.darts_thrown.length * 3} darts were thrown by #{match.players.length} players
+		Match ID #{match.id} <br>
+		Started #{match.start_time} <br>
+		Finished #{match.end_time} <br>
+		Duration #{match.match_duration}.
+	p.
+		Starting score was #{match.starting_score}, and a total of #{match.darts_thrown.length * 3} darts were thrown by #{match.players.length} players
 
 	table(class='table table-striped table-bordered')
 		thead
@@ -14,6 +19,7 @@ block content
 				th Second Dart
 				th Third Dart
 				th Total
+				th PPD
 		tbody
 			each throws in match.darts_thrown
 				tr
@@ -22,3 +28,4 @@ block content
 					td= throws.second_dart
 					td= throws.third_dart
 					td= throws.first_dart + throws.second_dart + throws.third_dart
+					td= ((throws.first_dart + throws.second_dart + throws.third_dart) / 3).toFixed(2)

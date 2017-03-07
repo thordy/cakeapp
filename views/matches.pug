@@ -3,10 +3,11 @@ extends layout.pug
 block scripts
 	script.
 		$(function() {
-			$('#continueMatchButton').click(function() {
+			$('.btn-continue-match').click(function() {
 				window.location.href = '/match/' + $(this).closest('tr').find('th').text();
 			});
-			$('#viewResultsButton').click(function() {
+			$('.btn-view-results').click(function() {
+				console.log($(this));
 				window.location.href = '/match/' + $(this).closest('tr').find('th').text() + '/results';
 			});
 		});
@@ -37,7 +38,7 @@ block content
 					td= match.players
 					if !match.is_finished
 						td
-							button(type='button' id='continueMatchButton' class='btn btn-primary btn-block') Continue
+							button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
 					else
 						td
-							button(type='button' id='viewResultsButton' class='btn btn-primary btn-block') View
+							button(type='button' class='btn btn-primary btn-block btn-view-results') View

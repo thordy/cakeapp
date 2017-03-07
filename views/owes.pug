@@ -23,7 +23,7 @@ block content
 
 	h2 Payback Log
 	p This is an overview showing payback between players
-	
+
 	table(class='table table-striped table-bordered')
 		thead
 			tr
@@ -34,7 +34,7 @@ block content
 		tbody
 			each payback in owes.paybacks
 				tr
-					td= payback.when
+					td(class='col-md-3')= payback.when
 					td= payback.payer
 					td= payback.payee
 					td= payback.item

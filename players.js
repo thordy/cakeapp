@@ -21,7 +21,7 @@ router.post('/', function (req, res) {
 });
 
 router.get('/list', function (req, res) {
-	connection.query('SELECT id, name, games_won, games_played, (games_won/games_played) * 100 AS "win_percentage" FROM player', function (error, rows, fields) {
+	connection.query('SELECT id, name, games_won, games_played FROM player', function (error, rows, fields) {
 	  if (error) {
 	  	return sendError(error, res);
 	  }

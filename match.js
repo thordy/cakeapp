@@ -30,9 +30,10 @@ function sendResponse(res, json, statusCode) {
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", "TRUE" as "is_finished", GROUP_CONCAT(p2.name SEPARATOR ", ") AS "players" FROM matches m \
+	var query = 'SELECT m.id, m.start_time, m.end_time, m.starting_score, p.name AS "winner", IF(m.end_time IS NULL, FALSE, TRUE) AS "is_finished", \
+		  GROUP_CONCAT(p2.name ORDER BY p2.id SEPARATOR ", ") AS "players" FROM matches m \
 			JOIN match_players mp ON mp.match_id = m.id \
-			JOIN player p ON p.id = m.winner_player_id \
+			LEFT JOIN player p ON p.id = m.winner_player_id \
 			JOIN player p2 ON p2.id = mp.player_id \
 			GROUP BY m.id ORDER BY m.id';
 	connection.query(query, function (error, rows, fields) {
@@ -42,7 +43,9 @@ router.get('/list', function (req, res) {
 	  for (var i = 0; i < rows.length; i++) {
 	  	var row = rows[i];
 		row.start_time = moment(row.start_time).format('YYYY-MM-DD HH:mm:ss z');
-		row.end_time = moment(row.end_time).format('YYYY-MM-DD HH:mm:ss z');
+		if (row.end_time) {
+			row.end_time = moment(row.end_time).format('YYYY-MM-DD HH:mm:ss z');
+		}
 	  }
 	  res.render('matches', {matches: rows});
 	});
@@ -50,34 +53,48 @@ router.get('/list', function (req, res) {
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-	// TODO Read from database
-	var match = {};
-	match.id = req.params.id;
-	match.starting_score = 301;
-	match.players = [{id: 1, name: 'Player 1'}, {id: 2, name: 'Player 2'}, {id: 3, name: 'Player 3'}];
+	var matchId = req.params.id;
+	var query = 'SELECT m.id, m.start_time, m.starting_score, GROUP_CONCAT(p.name ORDER BY p.id ) as players FROM matches m \
+				JOIN match_players mp ON mp.match_id = m.id \
+				JOIN player p ON p.id = mp.player_id WHERE m.id = ?';
+	connection.query(query, [matchId], function (error, rows, fields) {
+	  if (error) {
+	  	return sendError(error, res);
+	  }
+	  var row = rows[0];
+	  row.start_time = moment(row.start_time).format('YYYY-MM-DD HH:mm:ss z');
+	  row.players = row.players.split(',');
 
-	res.render('match', {match: match});
+	  res.render('match', {match: row});
+	});
 });
 
+/* Render the results view */
 router.get('/:id/results', function (req, res) {
-	// TODO Read from Database
-	var match = {};
-	match.id = req.params.id;
-	match.starting_score = 301;
-	match.start_time = '2017-03-04 17:51';
-	match.end_time = '2017-03-04 18:21';
-	match.players = [
-		{id: 1, name: 'Test Player', games_won: 3, games_played: 12, win_percentage: 30},
-		{id: 2, name: 'Test Player 2', games_won: 4, games_played: 11, win_percentage: 30}
-	];
-	match.darts_thrown = [
-		{player: 'Player 1', first_dart: 20, second_dart: 20, third_dart: 3},
-		{player: 'Player 2', first_dart: 60, second_dart: 5, third_dart: 20},
-		{player: 'Player 1', first_dart: 19, second_dart: 7, third_dart: 21},
-		{player: 'Player 2', first_dart: 60, second_dart: 60, third_dart: 5}
-	];
+	var matchId = req.params.id;
+	var query = 'SELECT m.id, m.start_time, m.end_time, TIMEDIFF(m.end_time, m.start_time) AS match_duration, m.starting_score, \
+				GROUP_CONCAT(p.name ORDER BY p.id) as players FROM matches m \
+				JOIN match_players mp ON mp.match_id = m.id \
+				JOIN player p ON p.id = mp.player_id WHERE m.id = ?';
+	connection.query(query, [matchId], function (error, rows, fields) {
+	  if (error) {
+	  	return sendError(error, res);
+	  }
+	  var query = 'SELECT p.id as "player_id", p.name as "player", dt.first_dart, dt.second_dart, dt.third_dart \
+				FROM darts_thrown dt JOIN player p ON p.id = dt.player_id WHERE match_id = ? ORDER BY dt.when';
+	  var match = rows[0];
+  	match.start_time = moment(match.start_time).format('YYYY-MM-DD HH:mm:ss z');
+  	match.end_time = moment(match.end_time).format('YYYY-MM-DD HH:mm:ss z');
+  	match.players = match.players.split(',');
 
-	res.render('results', {match: match});
+		connection.query(query, [matchId], function (error, rows, fields) {
+	  	if (error) {
+		  	return sendError(error, res);
+		  }
+			match.darts_thrown = rows;
+		  res.render('results', {match: match});
+		});
+	});
 });
 
 
