@@ -2,7 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
 var moment = require('moment');
-var Match = require('./models/Match');
+var Match = require.main.require('./models/Match');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded( {extended: true} ));
