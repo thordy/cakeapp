@@ -3,11 +3,12 @@ var bodyParser = require('body-parser')
 var app = express()
 var mysql = require('mysql');
 
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'developer',
-  password : 'abcd1234',
-  database : 'cakedarts'
+var connection = mysql.createPool({
+    connectionLimit : 10,
+    host     : 'localhost',
+    user     : 'developer',
+    password : 'abcd1234',
+    database : 'cakedarts'
 });
 
 // Register all the routes

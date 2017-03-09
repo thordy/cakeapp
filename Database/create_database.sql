@@ -3,7 +3,7 @@
 CREATE DATABASE IF NOT EXISTS `cakedarts`;
 
 /*Table structure for table `darts_thrown` */
-CREATE TABLE `darts_thrown` (
+CREATE TABLE IF NOT EXISTS `darts_thrown` (
   `when` datetime NOT NULL,
   `match_id` int(11) NOT NULL,
   `player_id` int(11) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE `darts_thrown` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `match_players` */
-CREATE TABLE `match_players` (
+CREATE TABLE IF NOT EXISTS `match_players` (
   `match_id` int(11) NOT NULL,
   `player_id` int(11) NOT NULL,
   `current_score` int(11) NOT NULL DEFAULT '301',
@@ -29,7 +29,7 @@ CREATE TABLE `match_players` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `matches` */
-CREATE TABLE `matches` (
+CREATE TABLE IF NOT EXISTS `matches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `start_time` datetime NOT NULL,
   `end_time` datetime DEFAULT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `matches` (
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `owes` */
-CREATE TABLE `owes` (
+CREATE TABLE IF NOT EXISTS `owes` (
   `player_ower_id` int(11) NOT NULL,
   `player_owee_id` int(11) NOT NULL,
   `amount` int(11) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `owes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `payback` */
-CREATE TABLE `payback` (
+CREATE TABLE IF NOT EXISTS `payback` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player_ower_id` int(11) NOT NULL,
   `player_owee_id` int(11) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE `payback` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `player` */
-CREATE TABLE `player` (
+CREATE TABLE IF NOT EXISTS `player` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `games_won` int(11) NOT NULL DEFAULT '0',
@@ -77,38 +77,38 @@ CREATE TABLE `player` (
 
 DELIMITER $$
 /*!50003 CREATE DEFINER=`developer`@`%` PROCEDURE `finalize_match`(IN match_id INT, IN winner_id INT)
-BEGIN
-	DECLARE is_finished DATETIME;
-	declare is_existing_match int;
-	declare is_valid_player int;
-	
-	SELECT end_time INTO is_finished FROM matches WHERE id = match_id;	
-	SELECT id INTO is_existing_match FROM matches WHERE id = match_id;
-	select id into is_valid_player from player where id = winner_id;
-	
-	IF is_existing_match IS NULL THEN
-		SELECT -1 AS 'status_code';
-		SELECT 'Not a valid match id' AS 'status_message';
-	ELSE 
-		IF is_finished IS NOT NULL THEN
-			SELECT -1 AS 'status_code';
-			SELECT 'Match already finished' AS 'status_message';
-		ELSE
-			IF is_valid_player IS NULL THEN
-				SELECT -1 AS 'status_code';
-				SELECT 'Not a valid played id' AS 'status_message';
-			ELSE
-				-- Set winner player_id
-				UPDATE matches SET end_time = NOW(), winner_player_id = winner_id WHERE id = match_id;
-				-- Increment games played from 'player'
-				UPDATE player SET games_played = games_played+1 WHERE id IN(SELECT player_id FROM match_players WHERE match_id = match_id);
-				-- Set games_won in 'player'
-				UPDATE player SET games_won = games_won+1 WHERE id = winner_id;
-				-- Increment 'owes'
-				UPDATE owes SET amount = amount+1 WHERE player_owee_id = winner_id AND player_ower_id IN (SELECT player_id FROM match_players WHERE match_id = match_id);	
-				SELECT 0 AS 'status_code';
-			END IF;
-		END IF;
-	END IF;	
-END */$$
+  BEGIN
+    DECLARE is_finished DATETIME;
+    declare is_existing_match int;
+    declare is_valid_player int;
+
+    SELECT end_time INTO is_finished FROM matches WHERE id = match_id;
+    SELECT id INTO is_existing_match FROM matches WHERE id = match_id;
+    select id into is_valid_player from player where id = winner_id;
+
+    IF is_existing_match IS NULL THEN
+      SELECT -1 AS 'status_code';
+      SELECT 'Not a valid match id' AS 'status_message';
+    ELSE
+      IF is_finished IS NOT NULL THEN
+        SELECT -1 AS 'status_code';
+        SELECT 'Match already finished' AS 'status_message';
+      ELSE
+        IF is_valid_player IS NULL THEN
+          SELECT -1 AS 'status_code';
+          SELECT 'Not a valid played id' AS 'status_message';
+        ELSE
+          -- Set winner player_id
+          UPDATE matches SET end_time = NOW(), winner_player_id = winner_id WHERE id = match_id;
+          -- Increment games played from 'player'
+          UPDATE player SET games_played = games_played+1 WHERE id IN(SELECT player_id FROM match_players WHERE match_id = match_id);
+          -- Set games_won in 'player'
+          UPDATE player SET games_won = games_won+1 WHERE id = winner_id;
+          -- Increment 'owes'
+          UPDATE owes SET amount = amount+1 WHERE player_owee_id = winner_id AND player_ower_id IN (SELECT player_id FROM match_players WHERE match_id = match_id);
+          SELECT 0 AS 'status_code';
+        END IF;
+      END IF;
+    END IF;
+  END */$$
 DELIMITER ;
