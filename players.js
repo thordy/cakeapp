@@ -3,11 +3,12 @@ var bodyParser = require('body-parser')
 var router = express.Router()
 var mysql = require('mysql');
 
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'developer',
-  password : 'abcd1234',
-  database : 'cakedarts'
+var connection = mysql.createPool({
+    connectionLimit : 10,
+    host     : 'localhost',
+    user     : 'developer',
+    password : 'abcd1234',
+    database : 'cakedarts'
 });
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
