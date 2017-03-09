@@ -8,18 +8,22 @@ block content
 		button(class='btn btn-primary' type='button' data-toggle='collapse' data-target='#newMatchCollapse' aria-expanded='false' aria-controls='newMatchCollapse') Create Match &raquo;
 	div(class='collapse' id='newMatchCollapse')
 		div(class='card card-block')
-			form(action='/match/start' method='POST' id='newMatchForm')
-				div(class='form-group form-check')
-					legend Players
-					each player in players
-						div(class='form-check')
-							input(type='checkbox' name='players' class='form-check-input' id=player.id value=player.id)
-							label(class='form-check-label')= player.name
+			if players.length == 0
+				p.
+					Players must be added before you can start a new game
+			else
+				form(action='/match/new' method='POST' id='newMatchForm')
+					div(class='form-group form-check')
+						legend Players
+						each player in players
+							div(class='form-check')
+								input(type='checkbox' name='players' class='form-check-input' id=player.id value=player.name)
+								label(class='form-check-label')= player.name
 
-				div(class='form-group')
-					label(for='matchTypeSelect') Match Type
-					select(class='form-control' name='matchType' id='matchTypeSelect')
-						option 301
-						option 501
+					div(class='form-group')
+						label(for='matchTypeSelect') Match Type
+						select(class='form-control' name='matchType' id='matchTypeSelect')
+							option 301
+							option 501
 
-				button(type='submit' name='submit' form='newMatchForm' id='startMatchButton' class='btn btn-primary') Start
+					button(type='submit' name='submit' form='newMatchForm' id='startMatchButton' class='btn btn-primary') Start

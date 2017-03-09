@@ -3,6 +3,7 @@ extends layout.pug
 block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
+		/*
 		$(function() {
 			$('#submit_score').click(function() {
 				var first = $('#first');
@@ -97,17 +98,20 @@ block scripts
 				});
 			});
 		});
+		*/
 
 block content
 	div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
 		Unable to cancel match
 
-	h2= 'Match (' + match.id + ')'
+	h2= 'Match'
+	
 	div
 		p Players
 		ol
 			each player in match.players
-				li(id='player_' + player)= player + ' [' + match.starting_score + ']'
+				li(id='player_' + player)= player.name + ' [' + player.current_score + ']'
+
 	table(id='thrown_table' class='table')
 		thead
 			tr
@@ -203,4 +207,3 @@ block content
 			span(class='caret')
 		ul(class='dropdown-menu')
 			li: a(id='cancelMatchButton') Cancel Match
-

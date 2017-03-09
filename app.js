@@ -1,28 +1,22 @@
-var express = require('express')
-var bodyParser = require('body-parser')
-var app = express()
-var mysql = require('mysql');
+var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
 
-var connection = mysql.createPool({
-    connectionLimit : 10,
-    host     : 'localhost',
-    user     : 'developer',
-    password : 'abcd1234',
-    database : 'cakedarts'
-});
+// Setup mongoose and database connection
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/darts');
 
 // Register all the routes
-var match = require('./match');
-var cake = require('./cake');
-var player = require('./players');
-app.use('/match', match);
-app.use('/cake', cake);
-app.use('/player', player)
+var matchController = require('./controller/match_controller');
+var cakeController = require('./controller/cake_controller');
+var playerController = require('./controller/player_controller');
+app.use('/match', matchController);
+app.use('/cake', cakeController);
+app.use('/player', playerController)
 
 app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
 app.use(express.static('public'));
-
 app.use(errorHandler);
 
 function errorHandler (err, req, res, next) {
@@ -30,28 +24,13 @@ function errorHandler (err, req, res, next) {
   res.send({ error: err })
 }
 
-function sendError(error, res) {
-	console.log(error);
-	error.error_message = error.message;
-  	res.status(500)
-  		.send(error)
-		.end();
-}
-
-function sendResponse(res, json, statusCode) {
-	res.status(statusCode)
-		.send(json)
-		.end();
-}
-
 /* Default route serving index.pug page */
 app.get('/', function (req, res) {
-	connection.query('SELECT id, name, games_won, games_played FROM player', function (error, rows, fields) {
-		if (error) {
-  			return sendError(error, res);
-  		}
-		res.render('index', { players: rows});
-	});
+  var Player = require('./models/Player');
+  Player.find({}, function(err, players) {
+    if (err) throw err;
+    res.render('index', {players: players});
+  });  
 });
 
 /* Catch all route used to display custom 404 page */
