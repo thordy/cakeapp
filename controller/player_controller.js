@@ -1,7 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
-var Player = require('./models/Player');
+var Player = require.main.require('./models/Player');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 
