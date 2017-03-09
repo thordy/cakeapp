@@ -4,18 +4,18 @@ block scripts
 	script.
 		$(function() {
 			$('#addPlayerButton').click(function() {
+				var player = { name: $('#playerNameInput').val() };
 				$.ajax({
-					url: window.location.pathname + '/cancel',
+					url: '/player/',
 					type: 'POST',
+					data: JSON.stringify(player),
 					contentType: 'application/json',
 					success: function(response) {
-						location.href = '/matches';
+						location.href = '/player/list';
 					},
 					error: function(error) {
-						var alert = $('#cancelMatchFailedAlert');
-						alert.show();
-						alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
-
+						// TODO Error handling
+						console.log("Unable to add player: " + error);
 					}
 				});
 			});
@@ -29,19 +29,20 @@ block content
 	table(class='table table-striped table-bordered')
 		thead
 			tr
-				th #
 				th Name
 				th Played
 				th Won
 				th Win %
+				th PPD
 		tbody
 			each player in players
 				tr
-					th(scope='row')= player.id
+					th(hidden='true' scope='row')= player._id
 					td= player.name
-					td= player.games_played
-					td= player.games_won
-					td= (player.games_won / player.games_played * 100).toFixed(2)
+					td= player.gamesPlayed
+					td= player.gamesWon
+					td= player.gamesPlayed > 0 ? (player.gamesWon / player.gamesPlayed * 100).toFixed(2) : 0
+					td= player.ppd
 
 	button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
 	div(class='modal fade' id='addPlayerModal' tabindex='-1' role='dialog' aria-labelledby='addPlayerModalLabel')
@@ -59,4 +60,3 @@ block content
 					div(class='modal-footer')
 						button(type='button' class='btn btn-default' data-dismiss='modal') Close
 						button(type='button' class='btn btn-primary') Add Player
-

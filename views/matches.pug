@@ -17,10 +17,10 @@ block content
 	p.
 		Overview over all played matches
 
+	// TODO Add pagination to this table to limit number of matches displayed
 	table(class='table table-striped table-bordered')
 		thead
 			tr
-				th #
 				th Start Time
 				th End Time
 				th Starting Score
@@ -30,12 +30,18 @@ block content
 		tbody
 			each match in matches
 				tr
-					th(scope='row')= match.id
-					td= match.start_time
-					td= match.end_time
-					td= match.starting_score
-					td= match.winner
-					td= match.players
+					// TODO Format these dates
+					th(hidden='true' scope='row')= match.id
+					td= match.startTime
+					td= match.endTime
+					td= match.startingScore
+					td TODO
+					td
+						table(class='table table-striped table-bordered')
+							tbody
+								each player in match.players
+									tr
+										td= player.name
 					if !match.is_finished
 						td
 							button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
