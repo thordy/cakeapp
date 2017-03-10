@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
+var helper = require('./helpers.js');
 
 // Setup mongoose and database connection
 var mongoose = require('mongoose');
@@ -17,20 +18,16 @@ app.use('/player', playerController)
 app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
 app.use(express.static('public'));
-app.use(errorHandler);
-
-function errorHandler (err, req, res, next) {
-  res.status(500)
-  res.send({ error: err })
-}
 
 /* Default route serving index.pug page */
-app.get('/', function (req, res) {
+app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
   Player.find({}, function(err, players) {
-    if (err) throw err;
+    if (err) {
+      return helper.renderError(res, err);
+    }
     res.render('index', {players: players});
-  });  
+  });
 });
 
 /* Catch all route used to display custom 404 page */

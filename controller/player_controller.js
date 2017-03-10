@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
 var Player = require.main.require('./models/Player');
+var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 
@@ -11,7 +12,9 @@ router.post('/', function (req, res) {
 	    name: req.body.name,
   	});
   	player.save(function(err) {
-	    if (err) throw err;
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 	    console.log('Created player: ' + player.name);
 	    res.redirect('/player/list');
 	 });
@@ -19,7 +22,9 @@ router.post('/', function (req, res) {
 
 router.get('/list', function (req, res) {
 	Player.find({}, function(err, players) {
-		if (err) throw err;
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 		res.render('players', {players: players});
 	});	
 });

@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var dartsPlayer = new Schema({
-	name: { type: String, required: true, unique: true }
+	name: { type: String, required: true }
 });
 
 var matchSchema = new Schema({
@@ -12,15 +12,18 @@ var matchSchema = new Schema({
   players: { type: Array, required: true },
   currentPlayer: dartsPlayer,
   isFinished: { type: Boolean, required: true, default: false },
-  winnerPlayerId: Number
+  winner: String
 });
 
 matchSchema.method('setPlayers', function(players) {
-    for (var i in players) {
-		this.players.push({
-        	name: players[i],
-        	current_score: this.startingScore
-        });
+  if(Array.isArray(players) === false) {
+    players = [players];
+  }
+  for (var i in players) {
+	  this.players.push({
+    	name: players[i],
+    	current_score: this.startingScore
+    });
 	}
 });
 var Match = mongoose.model('Match', matchSchema);

@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 var router = express.Router();
 var moment = require('moment');
 var Match = require.main.require('./models/Match');
+var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded( {extended: true} ));
@@ -11,7 +12,9 @@ router.use(bodyParser.urlencoded( {extended: true} ));
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
 	Match.find(function(err, matches) {
-		if (err) throw err;
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 		res.render('matches', {matches: matches});
 	});
 });
@@ -20,7 +23,9 @@ router.get('/list', function (req, res) {
 router.get('/:id', function (req, res) {
 	var id = req.params.id;
 	Match.findOne({_id: id}, function(err, match) {
-		if (err) throw err;
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 		res.render('match', {match: match});
 	});
 });
@@ -35,6 +40,11 @@ router.get('/:id/results', function (req, res) {
 
 /* Method for starting a new match */
 router.post('/new', function (req, res) {
+	if (req.body.players === undefined) {
+		console.log('No players specified, unable to start match');
+		return res.redirect('/');
+	}
+
     var match = new Match({
     	startingScore: req.body.startingScore,
     	out: req.body.out,
@@ -44,7 +54,9 @@ router.post('/new', function (req, res) {
     console.log(match);
 
     match.save(function(err) {
-    	if (err) throw err;
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 		res.redirect('/match/' + match.id);
     });
 });
