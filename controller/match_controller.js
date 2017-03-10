@@ -76,10 +76,14 @@ router.put('/:id/throw/', function (req, res) {
 
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function(req, res) {
-	var matchId = req.params.id;
-	res.status(202)
-		.send('Not Yet Implemented')
-		.end();
+	Match.remove({ _id: req.params.id }, function(err) {
+		if (err) {
+  		return helper.renderError(res, err);
+    }
+    res.status(204)
+    	.send()
+    	.end();
+	});	
 });
 
 /* Method to finalize a match */

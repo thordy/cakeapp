@@ -78,7 +78,7 @@ block scripts
 				currentScore.text(+currentScore.text() + +$(this).attr('title'));
 				window.darts_thrown++;
 			});
-		});
+		});*/
 
 		$(function() {
 			$('#cancelMatchButton').click(function() {
@@ -87,7 +87,7 @@ block scripts
 					type: 'DELETE',
 					contentType: 'application/json',
 					success: function(response) {
-						location.href = '/matches';
+						location.href = '/match/list';
 					},
 					error: function(error) {
 						var alert = $('#cancelMatchFailedAlert');
@@ -98,7 +98,6 @@ block scripts
 				});
 			});
 		});
-		*/
 
 block content
 	div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
