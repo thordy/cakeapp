@@ -3,6 +3,44 @@ extends layout.pug
 block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
+		$(function () {
+			$('#score_selector_table tr :button').click(function () {
+
+				var scoreButton = $(this);
+				var currentScore = $('#total');
+
+				if (window.darts_thrown === undefined || window.darts_thrown >= 3) {
+					window.darts_thrown = 0;
+
+				}
+				var dart;
+				if (window.darts_thrown === 0) {
+					dart = $('#first');
+				}
+				else if (window.darts_thrown === 1) {
+					dart = $('#second');
+				}
+				else if (window.darts_thrown === 2) {
+					dart = $('#third');
+				}
+
+				var clonedButton = scoreButton.clone();
+				dart.text('').append(clonedButton);
+
+				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
+				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
+				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
+
+				var firstDartScore = firstScoreNumeric ? firstScoreNumeric : 0;
+				var secondDartScore = secondScoreNumeric ? secondScoreNumeric : 0;
+				var thirdDartScore = thirdScoreNumeric ? thirdScoreNumeric : 0;
+
+				// Summarize
+				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
+				currentScore.text(totalScore);
+				window.darts_thrown++;
+			});
+		});
 		/*
 		$(function() {
 			$('#submit_score').click(function() {
@@ -42,43 +80,7 @@ block scripts
 				$('#total').text('0');
 			});
 		});
-		$(function() {
-			$('#score_selector_table tr :button').click(function() {
-				var score = $(this).text();
-				var scoreNumeric = $(this).attr('title');
-
-				var currentScore = $('#total');
-
-				if (window.darts_thrown === undefined || window.darts_thrown >= 3) {
-					window.darts_thrown = 0;
-				}
-				var dart;
-				if (window.darts_thrown === 0) {
-					dart = $('#first');
-				}
-				else if (window.darts_thrown === 1) {
-					dart = $('#second');
-				}
-				else if (window.darts_thrown === 2) {
-					dart = $('#third');
-				}
-				dart.attr('title', scoreNumeric);
-				dart.text(score);
-
-				if (score.search('D') !== -1) {
-					dart.css('background-color', '#ffd11a');
-				}
-				else if (score.search('T') !== -1) {
-					dart.css('background-color', '#ff3333');
-				}
-				else {
-					dart.css('background-color', 'white');
-				}
-
-				currentScore.text(+currentScore.text() + +$(this).attr('title'));
-				window.darts_thrown++;
-			});
-		});*/
+		*/
 
 		$(function() {
 			$('#cancelMatchButton').click(function() {
@@ -104,7 +106,7 @@ block content
 		Unable to cancel match
 
 	h2= 'Match'
-	
+
 	div
 		p Players
 		ol
