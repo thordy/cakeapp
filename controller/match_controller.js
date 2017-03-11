@@ -22,7 +22,7 @@ router.get('/list', function (req, res) {
 /* Render the match view */
 router.get('/:id', function (req, res) {
 	var id = req.params.id;
-	Match.findOne({_id: id}, function(err, match) {
+	Match.findById(id, function(err, match) {
 	    if (err) {
 	    	return helper.renderError(res, err);
 	    }
