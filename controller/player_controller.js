@@ -21,6 +21,7 @@ router.post('/', function (req, res) {
 	 });
 });
 
+/* Get specific statistics for a given player */
 router.get('/:id/stats', function(req, res) {
 	Player.findById(req.params.id)
 		.exec(function(err, player) {
@@ -31,6 +32,7 @@ router.get('/:id/stats', function(req, res) {
 	});	
 });
 
+/* Get a list of all players */
 router.get('/list', function (req, res) {
 	Player.find({})
 		.sort('name')

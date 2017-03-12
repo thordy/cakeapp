@@ -1,5 +1,13 @@
 extends layout.pug
 
+block scripts
+	script.
+		$(function() {
+			$('#registerPaybackButton').click(function() {
+				console.log($('#registerPaybackModal'))
+				console.log($('#registerPaybackModal').serialize());
+			});
+		});
 
 block content
 	h2 Owes
@@ -38,3 +46,29 @@ block content
 	//- 				td= payback.payer
 	//- 				td= payback.payee
 	//- 				td= payback.item
+
+	button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#registerPaybackModal') Register Payback
+	div(class='modal fade' id='registerPaybackModal' tabindex='-1' role='dialog' aria-labelledby='registerPaybackModalLabel')
+		div(class='modal-dialog' role='document')
+			div(class='modal-content')
+				div(class='modal-header')
+					button(type='button' class='close' data-dismiss='modal' aria-label='Close')
+						span(aria-hidden='true') &times;
+					h4(class='modal-title' id='registerPaybackModalLabel') Register Payback between two player
+				div(class='modal-body')
+					form
+						div(class='form-group')
+						each player in owes
+							label(for='playerSelector' class='radio-inline control-label')= player.name
+							input(id='playerSelector' type='radio' name='playerRadio' value=player._id)
+						div(class='form-group')
+							label(for='amountInput' class='control-label') Amount
+								input(type='number' min='0' step='1' class='form-control' id='amountInput')
+						div(class='form-group')
+							label(for='itemSelect') Item:
+							select(class='form-control' name='itemSelect' id='itemSelect')
+								option Cake
+								option Beer
+					div(class='modal-footer')
+						button(type='button' class='btn btn-default' data-dismiss='modal') Close
+						button(type='button' class='btn btn-primary' id='registerPaybackButton') Register
