@@ -28,9 +28,9 @@ router.get('/:id', function (req, res) {
 			return helper.renderError(res, err);
 		}
 
-        var players = match.getPlayers(match);
-
-		res.render('match', {match: match});
+        Player.find({'_id' : { $in : match.players }}, function(err, players) {
+            res.render('match', {match: match, players: players});
+		});
 	});
 });
 
