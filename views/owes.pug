@@ -5,7 +5,6 @@ block content
 	h2 Owes
 	p.
 		This table shows which players owe eachother items for lost matches
-
 	table(class='table table-striped table-bordered')
 		thead
 			tr
@@ -14,27 +13,28 @@ block content
 				th Item
 				th Amount
 		tbody
-			each owe in owes
-				tr
-					td= owe.ower
-					td= owe.owee
-					td= owe.item
-					td= owe.amount
+			each player in owes
+				each owe in player.owes
+					tr
+						td= player.name
+						td= owe.owee.name
+						td= owe.item
+						td= owe.amount
 
 	h2 Payback Log
 	p This is an overview showing payback between players
 
-	table(class='table table-striped table-bordered')
-		thead
-			tr
-				th When
-				th Payer
-				th Payee
-				th Item
-		tbody
-			each payback in owes.paybacks
-				tr
-					td(class='col-md-3')= payback.when
-					td= payback.payer
-					td= payback.payee
-					td= payback.item
+	//- table(class='table table-striped table-bordered')
+	//- 	thead
+	//- 		tr
+	//- 			th When
+	//- 			th Payer
+	//- 			th Payee
+	//- 			th Item
+	//- 	tbody
+	//- 		each payback in owes.paybacks
+	//- 			tr
+	//- 				td(class='col-md-3')= payback.when
+	//- 				td= payback.payer
+	//- 				td= payback.payee
+	//- 				td= payback.item

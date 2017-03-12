@@ -12,22 +12,26 @@ router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-    Match.find(function (err, matches) {
-        if (err) {
-            return helper.renderError(res, err);
-        }
-        res.render('matches', {matches: matches});
-    });
+    Match.find({})
+        .sort('startingTime')
+        .populate('players')
+        .exec(function (err, matches) {
+            if (err) {
+                return helper.renderError(res, err);
+            }
+            res.render('matches', {matches: matches});
+        });
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
     var id = req.params.id;
-    Match.findById(id, function (err, match) {
+    Match.findById(id)
+    .populate('players')
+    .exec(function (err, match) {
         if (err) {
             return helper.renderError(res, err);
-        }
-    }).populate('players').exec(function (err, match) {
+        }        
         res.render('match', {match: match});
     });
 });
@@ -46,10 +50,9 @@ router.post('/new', function (req, res) {
         console.log('No players specified, unable to start match');
         return res.redirect('/');
     }
-
     var match = new Match({
         startingScore: req.body.startingScore,
-        out: req.body.out,
+        stake: req.body.matchStake,
         startTime: moment()
     });
     match.setPlayers(req.body.players);

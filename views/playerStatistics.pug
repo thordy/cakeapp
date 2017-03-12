@@ -1,0 +1,19 @@
+extends layout.pug
+
+block content
+	h2 Statistics for #{player.name}
+	
+	div(class='table-responsive')
+		table(class='table table-striped table-bordered')
+			thead
+				tr
+					th Played
+					th Won
+					th First 9 PPD
+					th Overall PPD
+			tbody
+					tr
+						td= player.gamesPlayed
+						td= player.gamesWon
+						td= player.gamesPlayed == 0 ? 0 : (player.gamesWon / player.gamesPlayed).toFixed(2)
+						td= player.ppd

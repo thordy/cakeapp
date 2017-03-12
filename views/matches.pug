@@ -25,6 +25,7 @@ block content
 					th Start Time
 					th End Time
 					th Starting Score
+					th Stake
 					th Winner
 					th Players
 					th Results
@@ -33,9 +34,10 @@ block content
 					tr
 						// TODO Format these dates
 						th(hidden='true' scope='row')= match.id
-						td= match.startTime
-						td= match.endTime
+						td= match.startTime.toISOString()
+						td= match.endTime === undefined ? '' : match.endTime.toISOString()
 						td= match.startingScore
+						td= match.stake
 						td= match.winner
 						td
 							table(class='table table-striped table-bordered')

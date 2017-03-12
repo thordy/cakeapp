@@ -10,6 +10,7 @@ router.use(bodyParser.json()); // Accept incoming JSON entities
 router.post('/', function (req, res) {
 	var player = new Player({
 	    name: req.body.name,
+	    owes: []
   	});
   	player.save(function(err) {
 	    if (err) {
@@ -20,8 +21,20 @@ router.post('/', function (req, res) {
 	 });
 });
 
+router.get('/:id/stats', function(req, res) {
+	Player.findById(req.params.id)
+		.exec(function(err, player) {
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
+		res.render('playerStatistics', {player: player});
+	});	
+});
+
 router.get('/list', function (req, res) {
-	Player.find({}, function(err, players) {
+	Player.find({})
+		.sort('name')
+		.exec(function(err, players) {
 	    if (err) {
 	    	return helper.renderError(res, err);
 	    }

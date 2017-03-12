@@ -11,6 +11,7 @@ var matchSchema = new Schema({
 	players: [{type: ObjectId, ref: 'Player', required: true}],
 	currentPlayer: {type: ObjectId, ref: 'Player', required: true},
 	isFinished: {type: Boolean, required: true, default: false},
+  stake: String,
 	winner: String
 });
 
