@@ -11,8 +11,11 @@ var matchSchema = new Schema({
 	players: [{type: ObjectId, ref: 'Player', required: true}],
 	currentPlayer: {type: ObjectId, ref: 'Player', required: true},
 	isFinished: {type: Boolean, required: true, default: false},
-  stake: String,
+  	stake: String,
 	winner: String
+},
+{
+	timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
 matchSchema.method('setPlayers', function (players) {
