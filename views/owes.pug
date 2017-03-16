@@ -4,8 +4,19 @@ block scripts
 	script.
 		$(function() {
 			$('#registerPaybackButton').click(function() {
-				console.log($('#registerPaybackModal'))
-				console.log($('#registerPaybackModal').serialize());
+				$.ajax({
+					url: '/cake/payback',
+					type: 'PUT',
+					data: $('#paybackForm').serialize(),
+					contentType: 'application/x-www-form-urlencoded',
+					success: function(response) {
+						location.reload();
+					},
+					error: function(error) {
+						// TODO Error handling
+						console.log("Unable to add payback: " + error);
+					}
+				});				
 			});
 		});
 
@@ -56,19 +67,26 @@ block content
 						span(aria-hidden='true') &times;
 					h4(class='modal-title' id='registerPaybackModalLabel') Register Payback between two player
 				div(class='modal-body')
-					form
+					// form(id='paybackForm')
+					form(action='/cake/payback' method='PUT' id='paybackForm')
 						div(class='form-group')
-						each player in owes
-							label(for='playerSelector' class='radio-inline control-label')= player.name
-							input(id='playerSelector' type='radio' name='playerRadio' value=player._id)
+							p Ower
+							each player in owes
+								label(for='owerSelector' class='radio-inline control-label')= player.name
+								input(id='owerSelector' type='radio' name='ower' value=player._id)
+						div(class='form-group')
+							p Owee
+							each player in owes
+								label(for='oweeSelector' class='radio-inline control-label')= player.name
+								input(id='oweeSelector' type='radio' name='owee' value=player._id)
 						div(class='form-group')
 							label(for='amountInput' class='control-label') Amount
-								input(type='number' min='0' step='1' class='form-control' id='amountInput')
+								input(type='number' name='paybackAmount' min='0' step='1' class='form-control' value=1 id='paybackAmount')
 						div(class='form-group')
-							label(for='itemSelect') Item:
-							select(class='form-control' name='itemSelect' id='itemSelect')
+							label(for='paybackItem') Item:
+							select(class='form-control' name='paybackItem' id='paybackItem')
 								option Cake
 								option Beer
 					div(class='modal-footer')
 						button(type='button' class='btn btn-default' data-dismiss='modal') Close
-						button(type='button' class='btn btn-primary' id='registerPaybackButton') Register
+						button(type='submit' name='submit' class='btn btn-primary' id='registerPaybackButton') Register

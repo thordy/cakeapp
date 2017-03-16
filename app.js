@@ -9,7 +9,7 @@ mongoose.connect('mongodb://localhost/darts');
 
 // Register all the routes
 var matchController = require('./controller/match_controller');
-var cakeController = require('./controller/cake_controller');
+var cakeController = require('./controller/owes_controller');
 var playerController = require('./controller/player_controller');
 app.use('/match', matchController);
 app.use('/cake', cakeController);
