@@ -22,11 +22,29 @@ router.put('/payback', function (req, res) {
 	var owee = req.body.owee;
 	var item = req.body.paybackItem;
 	var amount = req.body.paybackAmount;
+	
+	Player.findById(ower)
+		.exec(function(err, player) {
+	    if (err) {
+	    	return helper.renderError(res, err);
+	    }
 
-	console.log(ower + " paid back '" + amount + "'  '" + item + "' to " + owee);
-	res.status(202)
-		.send('Not Yet Implemented')
-		.end();
+	    var owes = player.owes;
+	    for (var i = 0; i < owes; i ++) {
+	    	var owe = owes[i];
+	    	if (owe.item === item && owe.owee === owee) {
+	    		console.log(ower + " paid back '" + amount + "'  '" + item + "' to " + owee);
+	    		owe.amount -= amount;
+				return res.status(200)
+	    			.send()
+	    			.end();
+	    	}
+	    }
+	    console.log(ower + ' does not owe ' + owee + ' any ' + item);
+	    res.status(400)
+	    	.send('No outstanding owes between selected players!')
+	    	.end();
+	});		
 });
 
 module.exports = router

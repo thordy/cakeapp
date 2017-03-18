@@ -3,6 +3,10 @@ extends layout.pug
 block scripts
 	script.
 		$(function() {
+			$('#showPaybackModalButton').click(function() {
+				$('#addPaybackFailedAlert').hide();
+			});
+
 			$('#registerPaybackButton').click(function() {
 				$.ajax({
 					url: '/cake/payback',
@@ -13,14 +17,22 @@ block scripts
 						location.reload();
 					},
 					error: function(error) {
-						// TODO Error handling
-						console.log("Unable to add payback: " + error);
+						console.log(error);
+
+						var alert = $('#addPaybackFailedAlert');
+						alert.show();
+						alert.text('Unable to add payback, ' + error.responseText);
+
+						$('#registerPaybackModal').modal('toggle');
 					}
 				});				
 			});
 		});
 
 block content
+	div(id='addPaybackFailedAlert' class='alert alert-danger' role='alert' hidden='true').
+		Unable to add payback. See log for details
+
 	h2 Owes
 	p.
 		This table shows which players owe eachother items for lost matches
@@ -58,7 +70,7 @@ block content
 	//- 				td= payback.payee
 	//- 				td= payback.item
 
-	button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#registerPaybackModal') Register Payback
+	button(type='button' class='btn btn-block btn-primary' id='showPaybackModalButton' data-toggle='modal' data-target='#registerPaybackModal') Register Payback
 	div(class='modal fade' id='registerPaybackModal' tabindex='-1' role='dialog' aria-labelledby='registerPaybackModalLabel')
 		div(class='modal-dialog' role='document')
 			div(class='modal-content')
