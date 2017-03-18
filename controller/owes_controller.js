@@ -23,21 +23,28 @@ router.put('/payback', function (req, res) {
 	var item = req.body.paybackItem;
 	var amount = req.body.paybackAmount;
 	
+	if (ower === owee) {
+		return res.status(400)
+			.send('Cannot register a payback between the same user')
+			.end();
+	}
 	Player.findById(ower)
 		.exec(function(err, player) {
 	    if (err) {
 	    	return helper.renderError(res, err);
 	    }
-
 	    var owes = player.owes;
-	    for (var i = 0; i < owes; i ++) {
+	    for (var i = 0; i < owes.length; i ++) {
 	    	var owe = owes[i];
-	    	if (owe.item === item && owe.owee === owee) {
-	    		console.log(ower + " paid back '" + amount + "'  '" + item + "' to " + owee);
+	    	if (owe.item === item && owe.owee == owee) {
 	    		owe.amount -= amount;
-				return res.status(200)
-	    			.send()
-	    			.end();
+	    		player.save(function(error, player){
+	    			console.log(ower + " paid back '" + amount + "' '" + item + "' to " + owee);
+					return res.status(200)
+	    				.send()
+	    				.end();
+	    		});
+	    		return;
 	    	}
 	    }
 	    console.log(ower + ' does not owe ' + owee + ' any ' + item);

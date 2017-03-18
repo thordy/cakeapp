@@ -10,7 +10,7 @@ router.use(bodyParser.json()); // Accept incoming JSON entities
 router.post('/', function (req, res) {
 	var player = new Player({
 	    name: req.body.name,
-	    owes: []
+	    owes: [{owee: '58cd2847f450e01054782127', item: 'Beer', amount: 10}]
   	});
   	player.save(function(err) {
 	    if (err) {
