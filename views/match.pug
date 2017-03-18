@@ -33,6 +33,13 @@ block scripts
 				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
 				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
 				console.log('score submitted');
+
+				// Reset all values
+				$('#total').text(0);
+				$('#first').text('');
+				$('#second').text('');
+				$('#third').text('');
+				window.darts_thrown = 0;
 			});
 
 			$('#undoButton').click(function() {
