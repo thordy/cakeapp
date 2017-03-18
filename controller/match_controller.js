@@ -15,6 +15,7 @@ router.get('/list', function (req, res) {
     Match.find({})
         .sort('startingTime')
         .populate('players')
+        .populate('winner')
         .exec(function (err, matches) {
             if (err) {
                 return helper.renderError(res, err);
@@ -25,8 +26,7 @@ router.get('/list', function (req, res) {
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-    var id = req.params.id;
-    Match.findById(id)
+    Match.findById(req.params.id)
     .populate('players')
     .exec(function (err, match) {
         if (err) {
@@ -38,9 +38,15 @@ router.get('/:id', function (req, res) {
 
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
-    res.status(202)
-        .send('Not Yet Implemented')
-        .end();
+    Match.findById(req.params.id)
+        .populate('players')
+        .populate('winner')
+        .exec(function (err, match) {
+            if (err) {
+                return helper.renderError(res, err);
+            }        
+            res.render('results', {match: match});
+        });
 });
 
 
@@ -53,10 +59,9 @@ router.post('/new', function (req, res) {
     var match = new Match({
         startingScore: req.body.startingScore,
         stake: req.body.matchStake,
-        startTime: moment()
+        startTime: moment().add(-30, 'minutes')
     });
     match.setPlayers(req.body.players);
-
     match.save(function (err) {
         if (err) {
             return helper.renderError(res, err);

@@ -5,9 +5,7 @@ block scripts
 	script.
 		$(function () {
 			$('#score_selector_table tr :button').click(function () {
-
 				var scoreButton = $(this);
-				var currentScore = $('#total');
 
 				if (window.darts_thrown === undefined || window.darts_thrown >= 3) {
 					window.darts_thrown = 0;
@@ -26,72 +24,38 @@ block scripts
 
 				var clonedButton = scoreButton.clone();
 				dart.text('').append(clonedButton);
-
-				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
-				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
-				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
-
-				var firstDartScore = firstScoreNumeric ? firstScoreNumeric : 0;
-				var secondDartScore = secondScoreNumeric ? secondScoreNumeric : 0;
-				var thirdDartScore = thirdScoreNumeric ? thirdScoreNumeric : 0;
-
-				// Summarize
-				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
-				currentScore.text(totalScore);
+				updateScore();
 				window.darts_thrown++;
 			});
-		});
 
-		$(function() {
-			$('#submit_score').click(function() {
+			$('#submitScoreButton').click(function() {
 				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
 				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
 				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
 				console.log('score submitted');
 			});
-		});
-		/*
-		$(function() {
-			$('#submit_score').click(function() {
-				var first = $('#first');
-				var second = $('#second');
-				var third = $('#third');
 
-				var json = {
-						player_id: 1, // TODO Find current player
-						first_dart: +first.attr('title'),
-						second_dart: +second.attr('title'),
-						third_dart: +third.attr('title')
+			$('#undoButton').click(function() {
+				if (window.darts_thrown > 0) {
+					window.darts_thrown--;
 				}
-				$.ajax({
-					url: window.location.pathname + '/throw',
-					type: 'PUT',
-					data: JSON.stringify(json),
-					contentType: 'application/json',
-					success: function(response) {
-						console.log(response);
-					}
-					error: function(error) {
-						// TODO Error handling
-						console.err(error);
-					}
-				});
-
-				// Reset UI elements
-				first.css('background-color', 'white');
-				second.css('background-color', 'white');
-				third.css('background-color', 'white');
-
-				first.text('-');
-				second.text('-');
-				third.text('-');
-
-				$('#total').text('0');
+				else {
+					return;
+				}
+				var dart;
+				if (window.darts_thrown === 0) {
+					dart = $('#first');
+				}
+				else if (window.darts_thrown === 1) {
+					dart = $('#second');
+				}
+				else if (window.darts_thrown === 2) {
+					dart = $('#third');
+				}
+				dart.text('');
+				updateScore();		
 			});
-		});
-		*/
 
-		$(function() {
 			$('#cancelMatchButton').click(function() {
 				$.ajax({
 					url: window.location.pathname + '/cancel',
@@ -108,6 +72,20 @@ block scripts
 					}
 				});
 			});
+
+			function updateScore(){
+				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
+				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
+				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
+
+				var firstDartScore = firstScoreNumeric ? firstScoreNumeric : 0;
+				var secondDartScore = secondScoreNumeric ? secondScoreNumeric : 0;
+				var thirdDartScore = thirdScoreNumeric ? thirdScoreNumeric : 0;
+
+				// Summarize
+				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
+				$('#total').text(totalScore);
+			}
 		});
 
 block content
@@ -135,7 +113,9 @@ block content
 				td: label(id='second' text='0') -
 				td: label(id='third' text='0') -
 				td: button(id='total' text='0' class='btn btn-lg btn-success') 0
-				td: button(id='submit_score' type='button', class='btn-score btn-info btn-lg') Submit
+				td: button(id='submitScoreButton' type='button' class='btn-score btn-info btn-lg btn-block') Submit
+				td: button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block') &nbsp;
+					span(class='glyphicon glyphicon-arrow-left' aria-hidden='true')
 
 	div(class='table-responsive')
 		table(id='score_selector_table' class='table')
