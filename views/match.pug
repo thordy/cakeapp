@@ -32,7 +32,28 @@ block scripts
 				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
 				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
 				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
-				console.log('score submitted');
+
+				var match = $(this).data('match');
+
+				$.ajax({
+					url: window.location.pathname + '/throw',
+					type: 'POST',
+					data: JSON.stringify({
+						'matchId' : match._id,
+						'playerId' : match.currentPlayer,
+						'firstDart' : firstScoreNumeric,
+						'secondDart' : secondScoreNumeric,
+						'thirdDart' : thirdScoreNumeric
+					}),
+					contentType: 'application/json',
+					success: function (response) {
+						location.href = window.location.pathname;
+					},
+					error: function (error) {
+						// TODO Error handling
+						console.log("Unable to add score: " + error.responseText);
+					}
+				});
 			});
 
 			$('#undoButton').click(function() {
@@ -113,7 +134,7 @@ block content
 				td: label(id='second' text='0') -
 				td: label(id='third' text='0') -
 				td: button(id='total' text='0' class='btn btn-lg btn-success') 0
-				td: button(id='submitScoreButton' type='button' class='btn-score btn-info btn-lg btn-block') Submit
+				td: button(id='submitScoreButton' type='button' class='btn-score btn-info btn-lg btn-block' data-match=match) Submit
 				td: button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block') &nbsp;
 					span(class='glyphicon glyphicon-arrow-left' aria-hidden='true')
 
