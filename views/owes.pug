@@ -9,18 +9,14 @@ block scripts
 			});
 
 			$('#registerPaybackButton').click(function() {
-				$.ajax({
-					url: '/cake/payback',
-					type: 'PUT',
-					data: $('#paybackForm').serialize(),
-					contentType: 'application/x-www-form-urlencoded',
-					success: function(response) {
+				executePut('/cake/payback', $('#paybackForm').serialize(), 'application/x-www-form-urlencoded',
+					function(response) {
 						$('#registerPaybackModal').modal('toggle');
 						var alert = $('#addPaybackSuccessAlert');
 						alert.show();
 						alert.text('Unable to add payback. ' + error.responseText);
 					},
-					error: function(error) {
+					function(error) {
 						console.log(error);
 
 						var alert = $('#addPaybackFailedAlert');
@@ -29,7 +25,7 @@ block scripts
 
 						$('#registerPaybackModal').modal('toggle');
 					}
-				});				
+				);
 			});
 		});
 

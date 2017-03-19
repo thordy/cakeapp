@@ -5,19 +5,15 @@ block scripts
 		$(function() {
 			$('#addPlayerButton').click(function() {
 				var player = { name: $('#playerNameInput').val() };
-				$.ajax({
-					url: '/player/',
-					type: 'POST',
-					data: JSON.stringify(player),
-					contentType: 'application/json',
-					success: function(response) {
+				executePost('/player', JSON.stringify(player), 'application/json',
+					function(response) {
 						location.href = '/player/list';
 					},
-					error: function(error) {
+					function(error) {
 						// TODO Error handling
 						console.log("Unable to add player: " + error);
 					}
-				});
+				);
 			});
 		});
 

@@ -35,25 +35,22 @@ block scripts
 
 				var match = $(this).data('match');
 
-				$.ajax({
-					url: window.location.pathname + '/throw',
-					type: 'POST',
-					data: JSON.stringify({
-						'matchId' : match._id,
-						'playerId' : match.currentPlayer,
-						'firstDart' : firstScoreNumeric,
-						'secondDart' : secondScoreNumeric,
-						'thirdDart' : thirdScoreNumeric
-					}),
-					contentType: 'application/json',
-					success: function (response) {
+				var data = JSON.stringify({
+					'matchId' : match._id,
+					'playerId' : match.currentPlayer,
+					'firstDart' : firstScoreNumeric,
+					'secondDart' : secondScoreNumeric,
+					'thirdDart' : thirdScoreNumeric
+				});
+				executePost(window.location.pathname + '/throw', data, 'application/json',
+					function(response) {
 						location.href = window.location.pathname;
 					},
-					error: function (error) {
+					function(error){
 						// TODO Error handling
 						console.log("Unable to add score: " + error.responseText);
 					}
-				});
+				);
 			});
 
 			$('#undoButton').click(function() {
@@ -78,20 +75,16 @@ block scripts
 			});
 
 			$('#cancelMatchButton').click(function() {
-				$.ajax({
-					url: window.location.pathname + '/cancel',
-					type: 'DELETE',
-					contentType: 'application/json',
-					success: function(response) {
+				executeDelete(window.location.pathname + '/cancel',
+					function(response) {
 						location.href = '/match/list';
 					},
-					error: function(error) {
+					function(error) {
 						var alert = $('#cancelMatchFailedAlert');
 						alert.show();
 						alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
-
 					}
-				});
+				);
 			});
 
 			function updateScore(){
@@ -105,7 +98,7 @@ block scripts
 
 				// Summarize
 				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
-				$('#total').text(totalScore);
+				$('#total').html(totalScore + "<br/>&nbsp;");
 			}
 		});
 
@@ -122,18 +115,18 @@ block content
 
 	table(id='thrown_table' class='table')
 		thead
-			tr
+			tr(class='row')
 				th: p First
 				th: p Second
 				th: p Third
 				th: p Total
 				th: p
 		tbody
-			tr
-				td: label(id='first' text='0') -
-				td: label(id='second' text='0') -
-				td: label(id='third' text='0') -
-				td: button(id='total' text='0' class='btn btn-lg btn-success') 0
+			tr(class='row')
+				td: label(id='first' text='0') 
+				td: label(id='second' text='0') 
+				td: label(id='third'  text='0') 
+				td: button(id='total' text='0' class='btn btn-lg btn-success') 0<br/>&nbsp;
 				td: button(id='submitScoreButton' type='button' class='btn-score btn-info btn-lg btn-block' data-match=match) Submit
 				td: button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block') &nbsp;
 					span(class='glyphicon glyphicon-arrow-left' aria-hidden='true')
