@@ -6,7 +6,7 @@ block content
 	p.
 		ID: #{match.id} <br>
 		Started: #{match.startTime.toISOString()} <br>
-		Finished: #{match.endTime.toISOString()} <br>
+		Finished: #{match.endTime === undefined ? '' : match.endTime.toISOString()} <br>
 		Duration: #{((match.endTime - match.startTime) / (60 * 1000)).toFixed(1)} minutes <br>
 		Stakes: #{match.stake === "" ? "None" : match.stake}
 	
@@ -23,13 +23,13 @@ block content
 					td= player.name
 					td= player.first9ppd
 					td= player.ppd
-					if player.name === match.winner.name
+					if match.winner !== undefined && player.name === match.winner.name
 						td
 							span(class='glyphicon glyphicon-ok' aria-hidden='true')
 					else
 						td
 	p.
-		Starting score was #{match.startingScore}, and a total of XXX darts were thrown by #{match.players.length} players
+		Starting score was #{match.startingScore}, and a total of #{match.scores.length * 3} darts were thrown by #{match.players.length} players
 
 	table(class='table table-striped table-bordered')
 		thead
@@ -41,11 +41,11 @@ block content
 				th Total
 				th PPD
 		tbody
-			//- each throws in match.darts_thrown
-			//- 	tr
-			//- 		td= throws.player
-			//- 		td= throws.first_dart
-			//- 		td= throws.second_dart
-			//- 		td= throws.third_dart
-			//- 		td= throws.first_dart + throws.second_dart + throws.third_dart
-			//- 		td= ((throws.first_dart + throws.second_dart + throws.third_dart) / 3).toFixed(2)
+			each throws in match.scores
+				tr
+					td= throws.player.name
+					td= throws.firstDart
+					td= throws.secondDart
+					td= throws.thirdDart
+					td= throws.firstDart + throws.secondDart + throws.thirdDart
+					td= ((throws.firstDart + throws.secondDart + throws.thirdDart) / 3).toFixed(2)

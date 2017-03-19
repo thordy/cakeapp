@@ -45,11 +45,18 @@ router.get('/:id/results', function (req, res) {
         .exec(function (err, match) {
             if (err) {
                 return helper.renderError(res, err);
-            }        
-            res.render('results', {match: match});
+            }
+            Score.find({match: match._id})
+                .populate('player')
+                .exec(function (err, scores) {
+                     if (err) {
+                        return helper.renderError(res, err);
+                    }
+                    match.scores = scores;
+                    res.render('results', {match: match});
+                });
         });
 });
-
 
 /* Method for starting a new match */
 router.post('/new', function (req, res) {
