@@ -15,14 +15,14 @@ app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 
+/** Entry point for application, main route */
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
-  Player.find({}, function(err, players) {
-    if (err) {
-      return helper.renderError(res, err);
-    }
-    res.render('index', {players: players});
-  });
+	Player.fetchAll().then(function(players) {
+		res.render('index', {players: players.serialize()});
+	}).catch(function(err) {
+		console.error(err);
+	});
 });
 
 // Catch all route used to display custom 404 page
@@ -31,14 +31,14 @@ app.use(function(req, res, next){
 
   // respond with html page
   if (req.accepts('html')) {
-    res.render('404', { url: req.url });
-    return;
+	res.render('404', { url: req.url });
+	return;
   }
 
   // respond with json
   if (req.accepts('json')) {
-    res.send({ error: 'Not found' });
-    return;
+	res.send({ error: 'Not found' });
+	return;
   }
 
   // default to plain-text. send()

@@ -41,3 +41,4 @@ data/
 
 # IDE
 .idea
+/database.sqlite3

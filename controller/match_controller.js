@@ -13,20 +13,27 @@ router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-    Match.find({})
-        .sort('startingTime')
-        .populate('players')
-        .populate('winner')
-        .exec(function (err, matches) {
-            if (err) {
-                return helper.renderError(res, err);
-            }
-            res.render('matches', {matches: matches});
-        });
+    Match.query(function(qb){
+        qb.orderBy('start_time','ASC');
+    })
+        .fetchAll()
+        .then(function(matches) {
+            res.render('matches', {matches: matches.serialize()});
+        }).catch(function(err) {
+        console.error(err);
+    });
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
+    Match
+        .fetch({id: req.params.id})
+        .then(function(matches) {
+            res.render('matches', {matches: matches.serialize()});
+        }).catch(function(err) {
+        console.error(err);
+    });
+    /*
     Match.findById(req.params.id)
     .populate('players')
     .exec(function (err, match) {
@@ -34,7 +41,7 @@ router.get('/:id', function (req, res) {
             return helper.renderError(res, err);
         }        
         res.render('match', {match: match});
-    });
+    });*/
 });
 
 /* Render the results view */

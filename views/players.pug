@@ -34,13 +34,13 @@ block content
 			tbody
 				each player in players
 					tr
-						th(hidden='true' scope='row')= player._id
+						th(hidden='true' scope='row')= player.id
 						td= player.name
-						td= player.gamesPlayed
-						td= player.gamesWon
-						td= player.gamesPlayed == 0 ? 0 : (player.gamesWon / player.gamesPlayed).toFixed(2)
+						td= player.games_played
+						td= player.games_won
+						td= player.games_played == 0 ? 0 : (player.games_won / player.games_played).toFixed(2)
 						td
-							a(class='btn btn-primary' href='/player/' + player._id + '/stats') View
+							a(class='btn btn-primary' href='/player/' + player.id + '/stats') View
 
 		button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
 		div(class='modal fade' id='addPlayerModal' tabindex='-1' role='dialog' aria-labelledby='addPlayerModalLabel')
