@@ -3,10 +3,6 @@ var bodyParser = require('body-parser');
 var app = express();
 var helper = require('./helpers.js');
 
-// Setup mongoose and database connection
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/darts');
-
 // Register all the routes
 var matchController = require('./controller/match_controller');
 var cakeController = require('./controller/owes_controller');
@@ -19,7 +15,6 @@ app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 
-/* Default route serving index.pug page */
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
   Player.find({}, function(err, players) {
@@ -30,7 +25,7 @@ app.get('/', function (req, res, next) {
   });
 });
 
-/* Catch all route used to display custom 404 page */
+// Catch all route used to display custom 404 page
 app.use(function(req, res, next){
   res.status(404);
 
@@ -53,5 +48,3 @@ app.use(function(req, res, next){
 app.listen(3000, function () {
   console.log('Cakeapp listening on port 3000')
 });
-
-
