@@ -1,6 +1,6 @@
-var bookshelf = require.main.require('bookshelf');
+'use strict';
+var bookshelf = require('../bookshelf');
 var Score = bookshelf.Model.extend({
     tableName: 'score',
 });
-
 module.exports = Score;
