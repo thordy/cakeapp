@@ -1,10 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var Bookshelf = require.main.require('./bookshelf.js');
 var router = express.Router();
 var moment = require('moment');
 var Player = require.main.require('./models/Player');
 var Match = require.main.require('./models/Match');
 var Score = require.main.require('./models/Score');
+var Player2match = require.main.require('./models/Player2match');
 var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
@@ -26,8 +28,8 @@ router.get('/list', function (req, res) {
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-    Match
-        .fetch({id: req.params.id})
+    Match.query('where', 'id', '=', req.params.id)
+        .fetch()
         .then(function(matches) {
             res.render('matches', {matches: matches.serialize()});
         }).catch(function(err) {
@@ -71,18 +73,43 @@ router.post('/new', function (req, res) {
         console.log('No players specified, unable to start match');
         return res.redirect('/');
     }
-    var match = new Match({
-        startingScore: req.body.startingScore,
-        stake: req.body.matchStake,
-        startTime: moment().add(-30, 'minutes')
-    });
-    match.setPlayers(req.body.players);
-    match.save(function (err) {
-        if (err) {
+
+    // Get first player in the list, order should be handled in frontend
+    var currentPlayerId = req.body.players[0];
+
+    new Match({
+        starting_score: req.body.matchType,
+        start_time: Math.floor(Date.now() / 1000),
+        current_player_id: currentPlayerId
+    })
+        .save(null, {method: 'insert'})
+        .then(function(match) {
+            console.log('Created match: ' + match.id);
+
+            var playersArray = req.body.players;
+            var playerOrder = 1;
+            var playersInMatch = [];
+            for (var i in playersArray) {
+                playersInMatch.push({
+                    player_id: playersArray[i],
+                    match_id: match.id,
+                    order: playerOrder
+                });
+                playerOrder++;
+            }
+
+            Bookshelf.knex('player2match')
+                .insert(playersInMatch)
+                .then(function(rows) {
+                    console.log('Added players: ' + playersInMatch);
+                    res.redirect('/match/' + match.id);
+                })
+                .catch(function(err) {
+                    return helper.renderError(res, err);
+                });
+        }).catch(function(err) {
             return helper.renderError(res, err);
-        }
-        res.redirect('/match/' + match.id);
-    });
+        });
 });
 
 /* Method to register three thrown darts */

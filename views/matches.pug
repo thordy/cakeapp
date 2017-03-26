@@ -33,11 +33,10 @@ block content
 				each match in matches
 					tr
 						th(hidden='true' scope='row')= match.id
-						td= match.startTime.toISOString()
-						td= match.endTime === undefined ? '' : match.endTime.toISOString()
-						td= match.startingScore
-						td= match.stake
-						if match.isFinished
+						td= match.start_time
+						td= match.end_time === undefined ? '' : match.endTime()
+						td= match.starting_score
+						if match.is_finished
 							td= match.winner.name
 						else
 							td
