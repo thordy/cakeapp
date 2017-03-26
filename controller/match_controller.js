@@ -15,35 +15,31 @@ router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-    Match.query(function(qb){
-        qb.orderBy('start_time','ASC');
-    })
-        .fetchAll()
-        .then(function(matches) {
-            res.render('matches', {matches: matches.serialize()});
-        }).catch(function(err) {
-        console.error(err);
+    // Get collection of matches
+    var Matches = Bookshelf.Collection.extend({
+        model: Match
     });
+
+    // Fetch related players
+    new Matches()
+        .fetch({ withRelated: 'players' })
+        .then(function(match) {
+            console.log(match);
+            res.render('matches', {matches: match.serialize()});
+        }).catch(function(err) {
+            console.error(err);
+        });
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
     Match.query('where', 'id', '=', req.params.id)
-        .fetch()
-        .then(function(matches) {
-            res.render('matches', {matches: matches.serialize()});
+        .fetch({ withRelated: 'players' })
+        .then(function(match) {
+            res.render('match', {match: match.serialize(), players: match.related('players').serialize() });
         }).catch(function(err) {
         console.error(err);
     });
-    /*
-    Match.findById(req.params.id)
-    .populate('players')
-    .exec(function (err, match) {
-        if (err) {
-            return helper.renderError(res, err);
-        }        
-        res.render('match', {match: match});
-    });*/
 });
 
 /* Render the results view */

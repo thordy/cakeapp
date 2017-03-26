@@ -34,19 +34,20 @@ block content
 					tr
 						th(hidden='true' scope='row')= match.id
 						td= match.start_time
-						td= match.end_time === undefined ? '' : match.endTime()
+						td= match.end_time === undefined ? '' : match.end_time
 						td= match.starting_score
+						td
 						if match.is_finished
 							td= match.winner.name
 						else
-							td
+							td -
 						td
 							table(class='table table-striped table-bordered')
 								tbody
 									each player in match.players
 										tr
 											td= player.name
-						if !match.isFinished
+						if !match.is_finished
 							td
 								button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
 						else
