@@ -27,19 +27,24 @@ router.get('/list', function (req, res) {
             console.log(match);
             res.render('matches', {matches: match.serialize()});
         }).catch(function(err) {
-            console.error(err);
+            helper.renderError(res, err);
         });
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-    Match.query('where', 'id', '=', req.params.id)
+    new Match({id: req.params.id})
         .fetch({ withRelated: 'players' })
         .then(function(match) {
-            res.render('match', {match: match.serialize(), players: match.related('players').serialize() });
-        }).catch(function(err) {
-        console.error(err);
-    });
+            res.render('match', {
+                match: match.serialize(),
+                players: match.related('players').serialize()
+            });
+        })
+        .catch(function(err) {
+            helper.renderError(res, err);
+        }
+    );
 });
 
 /* Render the results view */
@@ -74,10 +79,10 @@ router.post('/new', function (req, res) {
     var currentPlayerId = req.body.players[0];
 
     new Match({
-        starting_score: req.body.matchType,
-        start_time: Math.floor(Date.now() / 1000),
-        current_player_id: currentPlayerId
-    })
+            starting_score: req.body.matchType,
+            start_time: moment().unix(),
+            current_player_id: currentPlayerId
+        })
         .save(null, {method: 'insert'})
         .then(function(match) {
             console.log('Created match: ' + match.id);
@@ -97,14 +102,15 @@ router.post('/new', function (req, res) {
             Bookshelf.knex('player2match')
                 .insert(playersInMatch)
                 .then(function(rows) {
-                    console.log('Added players: ' + playersInMatch);
+                    console.log('Added players: ' + JSON.stringify(playersInMatch));
                     res.redirect('/match/' + match.id);
                 })
                 .catch(function(err) {
-                    return helper.renderError(res, err);
+                    helper.renderError(res, err);
                 });
-        }).catch(function(err) {
-            return helper.renderError(res, err);
+        })
+        .catch(function(err) {
+            helper.renderError(res, err);
         });
 });
 
