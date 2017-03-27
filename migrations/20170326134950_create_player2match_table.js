@@ -8,7 +8,7 @@ exports.up = function(knex, Promise) {
             table.integer('order').notNullable();
             table.foreign('match_id').references('match.id');
             table.foreign('player_id').references('player.id');
-            table.timestamps();
+            table.timestamps(true, true);
         });
 };
 

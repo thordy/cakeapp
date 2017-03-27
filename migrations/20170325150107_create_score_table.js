@@ -14,7 +14,7 @@ exports.up = function(knex, Promise) {
             table.integer('round_number').notNullable().default(1);
             table.foreign('match_id').references('match.id');
             table.foreign('player_id').references('player.id');
-            table.timestamps();
+            table.timestamps(true, true);
         });
 };
 

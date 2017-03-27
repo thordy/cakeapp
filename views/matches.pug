@@ -33,7 +33,7 @@ block content
 				each match in matches
 					tr
 						th(hidden='true' scope='row')= match.id
-						td= match.start_time
+						td= match.created_at
 						td= match.end_time === undefined ? '' : match.end_time
 						td= match.starting_score
 						td

@@ -12,9 +12,9 @@ var helper = require('../helpers.js');
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
-
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
+
     // Get collection of matches
     var Matches = Bookshelf.Collection.extend({
         model: Match
@@ -22,24 +22,31 @@ router.get('/list', function (req, res) {
 
     // Fetch related players
     new Matches()
-        .fetch({ withRelated: 'players' })
-        .then(function(match) {
+        .fetch({withRelated: 'players'})
+        .then(function (match) {
             console.log(match);
             res.render('matches', {matches: match.serialize()});
-        }).catch(function(err) {
+        })
+        .catch(function (err) {
             console.error(err);
         });
+
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-    Match.query('where', 'id', '=', req.params.id)
-        .fetch({ withRelated: 'players' })
-        .then(function(match) {
-            res.render('match', {match: match.serialize(), players: match.related('players').serialize() });
-        }).catch(function(err) {
-        console.error(err);
-    });
+    new Match({id: req.params.id})
+        .fetch({withRelated: ['players', 'scores']})
+        .then(function (match) {
+            console.log(match.related('players').serialize());
+            res.render('match', {
+                match: match.serialize(),
+                players: match.related('players').serialize()
+            });
+        })
+        .catch(function (err) {
+            console.error(err);
+        });
 });
 
 /* Render the results view */
@@ -54,7 +61,7 @@ router.get('/:id/results', function (req, res) {
             Score.find({match: match._id})
                 .populate('player')
                 .exec(function (err, scores) {
-                     if (err) {
+                    if (err) {
                         return helper.renderError(res, err);
                     }
                     match.scores = scores;
@@ -75,11 +82,10 @@ router.post('/new', function (req, res) {
 
     new Match({
         starting_score: req.body.matchType,
-        start_time: Math.floor(Date.now() / 1000),
         current_player_id: currentPlayerId
     })
         .save(null, {method: 'insert'})
-        .then(function(match) {
+        .then(function (match) {
             console.log('Created match: ' + match.id);
 
             var playersArray = req.body.players;
@@ -94,16 +100,18 @@ router.post('/new', function (req, res) {
                 playerOrder++;
             }
 
-            Bookshelf.knex('player2match')
+            Bookshelf
+                .knex('player2match')
                 .insert(playersInMatch)
-                .then(function(rows) {
+                .then(function (rows) {
                     console.log('Added players: ' + playersInMatch);
                     res.redirect('/match/' + match.id);
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     return helper.renderError(res, err);
                 });
-        }).catch(function(err) {
+        })
+        .catch(function (err) {
             return helper.renderError(res, err);
         });
 });

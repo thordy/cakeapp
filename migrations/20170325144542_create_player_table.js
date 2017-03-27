@@ -8,7 +8,7 @@ exports.up = function(knex, Promise) {
             table.integer('games_won').notNullable().default(0);
             table.float('ppd');
             table.float('first_nine_ppd');
-            table.timestamps();
+            table.timestamps(true, true);
         });
 };
 
