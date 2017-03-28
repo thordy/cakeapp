@@ -28,7 +28,7 @@ router.get('/list', function (req, res) {
             res.render('matches', {matches: match.serialize()});
         })
         .catch(function (err) {
-            console.error(err);
+            helper.renderError(res, err);
         });
 
 });
@@ -36,16 +36,16 @@ router.get('/list', function (req, res) {
 /* Render the match view */
 router.get('/:id', function (req, res) {
     new Match({id: req.params.id})
-        .fetch({withRelated: ['players', 'scores']})
+        .fetch({withRelated: ['players', 'scores'] })
         .then(function (match) {
-            console.log(match.related('players').serialize());
             res.render('match', {
                 match: match.serialize(),
-                players: match.related('players').serialize()
+                players: match.related('players').serialize(),
+                scores: match.related('scores').serialize()
             });
         })
         .catch(function (err) {
-            console.error(err);
+            helper.renderError(res, err);
         });
 });
 
@@ -108,11 +108,11 @@ router.post('/new', function (req, res) {
                     res.redirect('/match/' + match.id);
                 })
                 .catch(function (err) {
-                    return helper.renderError(res, err);
+                    helper.renderError(res, err);
                 });
         })
         .catch(function (err) {
-            return helper.renderError(res, err);
+            helper.renderError(res, err);
         });
 });
 

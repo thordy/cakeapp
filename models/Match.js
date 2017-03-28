@@ -1,9 +1,11 @@
 'use strict';
 
 var bookshelf = require('../bookshelf');
-var Player2match = require.main.require('./models/Player2match');
-var Player = require.main.require('./models/Player');
-var Score = require.main.require('./models/Score');
+bookshelf.plugin('registry');
+
+var Player = require('./Player');
+var Player2Match = require('./PLayer2match');
+var Score = require('./Score');
 
 var Match = bookshelf.Model.extend({
     tableName: 'match',
@@ -13,10 +15,10 @@ var Match = bookshelf.Model.extend({
         });
     },
     players: function() {
-        return this.belongsToMany(Player, 'id').through(Player2match, 'match_id');
+        return this.belongsToMany(Player, 'id').through(Player2Match, 'match_id');
     },
     scores: function() {
-        return this.belongsToMany(Player, 'id').through(Score, 'match_id');
+        return this.hasMany('Score');
     }
 });
-module.exports = Match;
+module.exports = bookshelf.model('Match', Match);

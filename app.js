@@ -19,9 +19,10 @@ app.use(express.static('public'));
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
 	Player.fetchAll().then(function(players) {
-		res.render('index', {players: players.serialize()});
-	}).catch(function(err) {
-		console.error(err);
+		res.render('index', { players: players.serialize() });
+	})
+  .catch(function(err) {
+    helper.renderError(res, err);
 	});
 });
 
