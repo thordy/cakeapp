@@ -38,10 +38,33 @@ router.get('/:id', function (req, res) {
     new Match({id: req.params.id})
         .fetch({withRelated: ['players', 'scores'] })
         .then(function (match) {
+            var players = match.related('players').serialize();
+            var scores = match.related('scores').serialize();
+            var match = match.serialize();
+
+            var playerScores = {};
+            for (var i = 0; i < players.length; i++){
+                var player = players[i];
+                playerScores[player.id] = {
+                    name: player.name,
+                    current_score: match.starting_score,
+                    scores: []
+                };
+            }
+
+            for (var i = 0; i < scores.length; i++) {
+                var score = scores[i];
+                var player = playerScores[score.player_id];
+                player.scores.push(score);
+                player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) + 
+                    (score.second_dart * score.second_dart_multiplier) + 
+                    (score.third_dart * score.third_dart_multiplier));
+            }
+            match.scores = scores;
+
             res.render('match', {
-                match: match.serialize(),
-                players: match.related('players').serialize(),
-                scores: match.related('scores').serialize()
+                match: match,
+                players: playerScores
             });
         })
         .catch(function (err) {

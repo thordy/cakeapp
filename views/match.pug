@@ -4,6 +4,9 @@ block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
 		$(function () {
+			$('#popoverData').popover();
+			$('#popoverOption').popover({ trigger: "hover" });
+
 			$('#score_selector_table tr :button').click(function () {
 				var scoreButton = $(this);
 
@@ -74,6 +77,9 @@ block scripts
 				updateScore();
 			});
 
+			$('#seeScoresButton').click(function() {
+				$('#scoresModal').modal('show');
+			});	
 			$('#cancelMatchButton').click(function() {
 				executeDelete(window.location.pathname + '/cancel',
 					function(response) {
@@ -209,4 +215,37 @@ block content
 		button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced
 			span(class='caret')
 		ul(class='dropdown-menu')
+			li: a(id='seeScoresButton') See scores
 			li: a(id='cancelMatchButton') Cancel Match
+
+
+	div(class='modal fade' id='scoresModal' tabindex='-1' role='dialog' aria-labelledby='scoresModalLabel')
+		div(class='modal-dialog' role='document')
+			div(class='modal-content')
+				div(class='modal-header')
+					button(type='button' class='close' data-dismiss='modal' aria-label='Close')
+						span(aria-hidden='true') &times;
+					h4(class='modal-title' id='scoresModalLabel') Scores
+				div(class='modal-body')
+					form
+						div(class='table-responsive')
+							table(class='table')
+								thead
+									tr(class='row')
+										th #
+										th Player
+										th When
+										th First
+										th Second
+										th Third
+								tbody
+									each score in match.scores
+										tr(class='row')
+											td= score.id
+											td= players[score.player_id].name
+											td= score.created_at
+											td= score.first_dart * score.first_dart_multiplier
+											td= score.second_dart * score.second_dart_multiplier
+											td= score.third_dart * score.third_dart_multiplier
+					div(class='modal-footer')
+						button(type='button' class='btn btn-default' data-dismiss='modal') Close
