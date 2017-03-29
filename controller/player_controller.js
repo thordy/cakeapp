@@ -27,22 +27,22 @@ router.get('/:id/stats', function(req, res) {
 			res.render('playerStatistics', {player: player.serialize()});
 		})
 		.catch(function(err) {
-			console.error(err);
+			helper.renderError(res, err);
 		});
 });
 
 /* Get a list of all players */
 router.get('/list', function (req, res) {
-	Player.query(function(qb){
-		qb.orderBy('name','ASC');
-	})
+	Player.query(function(qb) {
+			qb.orderBy('name','ASC');
+		})
 		.fetchAll()
 		.then(function(players) {
 			res.render('players', {players: players.serialize()});
 		})
 		.catch(function(err) {
-			console.error(err);
+			helper.renderError(res, err);
 		});
-	});
+});
 
 module.exports = router

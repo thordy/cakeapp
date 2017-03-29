@@ -4,16 +4,13 @@ block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
 		$(function () {
-			$('#popoverData').popover();
-			$('#popoverOption').popover({ trigger: "hover" });
+			$( document ).ready(function() {
+			    window.darts_thrown = 0;
+			});
 
 			$('#score_selector_table tr :button').click(function () {
 				var scoreButton = $(this);
 
-				if (window.darts_thrown === undefined || window.darts_thrown >= 3) {
-					window.darts_thrown = 0;
-
-				}
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -23,6 +20,10 @@ block scripts
 				}
 				else if (window.darts_thrown === 2) {
 					dart = $('#third');
+				}
+				else {
+					alert('Please submit previous score!');
+					return;
 				}
 
 				var clonedButton = scoreButton.clone();
@@ -47,6 +48,7 @@ block scripts
 				});
 				executePost(window.location.pathname + '/throw', data, 'application/json',
 					function(response) {
+						window.darts_thrown = 0; // Reset darts thrown
 						location.href = window.location.pathname;
 					},
 					function(error){

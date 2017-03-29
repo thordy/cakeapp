@@ -30,7 +30,6 @@ router.get('/list', function (req, res) {
         .catch(function (err) {
             helper.renderError(res, err);
         });
-
 });
 
 /* Render the match view */

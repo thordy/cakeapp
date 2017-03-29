@@ -19,7 +19,7 @@ You may want to set up knex to run globally first
 
 To migrate database simply run
 
-`knex migrate:latest`
+`knex migrate:latest --env development`
 
 http://perkframework.com/v1/guides/database-migrations-knex.html
 
