@@ -4,7 +4,7 @@ var bookshelf = require('../bookshelf');
 bookshelf.plugin('registry');
 
 var Player = require('./Player');
-var Player2Match = require('./PLayer2match');
+var Player2Match = require('./Player2match');
 var Score = require('./Score');
 
 var Match = bookshelf.Model.extend({
