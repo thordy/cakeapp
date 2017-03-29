@@ -3,18 +3,28 @@ extends layout.pug
 block scripts
 	script.
 		$(function() {
+			$('#addPlayerModal').on('shown.bs.modal', function () {
+			    $('#playerNameInput').focus();
+			});
+			$('#addPlayerForm').submit(function(event) {
+				addPlayer();
+			});
 			$('#addPlayerButton').click(function() {
+				addPlayer();
+			});
+
+			function addPlayer() {
 				var player = { name: $('#playerNameInput').val() };
 				executePost('/player', JSON.stringify(player), 'application/json',
 					function(response) {
 						location.href = '/player/list';
 					},
 					function(error) {
-						// TODO Error handling
-						console.log("Unable to add player: " + error);
+						console.log("Unable to add player");
+						console.log(error);
 					}
-				);
-			});
+				);	
+			}
 		});
 
 block content
@@ -51,10 +61,10 @@ block content
 							span(aria-hidden='true') &times;
 						h4(class='modal-title' id='addPlayerModalLabel') Add Player
 					div(class='modal-body')
-						form
+						form(id='addPlayerForm')
 							div(class='form-group')
 								label(for='playerNameInput' class='control-label') Player Name:
 								input(type='text' class='form-control' id='playerNameInput')
 						div(class='modal-footer')
 							button(type='button' class='btn btn-default' data-dismiss='modal') Close
-							button(type='button' class='btn btn-primary' id='addPlayerButton') Add Player
+							button(type='submit' class='btn btn-primary' id='addPlayerButton') Add Player
