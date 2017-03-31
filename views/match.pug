@@ -81,7 +81,7 @@ block scripts
 
 			$('#seeScoresButton').click(function() {
 				$('#scoresModal').modal('show');
-			});	
+			});
 			$('#cancelMatchButton').click(function() {
 				executeDelete(window.location.pathname + '/cancel',
 					function(response) {
@@ -157,8 +157,8 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='54') 18<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='51') 17<br/>...
 				tr
-					td(rowspan='2')
-						button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='25') Bull<br/>.
+					td(rowspan='2' style='height:100%')
+						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-double' title='25') Bull<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='16') 16<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='15') 15<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='14') 14<br/>.
@@ -185,8 +185,8 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='30') 10<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27') 9<br/>...
 				tr
-					td(rowspan='2')
-						button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='50') Bull<br/>..
+					td(rowspan='2' style='height:100%')
+						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-triple' title='50') Bull<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8') 8<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='7') 7<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='6') 6<br/>.
