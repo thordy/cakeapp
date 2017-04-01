@@ -1,5 +1,5 @@
 extends layout.pug
-	
+
 block content
 	h1 Cake Darts Scorer
 	p.
@@ -17,8 +17,8 @@ block content
 						legend Players
 						each player in players
 							div(class='form-check')
-								input(type='checkbox' name='players' class='form-check-input' id=player.id value=player.id)
-								label(class='form-check-label')= player.name
+								input(type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
+								label(class='form-check-label' for='checkbox_player' + player.id)= player.name
 
 					div(class='form-group')
 						label(for='matchTypeSelect') Starting Score
@@ -29,7 +29,7 @@ block content
 					div(class='form-group')
 						label(for='matchStakeSelect') Match Stake
 						select(class='form-control' name='matchStake' id='matchStakeSelect')
-							option(value=undefined) - 
+							option(value=undefined) -
 							option Cake
 							option Beer
 

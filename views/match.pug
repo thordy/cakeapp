@@ -8,9 +8,8 @@ block scripts
 			    window.darts_thrown = 0;
 			});
 
-			$('#score_selector_table tr :button').click(function () {
+			$('#score_selector_table .throw_buttons :button').click(function () {
 				var scoreButton = $(this);
-
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -27,15 +26,16 @@ block scripts
 				}
 
 				var clonedButton = scoreButton.clone();
-				dart.text('').append(clonedButton);
+				dart.text(clonedButton.attr('title'));
+
 				updateScore();
 				window.darts_thrown++;
 			});
 
 			$('#submitScoreButton').click(function() {
-				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
-				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
-				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
+				var firstScoreNumeric = parseInt($('#first').text());
+				var secondScoreNumeric = parseInt($('#second').text());
+				var thirdScoreNumeric = parseInt($('#third').text());
 
 				var match = $(this).data('match');
 
@@ -59,12 +59,10 @@ block scripts
 			});
 
 			$('#undoButton').click(function() {
-				if (window.darts_thrown > 0) {
-					window.darts_thrown--;
-				}
-				else {
+				if (window.darts_thrown < 1) {
 					return;
 				}
+				window.darts_thrown--;
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -83,6 +81,7 @@ block scripts
 				$('#scoresModal').modal('show');
 			});
 			$('#cancelMatchButton').click(function() {
+				// TODO Confirm dialog?
 				executeDelete(window.location.pathname + '/cancel',
 					function(response) {
 						location.href = '/match/list';
@@ -96,17 +95,16 @@ block scripts
 			});
 
 			function updateScore(){
-				var firstScoreNumeric = parseInt($('#first :button').attr('title'));
-				var secondScoreNumeric = parseInt($('#second :button').attr('title'));
-				var thirdScoreNumeric = parseInt($('#third :button').attr('title'));
+				var firstScoreNumeric = parseInt($('#first').text());
+				var secondScoreNumeric = parseInt($('#second').text());
+				var thirdScoreNumeric = parseInt($('#third').text());
 
 				var firstDartScore = firstScoreNumeric ? firstScoreNumeric : 0;
 				var secondDartScore = secondScoreNumeric ? secondScoreNumeric : 0;
 				var thirdDartScore = thirdScoreNumeric ? thirdScoreNumeric : 0;
 
-				// Summarize
 				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
-				$('#total').html(totalScore + "<br/>&nbsp;");
+				$('#total').text(totalScore);
 			}
 		});
 
@@ -115,34 +113,36 @@ block content
 		Unable to cancel match
 
 	h2= 'Match'
-	div
-		p Players
-		ol
-			each player in players
-				li(id='player_' + player)= player.name + ' [' + player.current_score + ']'
-
-	table(id='thrown_table' class='table')
-		thead
-			tr(class='row')
-				th: p First
-				th: p Second
-				th: p Third
-				th: p Total
-				th: p
-		tbody
-			tr(class='row')
-				td: label(id='first' text='0')
-				td: label(id='second' text='0')
-				td: label(id='third'  text='0')
-				td: button(id='total' text='0' class='btn btn-lg btn-success') 0<br/>&nbsp;
-				td: button(id='submitScoreButton' type='button' class='btn-score btn-info btn-lg btn-block' data-match=match) Submit
-				td: button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block') &nbsp;
-					span(class='glyphicon glyphicon-arrow-left' aria-hidden='true')
-
 	div(class='table-responsive')
 		table(id='score_selector_table' class='table')
+			thead
+				tr(class='row')
+					th
+					th(colspan='2') First
+					th(colspan='2') Second
+					th(colspan='2') Third
+					th(colspan='2') Total
+					th(colspan='2') Submit
+					th(colspan='2')
 			tbody
-				tr
+				tr(class='row')
+					td
+					td(colspan='2'): label(id='first' text='0')
+					td(colspan='2'): label(id='second' text='0')
+					td(colspan='2'): label(id='third' text='0')
+					td(colspan='2'): label(id='total' text='0') 0
+					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match=match) Submit
+					td(colspan='2')
+						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
+							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
+				tr(class='row')
+					td
+					- var length = 12 / Object.keys(players).length
+					each player in players
+						td(colspan=length)
+							label= player.name + ' ' + player.current_score
+
+				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0') Miss<br/>&nbsp;
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20') 20<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='19') 19<br/>.
@@ -156,7 +156,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='57') 19<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='54') 18<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='51') 17<br/>...
-				tr
+				tr(class='throw_buttons row')
 					td(rowspan='2' style='height:100%')
 						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-double' title='25') Bull<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='16') 16<br/>.
@@ -171,7 +171,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='45') 15<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='42') 14<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='39') 13<br/>...
-				tr
+				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='12') 12<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='11') 11<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='10') 10<br/>.
@@ -184,7 +184,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='33') 11<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='30') 10<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27') 9<br/>...
-				tr
+				tr(class='throw_buttons row')
 					td(rowspan='2' style='height:100%')
 						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-triple' title='50') Bull<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8') 8<br/>.
@@ -199,7 +199,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='21') 7<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='18') 6<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='15') 5<br/>...
-				tr
+				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='4') 4<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='3') 3<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='2') 2<br/>.

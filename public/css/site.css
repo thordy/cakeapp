@@ -17,16 +17,35 @@
 
 #score_selector_table {
 	border-spacing: 0px;
-
-
 }
 
 #score_selector_table td {
 	padding: 0px;
 	border: 1px solid #000;
+	vertical-align: middle;
 }
+
 #score_selector_table button {
 	border: 0;
 	border-radius: 0;
 	line-height: 0.8;
+	padding: 10px;
+}
+
+#thrown_table td {
+	padding: 0px;
+}
+#thrown_table button {
+	border: 0;
+	border-radius: 0;
+	line-height: 0.8;
+}
+
+#score_selector_table label {
+    display: block;
+    text-align: center;
+}
+
+a:hover {
+	cursor:pointer;
 }
