@@ -3,10 +3,6 @@ var bodyParser = require('body-parser');
 var app = express();
 var helper = require('./helpers.js');
 
-// Setup mongoose and database connection
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/darts');
-
 // Register all the routes
 var matchController = require('./controller/match_controller');
 var cakeController = require('./controller/owes_controller');
@@ -19,31 +15,31 @@ app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 
-/* Default route serving index.pug page */
+/** Entry point for application, main route */
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
-  Player.find({}, function(err, players) {
-    if (err) {
-      return helper.renderError(res, err);
-    }
-    res.render('index', {players: players});
-  });
+	Player.fetchAll().then(function(players) {
+		res.render('index', { players: players.serialize() });
+	})
+  .catch(function(err) {
+    helper.renderError(res, err);
+	});
 });
 
-/* Catch all route used to display custom 404 page */
+// Catch all route used to display custom 404 page
 app.use(function(req, res, next){
   res.status(404);
 
   // respond with html page
   if (req.accepts('html')) {
-    res.render('404', { url: req.url });
-    return;
+	res.render('404', { url: req.url });
+	return;
   }
 
   // respond with json
   if (req.accepts('json')) {
-    res.send({ error: 'Not found' });
-    return;
+	res.send({ error: 'Not found' });
+	return;
   }
 
   // default to plain-text. send()
@@ -53,5 +49,3 @@ app.use(function(req, res, next){
 app.listen(3000, function () {
   console.log('Cakeapp listening on port 3000')
 });
-
-

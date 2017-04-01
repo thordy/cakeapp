@@ -1,17 +1,25 @@
-# CakeApp
-Playground for NodeJS, Express and MongoDB
+# DartApp
+Playground for NodeJS, Express and Sqlite3
 
 ## Requirements
-NodeJS, MongoDB
+npm, nodejs\
+Application uses bookshelf.js library as ORM for node.js and Knex query builder.
 
 ## Installation
-
-### MongoDB
-* Download and install the latest version of [MongoDB](https://www.mongodb.com/)
-* Run the following command (make sure `data/db` directory exists): `mongod --dbpath data/db` 
-
-### Node 
 `npm install`
 
+## How to run the app
 `node app.js`
+
+## Database migration
+DB migration is handled by knex. Scripts are stored in migrations subdirectory.
+You may want to set up knex to run globally first
+
+`npm install -g knex`
+
+To migrate database simply run
+
+`knex migrate:latest --env development`
+
+http://perkframework.com/v1/guides/database-migrations-knex.html
 

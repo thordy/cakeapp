@@ -1,20 +1,13 @@
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.ObjectId;
+'use strict';
+var bookshelf = require('../bookshelf');
+bookshelf.plugin('registry');
 
-var Match = mongoose.model('Match');
-var Player = mongoose.model('Player');
+var Match = require('./Match');
 
-var scoreSchema = new Schema({
-    match: {type: ObjectId, ref: 'Match', required: true, unique: false},
-    player: {type: ObjectId, ref: 'Player', required: true, unique: false},
-    firstDart: { type: Number, min: 0, max: 60, default: 0, required: true },
-    secondDart: { type: Number, min: 0, max: 60, default: 0, required: true },
-    thirdDart: { type: Number, min: 0, max: 60, default: 0, required: true }
-},
-{
-	timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
+var Score = bookshelf.Model.extend({
+    tableName: 'score',
+    match: function() {
+        return this.belongsTo('Match', 'id');
+    }
 });
-
-var Score = mongoose.model('Score', scoreSchema);
-module.exports = Score;
+module.exports = bookshelf.model('Score', Score);
