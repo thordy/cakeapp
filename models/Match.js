@@ -20,5 +20,8 @@ var Match = bookshelf.Model.extend({
     scores: function() {
         return this.hasMany('Score');
     }
+},
+{
+  dependents: ['players']
 });
 module.exports = bookshelf.model('Match', Match);

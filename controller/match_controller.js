@@ -55,8 +55,8 @@ router.get('/:id', function (req, res) {
                 var score = scores[i];
                 var player = playerScores[score.player_id];
                 player.scores.push(score);
-                player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) + 
-                    (score.second_dart * score.second_dart_multiplier) + 
+                player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) +
+                    (score.second_dart * score.second_dart_multiplier) +
                     (score.third_dart * score.third_dart_multiplier));
             }
             match.scores = scores;
@@ -170,14 +170,14 @@ router.post('/:id/throw', function (req, res) {
 
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
-    Match.remove({_id: req.params.id}, function (err) {
-        if (err) {
-            return helper.renderError(res, err);
-        }
-        res.status(204)
-            .send()
-            .end();
-    });
+    Match.forge({ id: req.params.id })
+        .destroy()
+        .then(function (match) {
+            console.log("Cancelled match: " + req.params.id);
+            res.status(204)
+                .send()
+                .end();
+        });
 });
 
 /* Method to finalize a match */
