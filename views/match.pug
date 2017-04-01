@@ -4,12 +4,14 @@ block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
 		$(function () {
+			var scores = { };
+
 			$( document ).ready(function() {
 			    window.darts_thrown = 0;
 			});
 
 			$('#score_selector_table .throw_buttons :button').click(function () {
-				var scoreButton = $(this);
+				
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -24,11 +26,14 @@ block scripts
 					alert('Please submit previous score!');
 					return;
 				}
+				dart.text($(this).attr('title'));
 
-				var clonedButton = scoreButton.clone();
-				dart.text(clonedButton.attr('title'));
-
-				updateScore();
+				var currentPlayer = $('#current_player');
+				var currentPlayerScore = parseInt(currentPlayer.text());
+				var scoreNumeric = parseInt($(this).attr('title'));
+				var dartScore = scoreNumeric ? scoreNumeric : 0;
+				currentPlayer.text(currentPlayerScore - scoreNumeric);
+				scores[window.darts_thrown] = dartScore;
 				window.darts_thrown++;
 			});
 
@@ -62,7 +67,12 @@ block scripts
 				if (window.darts_thrown < 1) {
 					return;
 				}
+
+				var currentPlayer = $('#current_player');
+				var currentPlayerScore = parseInt(currentPlayer.text());
 				window.darts_thrown--;
+				currentPlayer.text(currentPlayerScore + scores[window.darts_thrown]);
+
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -73,8 +83,7 @@ block scripts
 				else if (window.darts_thrown === 2) {
 					dart = $('#third');
 				}
-				dart.text('');
-				updateScore();
+				dart.text('');				
 			});
 
 			$('#seeScoresButton').click(function() {
@@ -93,19 +102,6 @@ block scripts
 					}
 				);
 			});
-
-			function updateScore(){
-				var firstScoreNumeric = parseInt($('#first').text());
-				var secondScoreNumeric = parseInt($('#second').text());
-				var thirdScoreNumeric = parseInt($('#third').text());
-
-				var firstDartScore = firstScoreNumeric ? firstScoreNumeric : 0;
-				var secondDartScore = secondScoreNumeric ? secondScoreNumeric : 0;
-				var thirdDartScore = thirdScoreNumeric ? thirdScoreNumeric : 0;
-
-				var totalScore = firstDartScore + secondDartScore + thirdDartScore;
-				$('#total').text(totalScore);
-			}
 		});
 
 block content
@@ -117,31 +113,34 @@ block content
 		table(id='score_selector_table' class='table')
 			thead
 				tr(class='row')
-					th
+					th(colspan='3')
 					th(colspan='2') First
 					th(colspan='2') Second
 					th(colspan='2') Third
-					th(colspan='2') Total
 					th(colspan='2') Submit
 					th(colspan='2')
 			tbody
 				tr(class='row')
-					td
+					td(colspan='3')
 					td(colspan='2'): label(id='first' text='0')
 					td(colspan='2'): label(id='second' text='0')
 					td(colspan='2'): label(id='third' text='0')
-					td(colspan='2'): label(id='total' text='0') 0
 					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match=match) Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
 							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
+				- var length = 12 / Object.keys(players).length
 				tr(class='row')
 					td
-					- var length = 12 / Object.keys(players).length
 					each player in players
 						td(colspan=length)
-							label= player.name + ' ' + player.current_score
-
+							font(size='5')
+								label(class='label label-danger label-block' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
+				tr(class='row')
+					td
+					each player in players
+						td(colspan=length)
+							label(id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0') Miss<br/>&nbsp;
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20') 20<br/>.

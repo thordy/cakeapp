@@ -24,7 +24,6 @@ router.get('/list', function (req, res) {
     new Matches()
         .fetch({withRelated: 'players'})
         .then(function (match) {
-            console.log(match);
             res.render('matches', {matches: match.serialize()});
         })
         .catch(function (err) {
@@ -47,6 +46,7 @@ router.get('/:id', function (req, res) {
                 playerScores[player.id] = {
                     name: player.name,
                     current_score: match.starting_score,
+                    current: player.id === match.current_player_id ? true : false,
                     scores: []
                 };
             }
