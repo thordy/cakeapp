@@ -15,176 +15,213 @@ router.use(bodyParser.urlencoded({extended: true}));
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
 
-    // Get collection of matches
-    var Matches = Bookshelf.Collection.extend({
-        model: Match
-    });
+	// Get collection of matches
+	var Matches = Bookshelf.Collection.extend({
+		model: Match
+	});
 
-    // Fetch related players
-    new Matches()
-        .fetch({withRelated: 'players'})
-        .then(function (match) {
-            res.render('matches', {matches: match.serialize()});
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+	// Fetch related players
+	new Matches()
+		.fetch({withRelated: 'players'})
+		.then(function (match) {
+			res.render('matches', {matches: match.serialize()});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-    new Match({id: req.params.id})
-        .fetch({withRelated: ['players', 'scores'] })
-        .then(function (match) {
-            var players = match.related('players').serialize();
-            var scores = match.related('scores').serialize();
-            var match = match.serialize();
+	new Match({id: req.params.id})
+		.fetch({withRelated: ['players', 'scores', 'player2match'] })
+		.then(function (match) {
+			var players = match.related('players').serialize();
+			var scores = match.related('scores').serialize();
+			var match = match.serialize();
 
-            var playerScores = {};
-            for (var i = 0; i < players.length; i++){
-                var player = players[i];
-                playerScores[player.id] = {
-                    name: player.name,
-                    current_score: match.starting_score,
-                    current: player.id === match.current_player_id ? true : false,
-                    scores: []
-                };
-            }
+			var playerScores = {};
+			for (var i = 0; i < players.length; i++){
+				var player = players[i];
+				playerScores[player.id] = {
+					name: player.name,
+					current_score: match.starting_score,
+					current: player.id === match.current_player_id ? true : false,
+					scores: []
+				};
+			}
 
-            for (var i = 0; i < scores.length; i++) {
-                var score = scores[i];
-                var player = playerScores[score.player_id];
-                player.scores.push(score);
-                player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) +
-                    (score.second_dart * score.second_dart_multiplier) +
-                    (score.third_dart * score.third_dart_multiplier));
-            }
-            match.scores = scores;
+			for (var i = 0; i < scores.length; i++) {
+				var score = scores[i];
+				var player = playerScores[score.player_id];
+				player.scores.push(score);
+				player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) +
+					(score.second_dart * score.second_dart_multiplier) +
+					(score.third_dart * score.third_dart_multiplier));
+			}
+			match.scores = scores;
 
-            res.render('match', {
-                match: match,
-                players: playerScores
-            });
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+			res.render('match', {
+				match: match,
+				players: playerScores
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
-    Match.findById(req.params.id)
-        .populate('players')
-        .populate('winner')
-        .exec(function (err, match) {
-            if (err) {
-                return helper.renderError(res, err);
-            }
-            Score.find({match: match._id})
-                .populate('player')
-                .exec(function (err, scores) {
-                    if (err) {
-                        return helper.renderError(res, err);
-                    }
-                    match.scores = scores;
-                    res.render('results', {match: match});
-                });
-        });
+	Match.findById(req.params.id)
+		.populate('players')
+		.populate('winner')
+		.exec(function (err, match) {
+			if (err) {
+				return helper.renderError(res, err);
+			}
+			Score.find({match: match._id})
+				.populate('player')
+				.exec(function (err, scores) {
+					if (err) {
+						return helper.renderError(res, err);
+					}
+					match.scores = scores;
+					res.render('results', {match: match});
+				});
+		});
 });
 
 /* Method for starting a new match */
 router.post('/new', function (req, res) {
-    if (req.body.players === undefined) {
-        console.log('No players specified, unable to start match');
-        return res.redirect('/');
-    }
+	if (req.body.players === undefined) {
+		console.log('No players specified, unable to start match');
+		return res.redirect('/');
+	}
 
-    // Get first player in the list, order should be handled in frontend
-    var currentPlayerId = req.body.players[0];
+	// Get first player in the list, order should be handled in frontend
+	var currentPlayerId = req.body.players[0];
 
-    new Match({
-        starting_score: req.body.matchType,
-        current_player_id: currentPlayerId
-    })
-        .save(null, {method: 'insert'})
-        .then(function (match) {
-            console.log('Created match: ' + match.id);
+	new Match({
+		starting_score: req.body.matchType,
+		current_player_id: currentPlayerId
+	})
+		.save(null, {method: 'insert'})
+		.then(function (match) {
+			console.log('Created match: ' + match.id);
 
-            var playersArray = req.body.players;
-            var playerOrder = 1;
-            var playersInMatch = [];
-            for (var i in playersArray) {
-                playersInMatch.push({
-                    player_id: playersArray[i],
-                    match_id: match.id,
-                    order: playerOrder
-                });
-                playerOrder++;
-            }
+			var playersArray = req.body.players;
+			var playerOrder = 1;
+			var playersInMatch = [];
+			for (var i in playersArray) {
+				playersInMatch.push({
+					player_id: playersArray[i],
+					match_id: match.id,
+					order: playerOrder
+				});
+				playerOrder++;
+			}
 
-            Bookshelf
-                .knex('player2match')
-                .insert(playersInMatch)
-                .then(function (rows) {
-                    console.log('Added players: ' + playersInMatch);
-                    res.redirect('/match/' + match.id);
-                })
-                .catch(function (err) {
-                    helper.renderError(res, err);
-                });
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+			Bookshelf
+				.knex('player2match')
+				.insert(playersInMatch)
+				.then(function (rows) {
+					console.log('Added players: ' + playersInMatch);
+					res.redirect('/match/' + match.id);
+				})
+				.catch(function (err) {
+					helper.renderError(res, err);
+				});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 /* Method to register three thrown darts */
 router.post('/:id/throw', function (req, res) {
-    // Assign those values to vars since they will be used in other places
-    var matchId = req.body.matchId;
-    var playerId = req.body.playerId;
-    var firstDartScore = req.body.firstDart;
-    var secondDartScore = req.body.secondDart;
-    var thirdDartScore = req.body.thirdDart;
+	// Assign those values to vars since they will be used in other places
+	var matchId = req.body.matchId;
+	var currentPlayerId = req.body.playerId;
+	var firstDartScore = req.body.firstDart;
+	var secondDartScore = req.body.secondDart;
+	var thirdDartScore = req.body.thirdDart;
+	var firstDartMultiplier = req.body.firstDartMultiplier;
+	var secondDartMultiplier = req.body.secondDartMultiplier;
+	var thirdDartMultiplier = req.body.thirdDartMultiplier;
 
-    // Insert new score
-    var score = new Score({
-        match: matchId,
-        player: playerId,
-        firstDart: firstDartScore,
-        secondDart: secondDartScore,
-        thirdDart: thirdDartScore
-    });
+	var playersInMatch = req.body.playersInMatch;
 
-    // TODO substract scored points from player's score in the match
+	// We might as well load the player2match model in here for given match id
+	var numPlayers = playersInMatch.length;
+	var currentPlayerOrder = 1;
+	var playersArray = {};
 
-    // TODO change current player in match
+	for (var i = 0; i < playersInMatch.length; i++){
+		var player = playersInMatch[i];
+		if (player.player_id === currentPlayerId) {
+			currentPlayerOrder = player.order;
+		}
+		playersArray[parseInt(player.order)] = {
+			playerId: player.player_id
+		};
+	}
 
-    score.save(function (err) {
-        if (err) {
-            return helper.renderError(res, err);
-        }
-        res.redirect('/match/' + matchId);
-    });
+	var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
+	var nextPlayerId = playersArray[nextPlayerOrder].playerId;
+
+    // TODO should we double check if the match is ended here ?
+
+    // Insert new score and change current player in match
+	new Score({
+			match_id: matchId,
+			player_id: currentPlayerId,
+			first_dart: firstDartScore,
+			second_dart: secondDartScore,
+			third_dart: thirdDartScore,
+			first_dart_multiplier: firstDartMultiplier,
+			second_dart_multiplier: secondDartMultiplier,
+			third_dart_multiplier: thirdDartMultiplier
+		}
+	)
+		.save(null, {method: 'insert'})
+		.then(function(row) {
+			console.log('Added score for player ' + currentPlayerId);
+
+			// TODO change current player, maybe check what round is that ?
+			new Match({
+				id: matchId
+			})
+				.save({current_player_id: nextPlayerId})
+				.then(function (match) {
+					res.redirect('/match/' + matchId);
+				})
+				.catch(function (err) {
+					helper.renderError(res, err);
+				});
+		})
+		.catch(function(err) {
+			return helper.renderError(res, err);
+		});
 });
 
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
-    Match.forge({ id: req.params.id })
-        .destroy()
-        .then(function (match) {
-            console.log("Cancelled match: " + req.params.id);
-            res.status(204)
-                .send()
-                .end();
-        });
+	Match.forge({ id: req.params.id })
+		.destroy()
+		.then(function (match) {
+			console.log("Cancelled match: " + req.params.id);
+			res.status(204)
+				.send()
+				.end();
+		});
 });
 
 /* Method to finalize a match */
 router.post('/finish', function (req, res) {
-    res.status(202)
-        .send('Not Yet Implemented')
-        .end();
+	res.status(202)
+		.send('Not Yet Implemented')
+		.end();
 });
 
 module.exports = router

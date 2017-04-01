@@ -17,8 +17,11 @@ var Match = bookshelf.Model.extend({
     players: function() {
         return this.belongsToMany(Player, 'id').through(Player2Match, 'match_id');
     },
+    player2match: function() {
+        return this.hasMany(Player2Match);
+    },
     scores: function() {
-        return this.hasMany('Score');
+        return this.hasMany(Score);
     }
 },
 {
