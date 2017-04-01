@@ -14,17 +14,26 @@ router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all matches */
 router.get('/list', function (req, res) {
-
 	// Get collection of matches
-	var Matches = Bookshelf.Collection.extend({
-		model: Match
-	});
+	var Matches = Bookshelf.Collection.extend({ model: Match });
 
 	// Fetch related players
 	new Matches()
 		.fetch({withRelated: 'players'})
-		.then(function (match) {
-			res.render('matches', {matches: match.serialize()});
+		.then(function (rows) {
+            var matches = rows.serialize();
+            var players = {};
+            for (var i = 0; i < matches.length; i++) {
+                var match = matches[i];
+                for (var i = 0; i < match.players.length; i++){
+                    var player = match.players[i];
+                    players[player.id] = { name: player.name }
+                }
+            }
+			res.render('matches', {
+                matches: matches,
+                players: players
+            });
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
@@ -48,7 +57,7 @@ router.get('/:id', function (req, res) {
 					current_score: match.starting_score,
 					current: player.id === match.current_player_id ? true : false,
 					scores: []
-				};
+				}
 			}
 
 			for (var i = 0; i < scores.length; i++) {
@@ -73,23 +82,50 @@ router.get('/:id', function (req, res) {
 
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
-	Match.findById(req.params.id)
-		.populate('players')
-		.populate('winner')
-		.exec(function (err, match) {
-			if (err) {
-				return helper.renderError(res, err);
-			}
-			Score.find({match: match._id})
-				.populate('player')
-				.exec(function (err, scores) {
-					if (err) {
-						return helper.renderError(res, err);
-					}
-					match.scores = scores;
-					res.render('results', {match: match});
-				});
-		});
+    new Match({id: req.params.id})
+        .fetch({withRelated: ['players', 'scores', 'player2match'] })
+        .then(function (match) {
+            var players = match.related('players').serialize();
+            var scores = match.related('scores').serialize();
+            var match = match.serialize();
+
+            var playerStatistics = {};
+            for (var i = 0; i < players.length; i++){
+                var player = players[i];
+                // TODO Calculate ppd, first 9 etc.
+                playerStatistics[player.id] = {
+                    id: player.id,
+                    name: player.name,
+                    ppd: 0,
+                    first9ppd: 0,
+                    totalScore: 0,
+                    visits: 0,
+                    scores: []
+                };
+            }
+            for (var i = 0; i < scores.length; i++) {
+                var score = scores[i];
+                var player = playerStatistics[score.player_id];
+                player.visits += 1;
+                player.totalScore += (score.first_dart * score.first_dart_multiplier) +
+                    (score.second_dart * score.second_dart_multiplier) +
+                    (score.third_dart * score.third_dart_multiplier);
+                player.scores.push(score);
+            }
+
+            for (var i = 0; i < players.length; i++){
+                var player = playerStatistics[players[i].id];
+                player.ppd = player.totalScore / (player.visits * 3);
+            }            
+            res.render('results', {
+                match: match,
+                scores: scores,
+                players: playerStatistics
+            });
+        })
+        .catch(function (err) {
+            helper.renderError(res, err);
+        });
 });
 
 /* Method for starting a new match */
