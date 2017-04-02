@@ -21,19 +21,19 @@ router.get('/list', function (req, res) {
 	new Matches()
 		.fetch({withRelated: 'players'})
 		.then(function (rows) {
-            var matches = rows.serialize();
-            var players = {};
-            for (var i = 0; i < matches.length; i++) {
-                var match = matches[i];
-                for (var i = 0; i < match.players.length; i++){
-                    var player = match.players[i];
-                    players[player.id] = { name: player.name }
-                }
-            }
+			var matches = rows.serialize();
+			var players = {};
+			for (var i = 0; i < matches.length; i++) {
+				var match = matches[i];
+				for (var i = 0; i < match.players.length; i++){
+					var player = match.players[i];
+					players[player.id] = { name: player.name }
+				}
+			}
 			res.render('matches', {
-                matches: matches,
-                players: players
-            });
+				matches: matches,
+				players: players
+			});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
@@ -43,7 +43,17 @@ router.get('/list', function (req, res) {
 /* Render the match view */
 router.get('/:id', function (req, res) {
 	new Match({id: req.params.id})
-		.fetch({withRelated: ['players', 'scores', 'player2match'] })
+		.fetch({
+			withRelated: [
+				'players',
+				{
+					'scores' : function (qb) {
+						qb.where('is_bust', '0');
+					}
+				},
+				'player2match'
+			]
+		})
 		.then(function (match) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
@@ -82,50 +92,50 @@ router.get('/:id', function (req, res) {
 
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
-    new Match({id: req.params.id})
-        .fetch({withRelated: ['players', 'scores', 'player2match'] })
-        .then(function (match) {
-            var players = match.related('players').serialize();
-            var scores = match.related('scores').serialize();
-            var match = match.serialize();
+	new Match({id: req.params.id})
+		.fetch({withRelated: ['players', 'scores', 'player2match'] })
+		.then(function (match) {
+			var players = match.related('players').serialize();
+			var scores = match.related('scores').serialize();
+			var match = match.serialize();
 
-            var playerStatistics = {};
-            for (var i = 0; i < players.length; i++){
-                var player = players[i];
-                // TODO Calculate ppd, first 9 etc.
-                playerStatistics[player.id] = {
-                    id: player.id,
-                    name: player.name,
-                    ppd: 0,
-                    first9ppd: 0,
-                    totalScore: 0,
-                    visits: 0,
-                    scores: []
-                };
-            }
-            for (var i = 0; i < scores.length; i++) {
-                var score = scores[i];
-                var player = playerStatistics[score.player_id];
-                player.visits += 1;
-                player.totalScore += (score.first_dart * score.first_dart_multiplier) +
-                    (score.second_dart * score.second_dart_multiplier) +
-                    (score.third_dart * score.third_dart_multiplier);
-                player.scores.push(score);
-            }
+			var playerStatistics = {};
+			for (var i = 0; i < players.length; i++){
+				var player = players[i];
+				// TODO Calculate ppd, first 9 etc.
+				playerStatistics[player.id] = {
+					id: player.id,
+					name: player.name,
+					ppd: 0,
+					first9ppd: 0,
+					totalScore: 0,
+					visits: 0,
+					scores: []
+				};
+			}
+			for (var i = 0; i < scores.length; i++) {
+				var score = scores[i];
+				var player = playerStatistics[score.player_id];
+				player.visits += 1;
+				player.totalScore += (score.first_dart * score.first_dart_multiplier) +
+					(score.second_dart * score.second_dart_multiplier) +
+					(score.third_dart * score.third_dart_multiplier);
+				player.scores.push(score);
+			}
 
-            for (var i = 0; i < players.length; i++){
-                var player = playerStatistics[players[i].id];
-                player.ppd = player.totalScore / (player.visits * 3);
-            }            
-            res.render('results', {
-                match: match,
-                scores: scores,
-                players: playerStatistics
-            });
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+			for (var i = 0; i < players.length; i++){
+				var player = playerStatistics[players[i].id];
+				player.ppd = player.totalScore / (player.visits * 3);
+			}
+			res.render('results', {
+				match: match,
+				scores: scores,
+				players: playerStatistics
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 /* Method for starting a new match */
@@ -185,6 +195,7 @@ router.post('/:id/throw', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
+	var isBust = req.body.isBust;
 
 	var playersInMatch = req.body.playersInMatch;
 
@@ -206,9 +217,9 @@ router.post('/:id/throw', function (req, res) {
 	var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
 	var nextPlayerId = playersArray[nextPlayerOrder].playerId;
 
-    // TODO should we double check if the match is ended here ?
+	// TODO should we double check if the match is ended here ?
 
-    // Insert new score and change current player in match
+	// Insert new score and change current player in match
 	new Score({
 			match_id: matchId,
 			player_id: currentPlayerId,
@@ -217,14 +228,15 @@ router.post('/:id/throw', function (req, res) {
 			third_dart: thirdDartScore,
 			first_dart_multiplier: firstDartMultiplier,
 			second_dart_multiplier: secondDartMultiplier,
-			third_dart_multiplier: thirdDartMultiplier
+			third_dart_multiplier: thirdDartMultiplier,
+			is_bust: isBust,
 		}
 	)
 		.save(null, {method: 'insert'})
 		.then(function(row) {
 			console.log('Added score for player ' + currentPlayerId);
 
-			// TODO change current player, maybe check what round is that ?
+			// Change current player, maybe check what round is that ?
 			new Match({
 				id: matchId
 			})
@@ -254,10 +266,56 @@ router.delete('/:id/cancel', function (req, res) {
 });
 
 /* Method to finalize a match */
-router.post('/finish', function (req, res) {
-	res.status(202)
-		.send('Not Yet Implemented')
-		.end();
+router.post('/:id/finish', function (req, res) {
+	console.log('Game finished');
+
+	// Assign those values to vars since they will be used in other places
+	var matchId = req.body.matchId;
+	var currentPlayerId = req.body.playerId;
+	var firstDartScore = req.body.firstDart;
+	var secondDartScore = req.body.secondDart;
+	var thirdDartScore = req.body.thirdDart;
+	var firstDartMultiplier = req.body.firstDartMultiplier;
+	var secondDartMultiplier = req.body.secondDartMultiplier;
+	var thirdDartMultiplier = req.body.thirdDartMultiplier;
+
+	// Insert new score and change current player in match
+	new Score({
+			match_id: matchId,
+			player_id: currentPlayerId,
+			first_dart: firstDartScore,
+			second_dart: secondDartScore,
+			third_dart: thirdDartScore,
+			first_dart_multiplier: firstDartMultiplier,
+			second_dart_multiplier: secondDartMultiplier,
+			third_dart_multiplier: thirdDartMultiplier,
+		}
+	)
+		.save(null, {method: 'insert'})
+		.then(function(row) {
+			console.log('Added finishing score for player ' + currentPlayerId);
+
+			// Update match with winner
+			new Match({
+				id: matchId
+			})
+				.save({
+					current_player_id: currentPlayerId,
+					is_finished: true,
+					winner_id: currentPlayerId,
+					end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
+				})
+				.then(function (match) {
+					console.log('Redirecting to results');
+					res.redirect('/match/' + matchId + '/results');
+				})
+				.catch(function (err) {
+					helper.renderError(res, err);
+				});
+		})
+		.catch(function(err) {
+			return helper.renderError(res, err);
+		});
 });
 
 module.exports = router

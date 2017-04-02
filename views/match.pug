@@ -34,9 +34,75 @@ block scripts
 				var currentPlayerScore = parseInt(currentPlayer.text());
 				var scoreNumeric = parseInt($(this).attr('title'));
 				var dartScore = scoreNumeric ? scoreNumeric : 0;
-				currentPlayer.text(currentPlayerScore - scoreNumeric);
-				scores[window.darts_thrown] = dartScore;
-				window.darts_thrown++;
+
+				var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
+
+				var isBust = false;
+
+				// Is the game over
+				if (scoreAfterThrow == 0) {
+					if (multiplier == 2) {
+						console.log('Game finished');
+
+						var firstScoreNumeric = parseInt($('#first').text() / $('#first').attr('data-multiplier'));
+						var secondScoreNumeric = parseInt($('#second').text() / $('#second').attr('data-multiplier'));
+						var thirdScoreNumeric = parseInt($('#third').text() / $('#third').attr('data-multiplier'));
+						var firstScoreMultiplier = parseInt($('#first').attr('data-multiplier'));
+						var secondScoreMultiplier = parseInt($('#second').attr('data-multiplier'));
+						var thirdScoreMultiplier = parseInt($('#third').attr('data-multiplier'));
+
+						var submitButton = $('#submitScoreButton');
+
+						var matchId = submitButton.data('match-id');
+						var currentPlayerId = submitButton.data('current-player-id');
+
+						var data = JSON.stringify({
+							'matchId': matchId,
+							'playerId': currentPlayerId,
+							'firstDart': firstScoreNumeric,
+							'secondDart': secondScoreNumeric,
+							'thirdDart': thirdScoreNumeric,
+							'firstDartMultiplier': firstScoreMultiplier,
+							'secondDartMultiplier': secondScoreMultiplier,
+							'thirdDartMultiplier': thirdScoreMultiplier,
+						});
+						executePost(window.location.pathname + '/finish', data, 'application/json',
+							function (response) {
+								window.darts_thrown = 0; // Reset darts thrown
+								location.href = window.location.pathname;
+							},
+							function (error) {
+								// TODO Error handling
+								console.log("Unable to add score: " + error.responseText);
+							}
+						);
+						return;
+					} else {
+						isBust = true;
+					}
+				} else if (scoreAfterThrow == 1 || scoreAfterThrow < 0) {
+					isBust = true;
+				}
+
+				if (isBust) {
+					if (confirm('Bust')) {
+						// Bust, 'click' submit
+						var submitButton = $('#submitScoreButton');
+						submitButton.data('busted', 1).trigger('click');
+						return;
+					} else {
+						// Just in case someone made a mistake, go back to last dart
+						window.darts_thrown--;
+						// Revert the score
+						currentPlayer.text(parseInt(currentPlayer.text()) + scoreNumeric);
+						// Clear the score for thrown dart
+						dart.text('');
+					}
+				} else {
+					currentPlayer.text(scoreAfterThrow);
+					scores[window.darts_thrown] = dartScore;
+					window.darts_thrown++;
+				}
 			});
 
 			$('#submitScoreButton').click(function() {
@@ -50,6 +116,7 @@ block scripts
 				var matchId = $(this).data('match-id');
 				var currentPlayerId = $(this).data('current-player-id');
 				var playersInMatch = $(this).data('players-in-match');
+				var isBust = $(this).data('busted');
 
 				var data = JSON.stringify({
 					'matchId' : matchId,
@@ -60,7 +127,8 @@ block scripts
 					'firstDartMultiplier': firstScoreMultiplier,
 					'secondDartMultiplier': secondScoreMultiplier,
 					'thirdDartMultiplier': thirdScoreMultiplier,
-					'playersInMatch': playersInMatch
+					'playersInMatch': playersInMatch,
+					'isBust': isBust,
 				});
 				executePost(window.location.pathname + '/throw', data, 'application/json',
 					function(response) {
@@ -94,7 +162,7 @@ block scripts
 				else if (window.darts_thrown === 2) {
 					dart = $('#third');
 				}
-				dart.text('');				
+				dart.text('');
 			});
 
 			$('#seeScoresButton').click(function() {
@@ -136,7 +204,7 @@ block content
 					td(colspan='2'): label(id='first' text='0' data-multiplier='1')
 					td(colspan='2'): label(id='second' text='0' data-multiplier='1')
 					td(colspan='2'): label(id='third' text='0' data-multiplier='1')
-					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match) Submit
+					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0') Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
 							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
@@ -196,7 +264,7 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27' data-multiplier='3') 9<br/>...
 				tr(class='throw_buttons row')
 					td(rowspan='2' style='height:100%')
-						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-triple' title='50') Bull<br/>..
+						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-triple' title='50' data-multiplier='2') Bull<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8' data-multiplier='1') 8<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='7' data-multiplier='1') 7<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='6' data-multiplier='1') 6<br/>.
