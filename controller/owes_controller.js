@@ -1,19 +1,25 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
+var Bookshelf = require.main.require('./bookshelf.js');
 var Player = require.main.require('./models/Player');
+var Owe = require.main.require('./models/Owe');
+var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
 /* Method to get overview over who owes who what */
 router.get('/owes', function (req, res, next) {
-	Player.find({})
-		.sort('name')
-		.populate('owes.owee')
-		.exec(function (err, players) {
-			res.render('owes', {owes: players});
-	});
+	Owe.collection()
+		.fetch({ withRelated: ['player_ower', 'player_owee', 'owe_type'] })
+		.then(function (rows) {
+			var owes = rows.serialize();
+			res.render('owes', {owes: owes});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 /* Method to register a payback between two players */

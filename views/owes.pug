@@ -46,13 +46,12 @@ block content
 				th Item
 				th Amount
 		tbody
-			each player in owes
-				each owe in player.owes
-					tr
-						td= player.name
-						td= owe.owee.name
-						td= owe.item
-						td= owe.amount
+			each owe in owes
+				tr
+					td= owe.player_ower.name
+					td= owe.player_owee.name
+					td= owe.owe_type.item
+					td= owe.amount
 
 	h2 Payback Log
 	p This is an overview showing payback between players
@@ -81,7 +80,6 @@ block content
 						span(aria-hidden='true') &times;
 					h4(class='modal-title' id='registerPaybackModalLabel') Register Payback between two player
 				div(class='modal-body')
-					// form(id='paybackForm')
 					form(action='/cake/payback' method='PUT' id='paybackForm')
 						div(class='form-group')
 							p Ower
