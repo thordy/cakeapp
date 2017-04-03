@@ -25,8 +25,8 @@ router.get('/list', function (req, res) {
 			var players = {};
 			for (var i = 0; i < matches.length; i++) {
 				var match = matches[i];
-				for (var i = 0; i < match.players.length; i++){
-					var player = match.players[i];
+				for (var j = 0; j < match.players.length; j++){
+					var player = match.players[j];
 					players[player.id] = { name: player.name }
 				}
 			}
@@ -306,8 +306,7 @@ router.post('/:id/finish', function (req, res) {
 					end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 				})
 				.then(function (match) {
-					console.log('Redirecting to results');
-					res.redirect('/match/' + matchId + '/results');
+                    res.status(200).end();
 				})
 				.catch(function (err) {
 					helper.renderError(res, err);

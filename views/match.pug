@@ -11,7 +11,6 @@ block scripts
 			});
 
 			$('#score_selector_table .throw_buttons :button').click(function () {
-				
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -69,7 +68,7 @@ block scripts
 						executePost(window.location.pathname + '/finish', data, 'application/json',
 							function (response) {
 								window.darts_thrown = 0; // Reset darts thrown
-								location.href = window.location.pathname;
+								location.href = window.location.pathname + '/results';
 							},
 							function (error) {
 								// TODO Error handling
