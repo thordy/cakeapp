@@ -175,7 +175,8 @@ router.post('/new', function (req, res) {
 
 	new Match({
 		starting_score: req.body.matchType,
-		current_player_id: currentPlayerId
+		current_player_id: currentPlayerId,
+        created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
 		.save(null, {method: 'insert'})
 		.then(function (match) {
