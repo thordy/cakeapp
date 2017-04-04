@@ -98,7 +98,7 @@ router.get('/:id/results', function (req, res) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
 			var match = match.serialize();
-
+			console.log(match);
 			var playerStatistics = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
@@ -126,7 +126,7 @@ router.get('/:id/results', function (req, res) {
 				if (player.visits <= 3) {
 					player.first9Score += totalVisitScore;
 				}
-				if ((match.startingScore - totalVisitScore) > 170) {
+				if ((match.starting_score - totalVisitScore) > 170) {
 					player.ppdScore += totalVisitScore;
 				}
 				player.totalScore += totalVisitScore;
