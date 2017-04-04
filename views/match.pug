@@ -190,7 +190,7 @@ block content
 	div(class='table-responsive')
 		table(id='score_selector_table' class='table')
 			thead
-				tr(class='row')
+				tr(class='row no-border')
 					th(colspan='3')
 					th(colspan='2') First
 					th(colspan='2') Second
@@ -199,10 +199,10 @@ block content
 					th(colspan='2')
 			tbody
 				tr(class='row')
-					td(colspan='3')
-					td(colspan='2'): label(id='first' text='0' data-multiplier='1')
-					td(colspan='2'): label(id='second' text='0' data-multiplier='1')
-					td(colspan='2'): label(id='third' text='0' data-multiplier='1')
+					td(colspan='3' class='no-border')
+					td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1')
+					td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1')
+					td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1')
 					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0') Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
@@ -211,14 +211,14 @@ block content
 				tr(class='row')
 					td
 					each player in players
-						td(colspan=length)
-							font(size='5')
-								label(class='label label-danger label-block' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
-				tr(class='row')
-					td
-					each player in players
-						td(colspan=length)
-							label(id='label_player_name_' + player.name)= player.name
+						if player.id=player.current
+							td(colspan=length class='label-active-player')
+								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
+								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
+						else
+							td(colspan=length class='label-inactive-player')
+								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
+								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0' data-multiplier='1') Miss<br/>&nbsp;
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20' data-multiplier='1') 20<br/>.
@@ -234,8 +234,8 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='54' data-multiplier='3') 18<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='51' data-multiplier='3') 17<br/>...
 				tr(class='throw_buttons row')
-					td(rowspan='2' style='height:100%')
-						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-double' title='25' data-multiplier='1') Bull<br/>.
+					td(rowspan='2' style='height:100%; background-color: #ffe6cc;')
+						button(type='button' style='height:100%;overflow: auto;' class='btn-score btn-info btn-lg btn-block btn-double' title='25' data-multiplier='1') Bull<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='16' data-multiplier='1') 16<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='15' data-multiplier='1') 15<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='14' data-multiplier='1') 14<br/>.
@@ -262,8 +262,8 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='30' data-multiplier='3') 10<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27' data-multiplier='3') 9<br/>...
 				tr(class='throw_buttons row')
-					td(rowspan='2' style='height:100%')
-						button(type='button' style='height:100%' class='btn-score btn-info btn-lg btn-block btn-triple' title='50' data-multiplier='2') Bull<br/>..
+					td(rowspan='2' style='height:100%; background-color: #ffcc66;')
+						button(type='button' style='height:100%;' class='btn-score btn-info btn-lg btn-block btn-triple' title='50' data-multiplier='2') Bull<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8' data-multiplier='1') 8<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='7' data-multiplier='1') 7<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='6' data-multiplier='1') 6<br/>.

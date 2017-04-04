@@ -42,3 +42,41 @@
 a:hover {
 	cursor:pointer;
 }
+
+.dart-score-container {
+    padding: 3px !important;
+}
+
+.no-border {
+    border: none !important;
+}
+
+.dart-score-container label {
+    background-color: #404040;
+    color: #fff;
+    line-height: 2;
+    font-size: 15pt;
+}
+
+.label-player-score {
+    padding: 5px 0px 0px 0px;
+    font-size: 20pt;
+}
+
+.label-player-name {
+    font-size: 10pt;
+    padding: 0px;
+    margin: 0px;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.label-inactive-player {
+    background-color: #404040;
+    border-bottom: 4px solid black !important;
+}
+
+.label-active-player {
+    background-color: #d9534f;
+    border-bottom: 4px solid #962724 !important;
+}
