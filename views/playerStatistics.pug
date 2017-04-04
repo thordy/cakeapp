@@ -16,4 +16,4 @@ block content
 						td= player.games_played
 						td= player.games_won
 						td= player.games_played == 0 ? 0 : (player.games_won / player.games_played).toFixed(2)
-						td= player.ppd
+						td= player.ppd.toFixed(2)

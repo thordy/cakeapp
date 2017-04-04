@@ -19,7 +19,7 @@ router.get('/list', function (req, res) {
 
 	// Fetch related players
 	new Matches()
-		.fetch({withRelated: 'players'})
+		.fetch( {withRelated: 'players'} )
 		.then(function (rows) {
 			var matches = rows.serialize();
 			var players = {};
@@ -42,7 +42,7 @@ router.get('/list', function (req, res) {
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-	new Match({id: req.params.id})
+	new Match({ id: req.params.id })
 		.fetch({
 			withRelated: [
 				'players',
@@ -93,7 +93,7 @@ router.get('/:id', function (req, res) {
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
 	new Match({id: req.params.id})
-		.fetch({withRelated: ['players', 'scores', 'player2match'] })
+		.fetch( { withRelated: ['players', 'scores', 'player2match'] } )
 		.then(function (match) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
@@ -102,31 +102,56 @@ router.get('/:id/results', function (req, res) {
 			var playerStatistics = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
-				// TODO Calculate ppd, first 9 etc.
 				playerStatistics[player.id] = {
 					id: player.id,
 					name: player.name,
+					ppdScore: 0,
 					ppd: 0,
 					first9ppd: 0,
+					first9Score: 0,
 					totalScore: 0,
 					visits: 0,
-					scores: []
+					scores: [],
+					highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
 				};
 			}
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
 				var player = playerStatistics[score.player_id];
+				var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
+						(score.second_dart * score.second_dart_multiplier) +
+						(score.third_dart * score.third_dart_multiplier);
+
 				player.visits += 1;
-				player.totalScore += (score.first_dart * score.first_dart_multiplier) +
-					(score.second_dart * score.second_dart_multiplier) +
-					(score.third_dart * score.third_dart_multiplier);
+				if (player.visits <= 3) {
+					player.first9Score += totalVisitScore;
+				}
+				if ((match.startingScore - totalVisitScore) > 170) {
+					player.ppdScore += totalVisitScore;
+				}
+				player.totalScore += totalVisitScore;
+
+				if (totalVisitScore >= 60 && totalVisitScore <= 99) {
+					player.highScores['60+'] += 1;
+				}
+				else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
+					player.highScores['100+'] += 1;
+				}
+				else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
+					player.highScores['140+'] += 1;
+				}
+				else if (totalVisitScore == 180) {
+					player.highScores['180'] += 1;
+				}
 				player.scores.push(score);
 			}
-
+			// Calculate PPD and First 9 PPD
 			for (var i = 0; i < players.length; i++){
 				var player = playerStatistics[players[i].id];
-				player.ppd = player.totalScore / (player.visits * 3);
+				player.ppd = player.ppdScore / (player.visits * 3);
+				player.first9ppd = player.first9Score / 9;
 			}
+
 			res.render('results', {
 				match: match,
 				scores: scores,
