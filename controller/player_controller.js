@@ -1,3 +1,5 @@
+var debug = require('debug')('dartapp:player-controller');
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
@@ -12,7 +14,7 @@ router.post('/', function (req, res) {
 	new Player({name: req.body.name})
 		.save(null, {method: 'insert'})
 		.then(function(player) {
-			console.log('Created player: ' + req.body.name);
+			debug('Created player %s', req.body.name);
 			res.redirect('/player/list');
 		})
 		.catch(function(err) {

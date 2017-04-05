@@ -1,3 +1,5 @@
+var debug = require('debug')('dartapp:match-controller');
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var Bookshelf = require.main.require('./bookshelf.js');
@@ -78,7 +80,7 @@ router.get('/:id', function (req, res) {
 				}
 			}
 
-            console.log(player2match);
+			console.log(player2match);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
@@ -108,7 +110,7 @@ router.get('/:id/results', function (req, res) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
 			var match = match.serialize();
-			console.log(match);
+
 			var playerStatistics = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
@@ -176,7 +178,7 @@ router.get('/:id/results', function (req, res) {
 /* Method for starting a new match */
 router.post('/new', function (req, res) {
 	if (req.body.players === undefined) {
-		console.log('No players specified, unable to start match');
+		debug('No players specified, unable to start match');
 		return res.redirect('/');
 	}
 
@@ -188,36 +190,36 @@ router.post('/new', function (req, res) {
 		current_player_id: currentPlayerId,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
-		.save(null, {method: 'insert'})
-		.then(function (match) {
-			console.log('Created match: ' + match.id);
+	.save(null, {method: 'insert'})
+	.then(function (match) {
+		debug('Created matcH %s', match.id);
 
-			var playersArray = req.body.players;
-			var playerOrder = 1;
-			var playersInMatch = [];
-			for (var i in playersArray) {
-				playersInMatch.push({
-					player_id: playersArray[i],
-					match_id: match.id,
-					order: playerOrder
-				});
-				playerOrder++;
-			}
+		var playersArray = req.body.players;
+		var playerOrder = 1;
+		var playersInMatch = [];
+		for (var i in playersArray) {
+			playersInMatch.push({
+				player_id: playersArray[i],
+				match_id: match.id,
+				order: playerOrder
+			});
+			playerOrder++;
+		}
 
-			Bookshelf
-				.knex('player2match')
-				.insert(playersInMatch)
-				.then(function (rows) {
-					console.log('Added players: ' + playersInMatch);
-					res.redirect('/match/' + match.id);
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
-				});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
+		Bookshelf
+			.knex('player2match')
+			.insert(playersInMatch)
+			.then(function (rows) {
+				debug('Added players %s', playersArray);
+				res.redirect('/match/' + match.id);
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
+			});
+	})
+	.catch(function (err) {
+		helper.renderError(res, err);
+	});
 });
 
 /* Method to register three thrown darts */
@@ -247,7 +249,7 @@ router.post('/:id/throw', function (req, res) {
 		}
 		playersArray[parseInt(player.order)] = {
 			playerId: player.player_id
-		};
+		}
 	}
 
 	var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
@@ -266,27 +268,26 @@ router.post('/:id/throw', function (req, res) {
 			second_dart_multiplier: secondDartMultiplier,
 			third_dart_multiplier: thirdDartMultiplier,
 			is_bust: isBust,
-		}
-	)
-		.save(null, {method: 'insert'})
-		.then(function(row) {
-			console.log('Added score for player ' + currentPlayerId);
+	})
+	.save(null, {method: 'insert'})
+	.then(function(row) {
+		debug('Added score for player %s', currentPlayerId);
 
-			// Change current player, maybe check what round is that ?
-			new Match({
-				id: matchId
-			})
-				.save({current_player_id: nextPlayerId})
-				.then(function (match) {
-					res.redirect('/match/' + matchId);
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
-				});
+		// Change current player, maybe check what round is that ?
+		new Match({
+			id: matchId
 		})
-		.catch(function(err) {
-			return helper.renderError(res, err);
-		});
+			.save({current_player_id: nextPlayerId})
+			.then(function (match) {
+				res.redirect('/match/' + matchId);
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
+			});
+	})
+	.catch(function(err) {
+		return helper.renderError(res, err);
+	});
 });
 
 /* Method to cancel a match in progress */
@@ -294,7 +295,7 @@ router.delete('/:id/cancel', function (req, res) {
 	Match.forge({ id: req.params.id })
 		.destroy()
 		.then(function (match) {
-			console.log("Cancelled match: " + req.params.id);
+			debug('Cancelled match %s', req.params.id);
 			res.status(204)
 				.send()
 				.end();
@@ -303,8 +304,6 @@ router.delete('/:id/cancel', function (req, res) {
 
 /* Method to finalize a match */
 router.post('/:id/finish', function (req, res) {
-	console.log('Game finished');
-
 	// Assign those values to vars since they will be used in other places
 	var matchId = req.body.matchId;
 	var currentPlayerId = req.body.playerId;
@@ -314,43 +313,55 @@ router.post('/:id/finish', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
+	debug('Match %s finished', matchId);
 
 	// Insert new score and change current player in match
 	new Score({
-			match_id: matchId,
-			player_id: currentPlayerId,
-			first_dart: firstDartScore,
-			second_dart: secondDartScore,
-			third_dart: thirdDartScore,
-			first_dart_multiplier: firstDartMultiplier,
-			second_dart_multiplier: secondDartMultiplier,
-			third_dart_multiplier: thirdDartMultiplier,
-		}
-	)
-		.save(null, {method: 'insert'})
-		.then(function(row) {
-			console.log('Added finishing score for player ' + currentPlayerId);
+		match_id: matchId,
+		player_id: currentPlayerId,
+		first_dart: firstDartScore,
+		second_dart: secondDartScore,
+		third_dart: thirdDartScore,
+		first_dart_multiplier: firstDartMultiplier,
+		second_dart_multiplier: secondDartMultiplier,
+		third_dart_multiplier: thirdDartMultiplier,
+	})
+	.save(null, {method: 'insert'})
+	.then(function(row) {
+		debug('Set final score for player %s', currentPlayerId);
 
-			// Update match with winner
-			new Match({
-				id: matchId
-			})
-				.save({
-					current_player_id: currentPlayerId,
-					is_finished: true,
-					winner_id: currentPlayerId,
-					end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
-				})
-				.then(function (match) {
-					res.status(200).end();
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
-				});
+		// Update match with winner
+		new Match({
+			id: matchId
 		})
-		.catch(function(err) {
-			return helper.renderError(res, err);
+		.save({
+			current_player_id: currentPlayerId,
+			is_finished: true,
+			winner_id: currentPlayerId,
+			end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
+		})
+		.then(function (match) {
+			res.status(200).end();
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
 		});
+	})
+	.catch(function(err) {
+		return helper.renderError(res, err);
+	});
+
+	// Increment played matches nad games won
+	Bookshelf.knex.raw(`UPDATE player SET games_played = games_played + 1 
+		WHERE id IN (SELECT player_id from player2match WHERE match_id = ?)`, matchId)
+	.then(function(rows) {
+		debug('Incremented played matches for all players');
+	});
+	Bookshelf.knex.raw(`UPDATE player SET games_won = games_won + 1 
+		WHERE id = ?`, currentPlayerId)
+	.then(function(rows) {
+		debug('Incremented games_won for player %s', currentPlayerId);
+	});	
 });
 
 module.exports = router

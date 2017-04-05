@@ -32,9 +32,9 @@ block content
 						p= player.ppd.toFixed(2)
 					td
 						p= player.highScores['60+'] == 0 ? "" : "60+: " + player.highScores['60+']
-						p= player.highScores['100+'] == 0 ? "" : "100+ " + player.highScores['100+']
-						p= player.highScores['140+'] == 0 ? "" : "140+ " + player.highScores['140+']
-						p= player.highScores['180'] == 0 ? "" : "180  " + player.highScores['180']
+						p= player.highScores['100+'] == 0 ? "" : "100+: " + player.highScores['100+']
+						p= player.highScores['140+'] == 0 ? "" : "140+: " + player.highScores['140+']
+						p= player.highScores['180'] == 0 ? "" : "180:  " + player.highScores['180']
 
 					if match.winner_id !== undefined && player.id === match.winner_id
 						td
