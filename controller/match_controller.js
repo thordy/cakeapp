@@ -303,7 +303,7 @@ router.post('/:id/finish', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	debug('Match %s finished');
+	debug('Match %s finished', matchId);
 
 	// Insert new score and change current player in match
 	new Score({
@@ -318,7 +318,7 @@ router.post('/:id/finish', function (req, res) {
 	})
 	.save(null, {method: 'insert'})
 	.then(function(row) {
-		debug('Added finishing score for player %s', currentPlayerId);
+		debug('Set final score for player %s', currentPlayerId);
 
 		// Update match with winner
 		new Match({
@@ -341,8 +341,17 @@ router.post('/:id/finish', function (req, res) {
 		return helper.renderError(res, err);
 	});
 
-	// TODO update players with matchs played and matches won
-
+	// Increment played matches nad games won
+	Bookshelf.knex.raw(`UPDATE player SET games_played = games_played + 1 
+		WHERE id IN (SELECT player_id from player2match WHERE match_id = ?)`, matchId)
+	.then(function(rows) {
+		debug('Incremented played matches for all players');
+	});
+	Bookshelf.knex.raw(`UPDATE player SET games_won = games_won + 1 
+		WHERE id = ?`, currentPlayerId)
+	.then(function(rows) {
+		debug('Incremented games_won for player %s', currentPlayerId);
+	});	
 });
 
 module.exports = router
