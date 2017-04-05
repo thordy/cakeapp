@@ -4,14 +4,14 @@ block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
 		$(function () {
-			jQuery.getScript("/js/fastclick.js", function() {
-			    new FastClick(document.documentElement);
-			    // FastClick.attach(document.body);
+			jQuery.getScript("/js/fastclick.js", function () {
+				new FastClick(document.documentElement);
+				// FastClick.attach(document.body);
 			});
 
-			var scores = { };
+			var scores = {};
 
-			$( document ).ready(function() {
+			$(document).ready(function () {
 				window.darts_thrown = 0;
 				$(document).scrollTop(170);
 			});
@@ -33,19 +33,21 @@ block scripts
 				}
 				var multiplier = $(this).data('multiplier');
 				/*var multiplierText = '';
-				if (multiplier == 2) {
-					multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
-				}
-				else if (multiplier == 3) {
-					multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
-				}
-				else {
-					multiplierText = $(this).text().substring(0, $(this).text().length - 1);
-				}
-				dart.text(multiplierText);*/
+				 if (multiplier == 2) {
+				 multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
+				 }
+				 else if (multiplier == 3) {
+				 multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
+				 }
+				 else {
+				 multiplierText = $(this).text().substring(0, $(this).text().length - 1);
+				 }
+				 dart.text(multiplierText);*/
 
 				dart.text($(this).attr('title'));
 				dart.attr('data-multiplier', multiplier);
+
+				var submitButton = $('#submitScoreButton');
 
 				var currentPlayer = $('#current_player');
 				var currentPlayerScore = parseInt(currentPlayer.text());
@@ -59,40 +61,15 @@ block scripts
 				// Is the game over
 				if (scoreAfterThrow == 0) {
 					if (multiplier == 2) {
-						console.log('Game finished');
-
-						var firstScoreNumeric = parseInt($('#first').text() / $('#first').attr('data-multiplier'));
-						var secondScoreNumeric = parseInt($('#second').text() / $('#second').attr('data-multiplier'));
-						var thirdScoreNumeric = parseInt($('#third').text() / $('#third').attr('data-multiplier'));
-						var firstScoreMultiplier = parseInt($('#first').attr('data-multiplier'));
-						var secondScoreMultiplier = parseInt($('#second').attr('data-multiplier'));
-						var thirdScoreMultiplier = parseInt($('#third').attr('data-multiplier'));
-
-						var submitButton = $('#submitScoreButton');
-
-						var matchId = submitButton.data('match-id');
-						var currentPlayerId = submitButton.data('current-player-id');
-
-						var data = JSON.stringify({
-							'matchId': matchId,
-							'playerId': currentPlayerId,
-							'firstDart': firstScoreNumeric,
-							'secondDart': secondScoreNumeric,
-							'thirdDart': thirdScoreNumeric,
-							'firstDartMultiplier': firstScoreMultiplier,
-							'secondDartMultiplier': secondScoreMultiplier,
-							'thirdDartMultiplier': thirdScoreMultiplier,
-						});
-						executePost(window.location.pathname + '/finish', data, 'application/json',
-							function (response) {
-								window.darts_thrown = 0; // Reset darts thrown
-								location.href = window.location.pathname + '/results';
-							},
-							function (error) {
-								// TODO Error handling
-								console.log("Unable to add score: " + error.responseText);
-							}
-						);
+						if (confirm('Game will be finished.')) {
+							// End game, 'click' submit
+							submitButton.data('finished', 1).trigger('click');
+							return;
+						} else {
+							// Just in case someone made a mistake, go back to last dart
+							// Clear the score for thrown dart
+							dart.text('');
+						}
 						return;
 					} else {
 						isBust = true;
@@ -104,7 +81,7 @@ block scripts
 				if (isBust) {
 					if (confirm('Bust')) {
 						// Bust, 'click' submit
-						var submitButton = $('#submitScoreButton');
+
 						submitButton.data('busted', 1).trigger('click');
 						return;
 					} else {
@@ -122,7 +99,7 @@ block scripts
 				}
 			});
 
-			$('#submitScoreButton').click(function() {
+			$('#submitScoreButton').click(function () {
 				var firstScoreNumeric = parseInt($('#first').text() / $('#first').attr('data-multiplier'));
 				var secondScoreNumeric = parseInt($('#second').text() / $('#second').attr('data-multiplier'));
 				var thirdScoreNumeric = parseInt($('#third').text() / $('#third').attr('data-multiplier'));
@@ -134,32 +111,46 @@ block scripts
 				var currentPlayerId = $(this).data('current-player-id');
 				var playersInMatch = $(this).data('players-in-match');
 				var isBust = $(this).data('busted');
+				var isFinished = $(this).data('finished');
 
 				var data = JSON.stringify({
-					'matchId' : matchId,
-					'playerId' : currentPlayerId,
-					'firstDart' : firstScoreNumeric,
-					'secondDart' : secondScoreNumeric,
-					'thirdDart' : thirdScoreNumeric,
+					'matchId': matchId,
+					'playerId': currentPlayerId,
+					'firstDart': firstScoreNumeric,
+					'secondDart': secondScoreNumeric,
+					'thirdDart': thirdScoreNumeric,
 					'firstDartMultiplier': firstScoreMultiplier,
 					'secondDartMultiplier': secondScoreMultiplier,
 					'thirdDartMultiplier': thirdScoreMultiplier,
 					'playersInMatch': playersInMatch,
 					'isBust': isBust,
 				});
-				executePost(window.location.pathname + '/throw', data, 'application/json',
-					function(response) {
+
+				/// Depending on the data-finished attribute of submit button, use different route and redirect
+				var route;
+				var routeRedirect;
+
+				if (isFinished == 0) {
+					route = window.location.pathname + '/throw';
+					routeRedirect = window.location.pathname;
+				} else {
+					route = window.location.pathname + '/finish';
+					routeRedirect = window.location.pathname + '/results';
+				}
+
+				executePost(route, data, 'application/json',
+					function (response) {
 						window.darts_thrown = 0; // Reset darts thrown
-						location.href = window.location.pathname;
+						location.href = routeRedirect;
 					},
-					function(error){
+					function (error) {
 						// TODO Error handling
-						console.log("Unable to add score: " + error.responseText);
+						console.log("Unable to proceed: " + error.responseText);
 					}
 				);
 			});
 
-			$('#undoButton').click(function() {
+			$('#undoButton').click(function () {
 				if (window.darts_thrown < 1) {
 					return;
 				}
@@ -182,16 +173,16 @@ block scripts
 				dart.text('');
 			});
 
-			$('#seeScoresButton').click(function() {
+			$('#seeScoresButton').click(function () {
 				$('#scoresModal').modal('show');
 			});
-			$('#cancelMatchButton').click(function() {
+			$('#cancelMatchButton').click(function () {
 				// TODO Confirm dialog?
 				executeDelete(window.location.pathname + '/cancel',
-					function(response) {
+					function (response) {
 						location.href = '/match/list';
 					},
-					function(error) {
+					function (error) {
 						var alert = $('#cancelMatchFailedAlert');
 						alert.show();
 						alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
@@ -221,7 +212,7 @@ block content
 					td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1')
 					td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1')
 					td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1')
-					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0') Submit
+					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
 							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
@@ -229,7 +220,7 @@ block content
 				tr(class='row')
 					td
 					each player in players
-						if player.id=player.current
+						if player.id = player.current
 							td(colspan=length class='label-active-player')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
