@@ -71,7 +71,7 @@ router.get('/:id', function (req, res) {
 			var playerScores = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
-				playerScores[player.id] = {
+				playerScores['p' + player.id] = {
 					name: player.name,
 					playerOrder: player2match.order,
 					current_score: match.starting_score,
@@ -80,11 +80,11 @@ router.get('/:id', function (req, res) {
 				}
 			}
 
-			console.log(player2match);
+			console.log(playerScores);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
-				var player = playerScores[score.player_id];
+				var player = playerScores['p' + score.player_id];
 				player.scores.push(score);
 				player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) +
 					(score.second_dart * score.second_dart_multiplier) +

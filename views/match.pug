@@ -330,7 +330,7 @@ block content
 									each score in match.scores
 										tr(class='row')
 											td= score.id
-											td= players[score.player_id].name
+											td= players['p' + score.player_id].name
 											td= score.created_at
 											td= score.first_dart * score.first_dart_multiplier
 											td= score.second_dart * score.second_dart_multiplier
