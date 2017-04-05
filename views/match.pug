@@ -4,10 +4,16 @@ block scripts
 	link(rel='stylesheet', href='/css/site.css')
 	script.
 		$(function () {
+			jQuery.getScript("/js/fastclick.js", function() {
+			    new FastClick(document.documentElement);
+			    // FastClick.attach(document.body);
+			});
+
 			var scores = { };
 
 			$( document ).ready(function() {
 				window.darts_thrown = 0;
+				$(document).scrollTop(170);
 			});
 
 			$('#score_selector_table .throw_buttons :button').click(function () {
@@ -26,6 +32,18 @@ block scripts
 					return;
 				}
 				var multiplier = $(this).data('multiplier');
+				/*var multiplierText = '';
+				if (multiplier == 2) {
+					multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
+				}
+				else if (multiplier == 3) {
+					multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
+				}
+				else {
+					multiplierText = $(this).text().substring(0, $(this).text().length - 1);
+				}
+				dart.text(multiplierText);*/
+
 				dart.text($(this).attr('title'));
 				dart.attr('data-multiplier', multiplier);
 
@@ -249,10 +267,10 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='42' data-multiplier='3') 14<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='39' data-multiplier='3') 13<br/>...
 				tr(class='throw_buttons row')
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='12' data-multiplier='1') 12<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='11' data-multiplier='1') 11<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='10' data-multiplier='1') 10<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='9' data-multiplier='1') 9<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='12' data-multiplier='1') 12<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='11' data-multiplier='1') 11<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='10' data-multiplier='1') 10<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='9' data-multiplier='1') 9<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='24' data-multiplier='2') 12<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='22' data-multiplier='2') 11<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='20' data-multiplier='2') 10<br/>..
@@ -264,10 +282,10 @@ block content
 				tr(class='throw_buttons row')
 					td(rowspan='2' style='height:100%; background-color: #ffcc66;')
 						button(type='button' style='height:100%;' class='btn-score btn-info btn-lg btn-block btn-triple' title='50' data-multiplier='2') Bull<br/>..
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='8' data-multiplier='1') 8<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='7' data-multiplier='1') 7<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='6' data-multiplier='1') 6<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='5' data-multiplier='1') 5<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='8' data-multiplier='1') 8<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='7' data-multiplier='1') 7<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='6' data-multiplier='1') 6<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='5' data-multiplier='1') 5<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='16' data-multiplier='2') 8<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='14' data-multiplier='2') 7<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='12' data-multiplier='2') 6<br/>..
@@ -277,10 +295,10 @@ block content
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='18' data-multiplier='3') 6<br/>...
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='15' data-multiplier='3') 5<br/>...
 				tr(class='throw_buttons row')
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='4' data-multiplier='1') 4<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='3' data-multiplier='1') 3<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='2' data-multiplier='1') 2<br/>.
-					td: button(type='button' class='btn-score btn-info btn-lg btn-block ' title='1' data-multiplier='1') 1<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='4' data-multiplier='1') 4<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='3' data-multiplier='1') 3<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='2' data-multiplier='1') 2<br/>.
+					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='1' data-multiplier='1') 1<br/>.
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='8' data-multiplier='2') 4<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='6' data-multiplier='2') 3<br/>..
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='4' data-multiplier='2') 2<br/>..
