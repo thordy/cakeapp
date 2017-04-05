@@ -51,24 +51,34 @@ router.get('/:id', function (req, res) {
 						qb.where('is_bust', '0');
 					}
 				},
-				'player2match'
+				{
+					'player2match' : function (qb) {
+						qb.orderBy('order', 'asc');
+					}
+				}
 			]
 		})
 		.then(function (match) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
+			var player2match = match.related('player2match').serialize();
 			var match = match.serialize();
+
+			console.log(player2match);
 
 			var playerScores = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
 				playerScores[player.id] = {
 					name: player.name,
+					playerOrder: player2match.order,
 					current_score: match.starting_score,
 					current: player.id === match.current_player_id ? true : false,
 					scores: []
 				}
 			}
+
+            console.log(player2match);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
@@ -176,7 +186,7 @@ router.post('/new', function (req, res) {
 	new Match({
 		starting_score: req.body.matchType,
 		current_player_id: currentPlayerId,
-        created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
 		.save(null, {method: 'insert'})
 		.then(function (match) {
@@ -332,7 +342,7 @@ router.post('/:id/finish', function (req, res) {
 					end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 				})
 				.then(function (match) {
-                    res.status(200).end();
+					res.status(200).end();
 				})
 				.catch(function (err) {
 					helper.renderError(res, err);

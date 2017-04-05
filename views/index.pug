@@ -1,5 +1,13 @@
 extends layout.pug
 
+block scripts
+	link(rel='stylesheet', href='/css/site.css')
+	script.
+		$(function () {
+			$('#sortable-player-list').sortable();
+			$('#sortable-player-list').disableSelection();
+		});
+
 block content
 	h1 Cake Darts Scorer
 	p.
@@ -13,12 +21,12 @@ block content
 					Players must be added before you can start a new game
 			else
 				form(action='/match/new' method='POST' id='newMatchForm')
-					div(class='form-group form-check')
+					div(class='form-group form-check' id='sortable-player-list')
 						legend Players
 						each player in players
-							div(class='form-check')
+							div(class='form-check' style='padding-bottom: 10px;')
 								input(type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
-								label(class='form-check-label' for='checkbox_player' + player.id)= player.name
+								label(style='margin-left: 10px; width: 200px; text-transform: uppercase;' class='form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
 
 					div(class='form-group')
 						label(for='matchTypeSelect') Starting Score
