@@ -1,3 +1,5 @@
+var debug = require('debug')('dartapp:owes-controller');
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
@@ -45,7 +47,7 @@ router.put('/payback', function (req, res) {
 	    	if (owe.item === item && owe.owee == owee) {
 	    		owe.amount -= amount;
 	    		player.save(function(error, player){
-	    			console.log(ower + " paid back '" + amount + "' '" + item + "' to " + owee);
+	    			debug('%s paid back %s %s to %s', ower, amount, item, owee);
 					return res.status(200)
 	    				.send()
 	    				.end();
@@ -53,7 +55,7 @@ router.put('/payback', function (req, res) {
 	    		return;
 	    	}
 	    }
-	    console.log(ower + ' does not owe ' + owee + ' any ' + item);
+	    debug('%s does not owe %s any %s', ower, owee, item);
 	    res.status(400)
 	    	.send('No outstanding owes between selected players!')
 	    	.end();
