@@ -3,6 +3,18 @@ extends layout.pug
 block scripts
 	script.
 		$(function() {
+			$('#comparePlayersButton').click(function() {
+				var val = [];
+
+				var compareString = '?player_id=';
+
+		        $(':checkbox:checked').each(function(i){
+		        	val[i] = $(this).val();
+		        	compareString += $(this).val() + '&player_id=';
+		        });
+		        location.href = '/player/compare' + compareString;
+			});
+
 			$('#addPlayerModal').on('shown.bs.modal', function () {
 			    $('#playerNameInput').focus();
 			});
@@ -20,8 +32,8 @@ block scripts
 						location.href = '/player/list';
 					},
 					function(error) {
-						console.log("Unable to add player");
-						console.log(error);
+						console.err("Unable to add player");
+						console.err(error);
 					}
 				);	
 			}
@@ -41,6 +53,7 @@ block content
 					th Won
 					th Win %
 					th Statistics
+					th Compare
 			tbody
 				each player in players
 					tr
@@ -51,7 +64,10 @@ block content
 						td= player.games_played == 0 ? 0 : (player.games_won * 100 / player.games_played).toFixed(2)
 						td
 							a(class='btn btn-primary' href='/player/' + player.id + '/stats') View
+						td
+							input(type='checkbox' name=player.name value=player.id)
 
+		button(type='button' class='btn btn-block btn-primary' id='comparePlayersButton') Compare Players
 		button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
 		div(class='modal fade' id='addPlayerModal' tabindex='-1' role='dialog' aria-labelledby='addPlayerModalLabel')
 			div(class='modal-dialog' role='document')

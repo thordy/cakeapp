@@ -1,0 +1,61 @@
+extends layout.pug
+
+block content
+	h2 Player Comparison
+	
+	div(class='table-responsive')
+		table(id='playerComparisonTable' class='table table-striped table-bordered')
+			thead
+				tr
+					th 
+					each player in players
+						th= player.name
+			tbody
+				tr
+					td(class='col-sm-2') Won/Played
+					each player in players
+						td= player.gamesWon + '/' + player.gamesPlayed
+				tr
+					td(class='col-sm-2') PPD
+					each player in players
+						td= player.ppd.toFixed(2)
+				tr
+					td(class='col-sm-2') First 9 PPD
+					each player in players
+						td= player.first9ppd.toFixed(2)
+				tr
+					td(class='col-sm-2') Best PPD
+					each player in players
+						td TODO
+				tr
+					td(class='col-sm-2') Checkout%
+					each player in players
+						td TODO
+				tr
+					td(class='col-sm-2') High Checkout
+					each player in players
+						td TODO
+				tr
+					td(class='col-sm-2') Best 501
+					each player in players
+						td TODO
+				tr
+					td(class='col-sm-2') Best 501
+					each player in players
+						td TODO
+				tr
+					td(class='col-sm-2') 60+
+					each player in players
+						td= player.highScores['60+']
+				tr
+					td(class='col-sm-2') 100+
+					each player in players
+						td= player.highScores['100+']
+				tr
+					td(class='col-sm-2') 140+
+					each player in players
+						td= player.highScores['140+']
+				tr
+					td(class='col-sm-2') 180
+					each player in players
+						td= player.highScores['180']

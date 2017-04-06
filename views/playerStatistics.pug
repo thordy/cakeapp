@@ -9,17 +9,20 @@ block content
 				tr
 					th Played
 					th Won
+					th Win %
 					th First 9 PPD
 					th Overall PPD
 					th Scores
 			tbody
 					tr
 						td
-							p= player.games_played
+							p= player.gamesPlayed
 						td
-							p= player.games_won
+							p= player.gamesWon
 						td
-							p= player.games_played == 0 ? 0 : (player.games_won / player.games_played).toFixed(2)
+							p= player.gamesPlayed == 0 ? 0 : (player.gamesWon * 100 / player.gamesPlayed).toFixed(2)
+						td
+							p= player.first9ppd.toFixed(2)
 						td
 							p= player.ppd.toFixed(2)
 						td 
