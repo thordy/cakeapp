@@ -14,6 +14,10 @@ router.use(bodyParser.urlencoded({extended: true}));
 /* Method to get overview over who owes who what */
 router.get('/owes', function (req, res, next) {
 	Owe.collection()
+		.query(function(qb) {
+			qb.orderBy('player_ower_id','ASC');
+			qb.where('amount', '>', 0);
+		})
 		.fetch({ withRelated: ['player_ower', 'player_owee', 'owe_type'] })
 		.then(function (rows) {
 			var owes = rows.serialize();
