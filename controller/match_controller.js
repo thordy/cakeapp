@@ -66,8 +66,6 @@ router.get('/:id', function (req, res) {
 			var player2match = match.related('player2match').serialize();
 			var match = match.serialize();
 
-			console.log(player2match);
-
 			var playerScores = {};
 			for (var i = 0; i < players.length; i++){
 				var player = players[i];
@@ -79,8 +77,6 @@ router.get('/:id', function (req, res) {
 					scores: []
 				}
 			}
-
-			console.log(playerScores);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
@@ -352,16 +348,16 @@ router.post('/:id/finish', function (req, res) {
 	});
 
 	// Increment played matches nad games won
-	Bookshelf.knex.raw(`UPDATE player SET games_played = games_played + 1 
+	Bookshelf.knex.raw(`UPDATE player SET games_played = games_played + 1
 		WHERE id IN (SELECT player_id from player2match WHERE match_id = ?)`, matchId)
 	.then(function(rows) {
 		debug('Incremented played matches for all players');
 	});
-	Bookshelf.knex.raw(`UPDATE player SET games_won = games_won + 1 
+	Bookshelf.knex.raw(`UPDATE player SET games_won = games_won + 1
 		WHERE id = ?`, currentPlayerId)
 	.then(function(rows) {
 		debug('Incremented games_won for player %s', currentPlayerId);
-	});	
+	});
 });
 
 module.exports = router

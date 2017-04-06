@@ -81,14 +81,13 @@ block scripts
 				if (isBust) {
 					if (confirm('Bust')) {
 						// Bust, 'click' submit
-
 						submitButton.data('busted', 1).trigger('click');
 						return;
 					} else {
 						// Just in case someone made a mistake, go back to last dart
-						window.darts_thrown--;
+						// window.darts_thrown--;
 						// Revert the score
-						currentPlayer.text(parseInt(currentPlayer.text()) + scoreNumeric);
+						currentPlayer.text(parseInt(currentPlayer.text()));
 						// Clear the score for thrown dart
 						dart.text('');
 					}

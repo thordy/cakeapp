@@ -21,8 +21,8 @@ block content
 					Players must be added before you can start a new game
 			else
 				form(action='/match/new' method='POST' id='newMatchForm')
+					legend Players
 					div(class='form-group form-check' id='sortable-player-list')
-						legend Players
 						each player in players
 							div(class='form-check' style='padding-bottom: 10px;')
 								input(type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
