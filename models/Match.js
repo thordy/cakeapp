@@ -25,6 +25,6 @@ var Match = bookshelf.Model.extend({
     }
 },
 {
-  dependents: ['players']
+  dependents: ['players', 'scores' ]
 });
 module.exports = bookshelf.model('Match', Match);

@@ -188,7 +188,7 @@ router.post('/new', function (req, res) {
 	})
 	.save(null, {method: 'insert'})
 	.then(function (match) {
-		debug('Created matcH %s', match.id);
+		debug('Created match %s', match.id);
 
 		var playersArray = req.body.players;
 		var playerOrder = 1;

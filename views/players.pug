@@ -35,7 +35,7 @@ block scripts
 						console.err("Unable to add player");
 						console.err(error);
 					}
-				);	
+				);
 			}
 		});
 
@@ -45,7 +45,7 @@ block content
 		This is an overview of all players who are participating in Cake Darts
 
 	div(class='table-responsive')
-		table(class='table table-striped table-bordered')
+		table(id='player_overview_table' class='table table-striped table-bordered')
 			thead
 				tr
 					th Name
