@@ -24,7 +24,7 @@ block content
 					legend Players
 					div(class='form-group form-check' id='sortable-player-list')
 						each player in players
-							div(class='form-check' style='padding-bottom: 10px;')
+							div(class='form-check' style='padding-bottom: 10px; width: 230px;')
 								input(type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
 								label(style='margin-left: 10px; width: 200px; text-transform: uppercase;' class='form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
 
