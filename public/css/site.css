@@ -80,3 +80,7 @@ a:hover {
     background-color: #d9534f;
     border-bottom: 4px solid #962724 !important;
 }
+
+.txt-center {
+    text-align: center;
+}

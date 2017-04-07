@@ -5,7 +5,7 @@ block scripts
 	script.
 		$(function () {
 			jQuery.getScript("/js/fastclick.js", function () {
-				new FastClick(document.documentElement);
+				//new FastClick(document.documentElement);
 				// FastClick.attach(document.body);
 			});
 
@@ -56,6 +56,11 @@ block scripts
 
 				var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
 
+				// If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
+				if (currentPlayerScore == 50 || (currentPlayerScore <= 40 && currentPlayerScore % 2 == 0)) {
+					dart.attr('data-checkout', 1);
+				}
+
 				var isBust = false;
 
 				// Is the game over
@@ -99,12 +104,18 @@ block scripts
 			});
 
 			$('#submitScoreButton').click(function () {
+				// Scores
 				var firstScoreNumeric = parseInt($('#first').text() / $('#first').attr('data-multiplier'));
 				var secondScoreNumeric = parseInt($('#second').text() / $('#second').attr('data-multiplier'));
 				var thirdScoreNumeric = parseInt($('#third').text() / $('#third').attr('data-multiplier'));
+				// Multipliers
 				var firstScoreMultiplier = parseInt($('#first').attr('data-multiplier'));
 				var secondScoreMultiplier = parseInt($('#second').attr('data-multiplier'));
 				var thirdScoreMultiplier = parseInt($('#third').attr('data-multiplier'));
+				// Checkouts
+				var isCheckoutFirst = parseInt($('#first').attr('data-checkout'));
+				var isCheckoutSecond = parseInt($('#second').attr('data-checkout'));
+				var isCheckoutThird = parseInt($('#third').attr('data-checkout'));
 
 				var matchId = $(this).data('match-id');
 				var currentPlayerId = $(this).data('current-player-id');
@@ -123,6 +134,9 @@ block scripts
 					'thirdDartMultiplier': thirdScoreMultiplier,
 					'playersInMatch': playersInMatch,
 					'isBust': isBust,
+					'isCheckoutFirst': isCheckoutFirst,
+					'isCheckoutSecond': isCheckoutSecond,
+					'isCheckoutThird': isCheckoutThird,
 				});
 
 				/// Depending on the data-finished attribute of submit button, use different route and redirect
@@ -208,9 +222,9 @@ block content
 			tbody
 				tr(class='row')
 					td(colspan='3' class='no-border')
-					td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1')
-					td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1')
-					td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1')
+					td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1' data-checkout='0')
+					td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
+					td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
 					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')

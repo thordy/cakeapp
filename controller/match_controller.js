@@ -230,6 +230,9 @@ router.post('/:id/throw', function (req, res) {
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
 	var isBust = req.body.isBust;
+	var isCheckoutFirst = req.body.isCheckoutFirst;
+	var isCheckoutSecond = req.body.isCheckoutSecond;
+	var isCheckoutThird = req.body.isCheckoutThird;
 
 	var playersInMatch = req.body.playersInMatch;
 
@@ -264,6 +267,9 @@ router.post('/:id/throw', function (req, res) {
 			second_dart_multiplier: secondDartMultiplier,
 			third_dart_multiplier: thirdDartMultiplier,
 			is_bust: isBust,
+			is_checkout_first: isCheckoutFirst,
+			is_checkout_second: isCheckoutSecond,
+			is_checkout_third: isCheckoutThird,
 	})
 	.save(null, {method: 'insert'})
 	.then(function(row) {
@@ -309,6 +315,9 @@ router.post('/:id/finish', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
+    var isCheckoutFirst = req.body.isCheckoutFirst;
+    var isCheckoutSecond = req.body.isCheckoutSecond;
+    var isCheckoutThird = req.body.isCheckoutThird;
 	debug('Match %s finished', matchId);
 
 	// Insert new score and change current player in match
@@ -321,6 +330,9 @@ router.post('/:id/finish', function (req, res) {
 		first_dart_multiplier: firstDartMultiplier,
 		second_dart_multiplier: secondDartMultiplier,
 		third_dart_multiplier: thirdDartMultiplier,
+		is_checkout_first: isCheckoutFirst,
+		is_checkout_second: isCheckoutSecond,
+		is_checkout_third: isCheckoutThird,
 	})
 	.save(null, {method: 'insert'})
 	.then(function(row) {

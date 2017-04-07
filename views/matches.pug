@@ -18,12 +18,12 @@ block content
 
 	// TODO Add pagination to this table to limit number of matches displayed
 	div(class='table-responsive')
-		table(class='table table-striped table-bordered')
+		table(class='table table-striped table-bordered' id='matches-list')
 			thead
 				tr
 					th Start Time
 					th End Time
-					th Starting Score
+					th Game Type
 					th Stake
 					th Winner
 					th Players
@@ -34,17 +34,16 @@ block content
 						th(hidden='true' scope='row')= match.id
 						td= match.created_at
 						td= match.end_time === undefined ? '' : match.end_time
-						td= match.starting_score
+						td(class='txt-center')= match.starting_score
 						td
 						if match.is_finished
-							td= players[match.winner_id].name
+							td(class='txt-center')
+								label(class='btn btn-success')=players[match.winner_id].name
 						else
-							td -
+							td(class='txt-center') -
 						td
-							table(class='table table-striped table-bordered')
-								tbody
-									each player in match.players
-										tr: td= player.name
+							each player in match.players
+								label(class='btn btn-default')=player.name
 						if !match.is_finished
 							td: button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
 						else
