@@ -31,19 +31,22 @@ block scripts
 					return;
 				}
 				var multiplier = $(this).data('multiplier');
-				/*var multiplierText = '';
-				 if (multiplier == 2) {
-				 multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
-				 }
-				 else if (multiplier == 3) {
-				 multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
-				 }
-				 else {
-				 multiplierText = $(this).text().substring(0, $(this).text().length - 1);
-				 }
-				 dart.text(multiplierText);*/
+				var multiplierText = '';
+				if (multiplier == 3) {
+					multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
+					dart.css('background-color', '#d9534f');
+				}
+				else if (multiplier == 2) {
+					multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
+					dart.css('background-color', 'orange');
+				}
+				else {
+					multiplierText = $(this).text().substring(0, $(this).text().length - 1);
+					dart.css('background-color', 'black');
+				}
+				dart.text(multiplierText);
 
-				dart.text($(this).attr('title'));
+				dart.attr('data-score', $(this).attr('title')) / multiplier;
 				dart.attr('data-multiplier', multiplier);
 
 				var submitButton = $('#submitScoreButton');
@@ -98,17 +101,18 @@ block scripts
 
 			$('#submitScoreButton').click(function () {
 				// Scores
-				var firstScoreNumeric = parseInt($('#first').text() / $('#first').attr('data-multiplier'));
-				var secondScoreNumeric = parseInt($('#second').text() / $('#second').attr('data-multiplier'));
-				var thirdScoreNumeric = parseInt($('#third').text() / $('#third').attr('data-multiplier'));
+				var firstScoreNumeric = $('#first').attr('data-score');
+				var secondScoreNumeric = $('#second').attr('data-score');
+				var thirdScoreNumeric = $('#third').attr('data-score');
+
 				// Multipliers
-				var firstScoreMultiplier = parseInt($('#first').attr('data-multiplier'));
-				var secondScoreMultiplier = parseInt($('#second').attr('data-multiplier'));
-				var thirdScoreMultiplier = parseInt($('#third').attr('data-multiplier'));
+				var firstScoreMultiplier = $('#first').attr('data-multiplier');
+				var secondScoreMultiplier = $('#second').attr('data-multiplier');
+				var thirdScoreMultiplier =  $('#third').attr('data-multiplier');
 				// Checkouts
-				var isCheckoutFirst = parseInt($('#first').attr('data-checkout'));
-				var isCheckoutSecond = parseInt($('#second').attr('data-checkout'));
-				var isCheckoutThird = parseInt($('#third').attr('data-checkout'));
+				var isCheckoutFirst = $('#first').attr('data-checkout');
+				var isCheckoutSecond = $('#second').attr('data-checkout');
+				var isCheckoutThird = $('#third').attr('data-checkout');
 
 				var matchId = $(this).data('match-id');
 				var currentPlayerId = $(this).data('current-player-id');
