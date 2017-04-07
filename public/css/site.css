@@ -84,3 +84,12 @@ a:hover {
 .txt-center {
     text-align: center;
 }
+#player_comparison_table td:first-child {
+    text-align: left;
+}
+#player_comparison_table td, th {
+    text-align: center;
+}
+#player_overview_table td, th {
+    text-align: center;
+}
