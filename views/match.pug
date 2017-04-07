@@ -46,7 +46,7 @@ block scripts
 				}
 				dart.text(multiplierText);
 
-				dart.attr('data-score', $(this).attr('title')) / multiplier;
+				dart.attr('data-score', $(this).attr('title') / multiplier);
 				dart.attr('data-multiplier', multiplier);
 
 				var submitButton = $('#submitScoreButton');
