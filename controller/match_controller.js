@@ -9,6 +9,7 @@ var Player = require.main.require('./models/Player');
 var Match = require.main.require('./models/Match');
 var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
+var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
@@ -100,75 +101,101 @@ router.get('/:id', function (req, res) {
 
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
-	new Match({id: req.params.id})
-		.fetch( { withRelated: ['players', 'scores', 'player2match'] } )
+new Match({id: req.params.id})
+		.fetch( { withRelated: ['players', 'statistics', 'scores'] } )
 		.then(function (match) {
 			var players = match.related('players').serialize();
-			var scores = match.related('scores').serialize();
-			var match = match.serialize();
+			var statistics = match.related('statistics').serialize();
 
-			var playerStatistics = {};
-			for (var i = 0; i < players.length; i++){
-				var player = players[i];
-				playerStatistics[player.id] = {
-					id: player.id,
-					name: player.name,
-					ppdScore: 0,
-					ppd: 0,
-					first9ppd: 0,
-					first9Score: 0,
-					totalScore: 0,
-					visits: 0,
-					scores: [],
-					highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
-				};
-			}
-			for (var i = 0; i < scores.length; i++) {
-				var score = scores[i];
-				var player = playerStatistics[score.player_id];
-				var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
-						(score.second_dart * score.second_dart_multiplier) +
-						(score.third_dart * score.third_dart_multiplier);
+			var playersMap = players.reduce(function ( map, player ) {
+			    map[player.id] = player;
+			    return map;
+			}, {});
 
-				player.visits += 1;
-				if (player.visits <= 3) {
-					player.first9Score += totalVisitScore;
-				}
-				if ((match.starting_score - totalVisitScore) > 170) {
-					player.ppdScore += totalVisitScore;
-				}
-				player.totalScore += totalVisitScore;
-
-				if (totalVisitScore >= 60 && totalVisitScore <= 99) {
-					player.highScores['60+'] += 1;
-				}
-				else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
-					player.highScores['100+'] += 1;
-				}
-				else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
-					player.highScores['140+'] += 1;
-				}
-				else if (totalVisitScore == 180) {
-					player.highScores['180'] += 1;
-				}
-				player.scores.push(score);
-			}
-			// Calculate PPD and First 9 PPD
-			for (var i = 0; i < players.length; i++){
-				var player = playerStatistics[players[i].id];
-				player.ppd = player.ppdScore / (player.visits * 3);
-				player.first9ppd = player.first9Score / 9;
+			for (var i = 0; i < statistics.length; i++) {
+				var stats = statistics[i];
+				var player = playersMap[stats.player_id];
+				player.statistics = stats; 
 			}
 
 			res.render('results', {
-				match: match,
-				scores: scores,
-				players: playerStatistics
+				match: match.serialize(),
+				scores: match.related('scores').serialize(),
+				players: playersMap
 			});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
-		});
+		});	
+	// new Match({id: req.params.id})
+	// 	.fetch( { withRelated: ['players', 'scores', 'player2match'] } )
+	// 	.then(function (match) {
+	// 		var players = match.related('players').serialize();
+	// 		var scores = match.related('scores').serialize();
+	// 		var match = match.serialize();
+
+	// 		var playerStatistics = {};
+	// 		for (var i = 0; i < players.length; i++){
+	// 			var player = players[i];
+	// 			playerStatistics[player.id] = {
+	// 				id: player.id,
+	// 				name: player.name,
+	// 				ppdScore: 0,
+	// 				ppd: 0,
+	// 				first9ppd: 0,
+	// 				first9Score: 0,
+	// 				totalScore: 0,
+	// 				visits: 0,
+	// 				scores: [],
+	// 				highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
+	// 			};
+	// 		}
+	// 		for (var i = 0; i < scores.length; i++) {
+	// 			var score = scores[i];
+	// 			var player = playerStatistics[score.player_id];
+	// 			var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
+	// 					(score.second_dart * score.second_dart_multiplier) +
+	// 					(score.third_dart * score.third_dart_multiplier);
+
+	// 			player.visits += 1;
+	// 			if (player.visits <= 3) {
+	// 				player.first9Score += totalVisitScore;
+	// 			}
+	// 			if ((match.starting_score - totalVisitScore) > 170) {
+	// 				player.ppdScore += totalVisitScore;
+	// 			}
+	// 			player.totalScore += totalVisitScore;
+
+	// 			if (totalVisitScore >= 60 && totalVisitScore <= 99) {
+	// 				player.highScores['60+'] += 1;
+	// 			}
+	// 			else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
+	// 				player.highScores['100+'] += 1;
+	// 			}
+	// 			else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
+	// 				player.highScores['140+'] += 1;
+	// 			}
+	// 			else if (totalVisitScore == 180) {
+	// 				player.highScores['180'] += 1;
+	// 			}
+	// 			player.scores.push(score);
+	// 		}
+	// 		// Calculate PPD and First 9 PPD
+	// 		for (var i = 0; i < players.length; i++){
+	// 			var player = playerStatistics[players[i].id];
+	// 			player.ppd = player.ppdScore / (player.visits * 3);
+	// 			player.first9ppd = player.first9Score / 9;
+	// 		}
+
+	// 		res.render('results', {
+	// 			match: match,
+	// 			scores: scores,
+	// 			players: playerStatistics
+	// 		});
+	// 	})
+	// 	.catch(function (err) {
+	// 		helper.renderError(res, err);
+	// 	});
 });
 
 /* Method for starting a new match */
@@ -339,9 +366,7 @@ router.post('/:id/finish', function (req, res) {
 		debug('Set final score for player %s', currentPlayerId);
 
 		// Update match with winner
-		new Match({
-			id: matchId
-		})
+		new Match({ id: matchId })
 		.save({
 			current_player_id: currentPlayerId,
 			is_finished: true,
@@ -349,14 +374,57 @@ router.post('/:id/finish', function (req, res) {
 			end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 		})
 		.then(function (match) {
-			res.status(200).end();
+			// Get all players in the match and set their statistics
+			Player2match
+				.where('match_id', '=', matchId)
+				.fetchAll()
+				.then(function(rows) {
+					var players = rows.serialize();
+					var playerIds = [];
+					for (var i = 0; i < players.length; i++){
+						playerIds.push(players[i].player_id);
+					}
+					Score
+						.where('match_id', '=', matchId)
+						.fetchAll()
+						.then(function(scoreRows){
+							var playerMap = getPlayerStatistics(players, scoreRows.serialize());
+							for (id in playerMap){
+								var player = playerMap[id];
+
+								var stats = new StatisticsX01({
+									match_id: matchId,
+									player_id: player.id,
+									ppd: player.ppd,
+									first_nine_ppd: player.first9ppd,
+									checkout_percentage: player.checkoutPercentage,
+									darts_thrown: player.visits * 3
+								});
+								stats.attributes['60s_plus'] = player.highScores['60+'];
+								stats.attributes['100s_plus'] = player.highScores['100+'];
+								stats.attributes['140s_plus'] = player.highScores['140+'];
+								stats.attributes['180s'] = player.highScores['180'];
+								stats
+									.save(null, {method: 'insert'})
+									.then(function(row) {
+										debug('Inserted statistics for match %s, player %s', matchId, player.id);
+										res.status(200).end();
+									})
+									.catch(function(err) {
+										debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
+										debug(err);
+										helper.renderError(res, err);
+									});
+							}
+						});
+				});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
 		});
 	})
 	.catch(function(err) {
-		return helper.renderError(res, err);
+		helper.renderError(res, err);
 	});
 
 	// Increment played matches nad games won
@@ -372,5 +440,63 @@ router.post('/:id/finish', function (req, res) {
 	});
 });
 
+
+function getPlayerStatistics(players, scores) {
+	var playerMap = {};
+	for (var i = 0; i < players.length; i++) {
+		var player = players[i];
+		playerMap[player.player_id] = {
+			id: player.player_id,
+			ppdScore: 0,
+			ppd: 0,
+			first9ppd: 0,
+			first9Score: 0,
+			totalScore: 0,
+			visits: 0,
+			scores: [],
+			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
+		}
+	}
+
+	for (var i = 0; i < scores.length; i++) {
+		var score = scores[i];
+		var player = playerMap[score.player_id];
+
+		var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
+				(score.second_dart * score.second_dart_multiplier) +
+				(score.third_dart * score.third_dart_multiplier);
+
+		player.visits += 1;
+		if (player.visits <= 3) {
+			player.first9Score += totalVisitScore;
+		}		
+		player.ppdScore += totalVisitScore;
+
+		if (totalVisitScore >= 60 && totalVisitScore <= 99) {
+			player.highScores['60+'] += 1;
+		}
+		else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
+			player.highScores['100+'] += 1;
+		}
+		else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
+			player.highScores['140+'] += 1;
+		}
+		else if (totalVisitScore == 180) {
+			player.highScores['180'] += 1;
+		}
+	}
+	for (id in playerMap) {
+		var player = playerMap[id];
+		player.ppd = player.ppdScore / (player.visits * 3);
+		if (player.visits < 3) {
+			// With 301 you could finish in 6 darts
+			player.first9ppd = player.first9Score / 6;
+		}
+		else {
+			player.first9ppd = player.first9Score / 9;
+		}
+	}
+	return playerMap;	
+}
 module.exports = router
 

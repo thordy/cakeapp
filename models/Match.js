@@ -6,6 +6,7 @@ bookshelf.plugin('registry');
 var Player = require('./Player');
 var Player2Match = require('./Player2match');
 var Score = require('./Score');
+var Statisticsx01 = require('./Statisticsx01');
 
 var Match = bookshelf.Model.extend({
     tableName: 'match',
@@ -22,6 +23,9 @@ var Match = bookshelf.Model.extend({
     },
     scores: function() {
         return this.hasMany(Score);
+    },
+    statistics: function() {
+        return this.hasMany(Statisticsx01);
     }
 },
 {

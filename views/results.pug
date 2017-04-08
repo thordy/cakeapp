@@ -46,27 +46,28 @@ block content
 		thead
 			tr
 				th Player
-				th Visits
+				th Darts Thrown
 				th First 9 PPD
 				th PPD
 				th Scores
 				th Winner
 		tbody
 			each player in players
+				- var statistics = player.statistics;
 				tr
 					td
 						p= player.name
 					td
-						p= player.visits
+						p= statistics.darts_thrown
 					td
-						p= player.first9ppd.toFixed(2)
+						p= statistics.first_nine_ppd.toFixed(2)
 					td
-						p= player.ppd.toFixed(2)
+						p= statistics.ppd.toFixed(2)
 					td
-						p= player.highScores['60+'] == 0 ? "" : "60+: " + player.highScores['60+']
-						p= player.highScores['100+'] == 0 ? "" : "100+: " + player.highScores['100+']
-						p= player.highScores['140+'] == 0 ? "" : "140+: " + player.highScores['140+']
-						p= player.highScores['180'] == 0 ? "" : "180:  " + player.highScores['180']
+						p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
+						p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
+						p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
+						p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
 
 					if match.winner_id !== undefined && player.id === match.winner_id
 						td
