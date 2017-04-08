@@ -123,12 +123,34 @@ router.get('/:id/results', function (req, res) {
 					highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
 				};
 			}
+
+			var scoresCount = {};
+
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
 				var player = playerStatistics[score.player_id];
 				var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
 						(score.second_dart * score.second_dart_multiplier) +
 						(score.third_dart * score.third_dart_multiplier);
+
+				var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
+				if (scoresCount[firstDartIndex] === undefined) {
+					scoresCount[firstDartIndex] = 1;
+				} else {
+					scoresCount[firstDartIndex]++;
+				}
+				var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
+				if (scoresCount[secondDartIndex] === undefined) {
+					scoresCount[secondDartIndex] = 1;
+				} else {
+					scoresCount[secondDartIndex]++;
+				}
+				var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
+				if (scoresCount[thirdDartIndex] === undefined) {
+					scoresCount[thirdDartIndex] = 1;
+				} else {
+					scoresCount[thirdDartIndex]++;
+				}
 
 				player.visits += 1;
 				if (player.visits <= 3) {
@@ -153,17 +175,18 @@ router.get('/:id/results', function (req, res) {
 				}
 				player.scores.push(score);
 			}
+
 			// Calculate PPD and First 9 PPD
 			for (var i = 0; i < players.length; i++){
 				var player = playerStatistics[players[i].id];
 				player.ppd = player.ppdScore / (player.visits * 3);
 				player.first9ppd = player.first9Score / 9;
 			}
-
 			res.render('results', {
 				match: match,
 				scores: scores,
-				players: playerStatistics
+				players: playerStatistics,
+				scoresCount: scoresCount
 			});
 		})
 		.catch(function (err) {
@@ -315,9 +338,9 @@ router.post('/:id/finish', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-    var isCheckoutFirst = req.body.isCheckoutFirst;
-    var isCheckoutSecond = req.body.isCheckoutSecond;
-    var isCheckoutThird = req.body.isCheckoutThird;
+	var isCheckoutFirst = req.body.isCheckoutFirst;
+	var isCheckoutSecond = req.body.isCheckoutSecond;
+	var isCheckoutThird = req.body.isCheckoutThird;
 	debug('Match %s finished', matchId);
 
 	// Insert new score and change current player in match

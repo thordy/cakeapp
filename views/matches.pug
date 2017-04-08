@@ -38,12 +38,13 @@ block content
 						td
 						if match.is_finished
 							td
-								label(style='display: block;' class='label label-success')=players[match.winner_id].name
+								=players[match.winner_id].name
 						else
 							td(class='txt-center') -
 						td
 							each player in match.players
-								label(class='label label-default')=player.name
+								=player.name
+								br
 						if !match.is_finished
 							td: button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
 						else
