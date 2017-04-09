@@ -106,33 +106,32 @@ new Match({id: req.params.id})
 		.then(function (match) {
 			var players = match.related('players').serialize();
 			var statistics = match.related('statistics').serialize();
+			var scores = match.related('scores').serialize();
+			var playersMap = players.reduce(function ( map, player ) {
+				map[player.id] = player;
+				return map;
+			}, {});
 
+			for (var i = 0; i < statistics.length; i++) {
+				var stats = statistics[i];
+				var player = playersMap[stats.player_id];
+				player.statistics = stats; 
+			}
 			var scoresCount = {};
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
 
 				var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
-				if (scoresCount[firstDartIndex] === undefined) {
-					scoresCount[firstDartIndex] = 1;
-				} else {
-					scoresCount[firstDartIndex]++;
-				}
+				scoresCount[firstDartIndex] = scoresCount[firstDartIndex] === undefined ? 1 : scoresCount[firstDartIndex] + 1;
 				var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
-				if (scoresCount[secondDartIndex] === undefined) {
-					scoresCount[secondDartIndex] = 1;
-				} else {
-					scoresCount[secondDartIndex]++;
-				}
+				scoresCount[secondDartIndex] = scoresCount[secondDartIndex] === undefined ? 1 : scoresCount[secondDartIndex] + 1;
 				var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
-				if (scoresCount[thirdDartIndex] === undefined) {
-					scoresCount[thirdDartIndex] = 1;
-				} else {
-					scoresCount[thirdDartIndex]++;
-				}
+				scoresCount[thirdDartIndex] = scoresCount[thirdDartIndex] === undefined ? 1 : scoresCount[thirdDartIndex] + 1;
 			}
+			console.log(scoresCount)
 			res.render('results', {
 				match: match.serialize(),
-				scores: match.related('scores').serialize(),
+				scores: scores,
 				players: playersMap,
 				scoresCount: scoresCount
 			});
