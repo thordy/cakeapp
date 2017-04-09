@@ -2,6 +2,8 @@ extends layout.pug
 
 block scripts
 	script.
+		var scoresCount = "#{scores}";
+	script.
 		$(function () {
 			$('.edit-visit').click(function () {
 				var visitNumber = $(this).data('visit');
@@ -31,6 +33,147 @@ block scripts
 				thirdDartMultiplierField.text('').append('<input type="text" value="' + thirdDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
 			});
 		});
+	script.
+		var dataImageMap = {};
+
+		// Miss
+		dataImageMap['p.0.1'] = {'x': 0, 'y': 0};
+
+		dataImageMap['p.1.1'] = {'x': 348, 'y': 158};
+		dataImageMap['p.1.2'] = {'x': 361, 'y': 120};
+		dataImageMap['p.1.3'] = {'x': 370, 'y': 210};
+
+		dataImageMap['p.2.1'] = {'x': 396, 'y': 442};
+		dataImageMap['p.2.2'] = {'x': 418, 'y': 474};
+		dataImageMap['p.2.3'] = {'x': 372, 'y': 409};
+
+		dataImageMap['p.3.1'] = {'x': 298, 'y': 472};
+		dataImageMap['p.3.2'] = {'x': 299, 'y': 513};
+		dataImageMap['p.3.3'] = {'x': 299, 'y': 433};
+
+		dataImageMap['p.4.1'] = {'x': 431, 'y': 214};
+		dataImageMap['p.4.2'] = {'x': 462, 'y': 194};
+		dataImageMap['p.4.3'] = {'x': 399, 'y': 239};
+
+		dataImageMap['p.5.1'] = {'x': 250, 'y': 159};
+		dataImageMap['p.5.2'] = {'x': 235, 'y': 122};
+		dataImageMap['p.5.3'] = {'x': 260, 'y': 194};
+
+		dataImageMap['p.6.1'] = {'x': 461, 'y': 310};
+		dataImageMap['p.6.2'] = {'x': 500, 'y': 309};
+		dataImageMap['p.6.3'] = {'x': 422, 'y': 310};
+
+		dataImageMap['p.7.1'] = {'x': 203, 'y': 441};
+		dataImageMap['p.7.2'] = {'x': 178, 'y': 472};
+		dataImageMap['p.7.3'] = {'x': 226, 'y': 409};
+
+		dataImageMap['p.8.1'] = {'x': 143, 'y': 361};
+		dataImageMap['p.8.2'] = {'x': 107, 'y': 371};
+		dataImageMap['p.8.3'] = {'x': 181, 'y': 348};
+
+		dataImageMap['p.9.1'] = {'x': 166, 'y': 216};
+		dataImageMap['p.9.2'] = {'x': 135, 'y': 195};
+		dataImageMap['p.9.3'] = {'x': 199, 'y': 238};
+
+		dataImageMap['p.10.1'] = {'x': 452, 'y': 359};
+		dataImageMap['p.10.2'] = {'x': 492, 'y': 372};
+		dataImageMap['p.10.3'] = {'x': 417, 'y': 349};
+
+		dataImageMap['p.11.1'] = {'x': 135, 'y': 312};
+		dataImageMap['p.11.2'] = {'x': 97, 'y': 310};
+		dataImageMap['p.11.3'] = {'x': 176, 'y': 310};
+
+		dataImageMap['p.12.1'] = {'x': 202, 'y': 178};
+		dataImageMap['p.12.2'] = {'x': 182, 'y': 150};
+		dataImageMap['p.12.3'] = {'x': 226, 'y': 212};
+
+		dataImageMap['p.13.1'] = {'x': 451, 'y': 261};
+		dataImageMap['p.13.2'] = {'x': 488, 'y': 247};
+		dataImageMap['p.13.3'] = {'x': 415, 'y': 272};
+
+		dataImageMap['p.14.1'] = {'x': 144, 'y': 260};
+		dataImageMap['p.14.2'] = {'x': 108, 'y': 250};
+		dataImageMap['p.14.3'] = {'x': 182, 'y': 273};
+
+		dataImageMap['p.15.1'] = {'x': 431, 'y': 407};
+		dataImageMap['p.15.2'] = {'x': 462, 'y': 429};
+		dataImageMap['p.15.3'] = {'x': 399, 'y': 383};
+
+		dataImageMap['p.16.1'] = {'x': 167, 'y': 406};
+		dataImageMap['p.16.2'] = {'x': 136, 'y': 431};
+		dataImageMap['p.16.3'] = {'x': 199, 'y': 384};
+
+		dataImageMap['p.17.1'] = {'x': 348, 'y': 465};
+		dataImageMap['p.17.2'] = {'x': 361, 'y': 502};
+		dataImageMap['p.17.3'] = {'x': 336, 'y': 427};
+
+		dataImageMap['p.18.1'] = {'x': 394, 'y': 180};
+		dataImageMap['p.18.2'] = {'x': 416, 'y': 148};
+		dataImageMap['p.18.3'] = {'x': 371, 'y': 211};
+
+		dataImageMap['p.19.1'] = {'x': 248, 'y': 465};
+		dataImageMap['p.19.2'] = {'x': 236, 'y': 503};
+		dataImageMap['p.19.3'] = {'x': 261, 'y': 428};
+
+		dataImageMap['p.20.1'] = {'x': 300, 'y': 150};
+		dataImageMap['p.20.2'] = {'x': 300, 'y': 110};
+		dataImageMap['p.20.3'] = {'x': 300, 'y': 180};
+
+		dataImageMap['p.25.1'] = {'x': 300, 'y': 310};
+		dataImageMap['p.25.2'] = {'x': 300, 'y': 310};
+
+		window.onload = function(){
+
+			function paintAtCoord(x, y, spread, size, intensity) {
+				var i = 0;
+				while (i < 70) {
+					var xoff = Math.random() * 2 - 1;
+					var yoff = Math.random() * 2 - 1;
+					var l = xoff * xoff + yoff * yoff;
+					if (l > 1) {
+						continue;
+					}
+					var ls = Math.sqrt(l);
+					xoff /= ls;
+					yoff /= ls;
+					xoff *= 1 - l;
+					yoff *= 1 - l;
+					i += 1;
+					heatmap.addPoint(x + xoff * spread, y + yoff * spread, size, intensity / 1000);
+				}
+			};
+
+			var canvas = document.getElementsByTagName('canvas')[0];
+			var heatmap = createWebGLHeatmap({canvas: canvas, intensityToAlpha: true});
+			//var heatmap = createWebGLHeatmap({canvas: canvas, intensityToAlpha:true, alphaRange: [1, 0]}); // inverse transparency
+			//var heatmap = createWebGLHeatmap({canvas: canvas, intensityToAlpha:true, alphaRange: [0, 0.05]}); // steep transparency
+			//var heatmap = createWebGLHeatmap({canvas: canvas, intensityToAlpha:true, gradientTexture:'deep-sea-gradient.png'});
+			//var heatmap = createWebGLHeatmap({canvas: canvas, intensityToAlpha:false, gradientTexture:'skyline-gradient.png'});
+			//var heatmap = createWebGLHeatmap({width: 500, height: 500}); // statically sized heatmap
+
+			//document.body.appendChild(heatmap.canvas);
+			var scoresCount = !{JSON.stringify(scoresCount)};
+			for (var index in scoresCount) {
+				var value = scoresCount[index];
+				var coordinatesX = dataImageMap[index]['x'];
+				var coordinatesY = dataImageMap[index]['y'];
+				for (var i=0; i<value; i++) {
+					paintAtCoord(coordinatesX, coordinatesY, 100, 30, 50);
+				}
+			}
+
+			var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+				window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+			var update = function(){
+				heatmap.adjustSize(); // can be commented out for statically sized heatmaps, resize clears the map
+				heatmap.update(); // adds the buffered points
+				heatmap.display(); // adds the buffered points
+				raf(update);
+			}
+
+			raf(update);
+		}
 
 block content
 	h2 Results
@@ -108,3 +251,5 @@ block content
 					td(class="txt-center")
 						button(type="button" class="btn btn-default edit-visit" data-visit=throws.id)
 							span(class="glyphicon glyphicon-edit" aria-hidden="true")
+	div(style='text-align: center;')
+		canvas(id='dartboard-heatmap')

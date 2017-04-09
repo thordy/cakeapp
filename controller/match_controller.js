@@ -107,95 +107,39 @@ new Match({id: req.params.id})
 			var players = match.related('players').serialize();
 			var statistics = match.related('statistics').serialize();
 
-			var playersMap = players.reduce(function ( map, player ) {
-			    map[player.id] = player;
-			    return map;
-			}, {});
+			var scoresCount = {};
+			for (var i = 0; i < scores.length; i++) {
+				var score = scores[i];
 
-			for (var i = 0; i < statistics.length; i++) {
-				var stats = statistics[i];
-				var player = playersMap[stats.player_id];
-				player.statistics = stats; 
+				var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
+				if (scoresCount[firstDartIndex] === undefined) {
+					scoresCount[firstDartIndex] = 1;
+				} else {
+					scoresCount[firstDartIndex]++;
+				}
+				var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
+				if (scoresCount[secondDartIndex] === undefined) {
+					scoresCount[secondDartIndex] = 1;
+				} else {
+					scoresCount[secondDartIndex]++;
+				}
+				var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
+				if (scoresCount[thirdDartIndex] === undefined) {
+					scoresCount[thirdDartIndex] = 1;
+				} else {
+					scoresCount[thirdDartIndex]++;
+				}
 			}
-
 			res.render('results', {
 				match: match.serialize(),
 				scores: match.related('scores').serialize(),
-				players: playersMap
+				players: playersMap,
+				scoresCount: scoresCount
 			});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
-		});	
-	// new Match({id: req.params.id})
-	// 	.fetch( { withRelated: ['players', 'scores', 'player2match'] } )
-	// 	.then(function (match) {
-	// 		var players = match.related('players').serialize();
-	// 		var scores = match.related('scores').serialize();
-	// 		var match = match.serialize();
-
-	// 		var playerStatistics = {};
-	// 		for (var i = 0; i < players.length; i++){
-	// 			var player = players[i];
-	// 			playerStatistics[player.id] = {
-	// 				id: player.id,
-	// 				name: player.name,
-	// 				ppdScore: 0,
-	// 				ppd: 0,
-	// 				first9ppd: 0,
-	// 				first9Score: 0,
-	// 				totalScore: 0,
-	// 				visits: 0,
-	// 				scores: [],
-	// 				highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
-	// 			};
-	// 		}
-	// 		for (var i = 0; i < scores.length; i++) {
-	// 			var score = scores[i];
-	// 			var player = playerStatistics[score.player_id];
-	// 			var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
-	// 					(score.second_dart * score.second_dart_multiplier) +
-	// 					(score.third_dart * score.third_dart_multiplier);
-
-	// 			player.visits += 1;
-	// 			if (player.visits <= 3) {
-	// 				player.first9Score += totalVisitScore;
-	// 			}
-	// 			if ((match.starting_score - totalVisitScore) > 170) {
-	// 				player.ppdScore += totalVisitScore;
-	// 			}
-	// 			player.totalScore += totalVisitScore;
-
-	// 			if (totalVisitScore >= 60 && totalVisitScore <= 99) {
-	// 				player.highScores['60+'] += 1;
-	// 			}
-	// 			else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
-	// 				player.highScores['100+'] += 1;
-	// 			}
-	// 			else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
-	// 				player.highScores['140+'] += 1;
-	// 			}
-	// 			else if (totalVisitScore == 180) {
-	// 				player.highScores['180'] += 1;
-	// 			}
-	// 			player.scores.push(score);
-	// 		}
-	// 		// Calculate PPD and First 9 PPD
-	// 		for (var i = 0; i < players.length; i++){
-	// 			var player = playerStatistics[players[i].id];
-	// 			player.ppd = player.ppdScore / (player.visits * 3);
-	// 			player.first9ppd = player.first9Score / 9;
-	// 		}
-
-	// 		res.render('results', {
-	// 			match: match,
-	// 			scores: scores,
-	// 			players: playerStatistics
-	// 		});
-	// 	})
-	// 	.catch(function (err) {
-	// 		helper.renderError(res, err);
-	// 	});
+		});
 });
 
 /* Method for starting a new match */
@@ -342,9 +286,9 @@ router.post('/:id/finish', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-    var isCheckoutFirst = req.body.isCheckoutFirst;
-    var isCheckoutSecond = req.body.isCheckoutSecond;
-    var isCheckoutThird = req.body.isCheckoutThird;
+	var isCheckoutFirst = req.body.isCheckoutFirst;
+	var isCheckoutSecond = req.body.isCheckoutSecond;
+	var isCheckoutThird = req.body.isCheckoutThird;
 	debug('Match %s finished', matchId);
 
 	// Insert new score and change current player in match

@@ -93,3 +93,10 @@ a:hover {
 #player_overview_table td, th {
     text-align: center;
 }
+
+#dartboard-heatmap {
+    width: 600px;
+    height: 600px;
+    background-image: url('../images/dartboard.jpg');
+    background-size: 100% 100%;
+}
