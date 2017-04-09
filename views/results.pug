@@ -24,13 +24,121 @@ block scripts
 				var secondDartMultiplierValue = secondDartMultiplierField.data('multiplier');
 				var thirdDartMultiplierValue = thirdDartMultiplierField.data('multiplier');
 
-				firstDartField.text('').append('<input type="text" value="' + firstDartValue + '" class="form-control" style="max-width: 50px;" />');
-				secondDartField.text('').append('<input type="text" value="' + secondDartValue + '" class="form-control" style="max-width: 50px;" />');
-				thirdDartField.text('').append('<input type="text" value="' + thirdDartValue + '" class="form-control" style="max-width: 50px;" />');
+				if ($(this).data('issave') == 1) {
+					var firstScoreChanged = firstDartField.children('input').val();
+					var secondScoreChanged = secondDartField.children('input').val();
+					var thirdScoreChanged = thirdDartField.children('input').val();
 
-				firstDartMultiplierField.text('').append('<input type="text" value="' + firstDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
-				secondDartMultiplierField.text('').append('<input type="text" value="' + secondDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
-				thirdDartMultiplierField.text('').append('<input type="text" value="' + thirdDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
+					// Handle miss (set multiplier to 1 automatically)
+					if (firstScoreChanged == 0) {
+						firstDartMultiplierField.children('input').val('1');
+					}
+					if (secondScoreChanged == 0) {
+						secondDartMultiplierField.children('input').val('1');
+					}
+					if (thirdScoreChanged == 0) {
+						thirdDartMultiplierField.children('input').val('1');
+					}
+
+					var firstMultiplierChanged = firstDartMultiplierField.children('input').val();
+					var secondMultiplierChanged = secondDartMultiplierField.children('input').val();
+					var thirdMultiplierChanged = thirdDartMultiplierField.children('input').val();
+
+					if (isNaN(firstScoreChanged) || isNaN(firstMultiplierChanged) ||
+						isNaN(secondScoreChanged) || isNaN(secondMultiplierChanged) ||
+						isNaN(thirdScoreChanged) || isNaN(thirdMultiplierChanged)) {
+						alert('Please enter numeric value.');
+						return;
+					}
+
+					if (firstScoreChanged < 0 || firstScoreChanged > 20 || firstMultiplierChanged < 1 || firstMultiplierChanged > 3) {
+						alert('Incorrect values for first dart.');
+						return;
+					}
+
+					if (secondScoreChanged < 0 || secondScoreChanged > 20 || secondMultiplierChanged < 1 || secondMultiplierChanged > 3) {
+						alert('Incorrect values for second dart.');
+						return;
+					}
+
+					if (thirdScoreChanged < 0 || thirdScoreChanged > 20 || thirdMultiplierChanged < 1 || thirdMultiplierChanged > 3) {
+						alert('Incorrect values for third dart.');
+						return;
+					}
+
+					// We have correct values, let's change the summary and ppd displayed
+					var total = firstScoreChanged * firstMultiplierChanged +
+							secondScoreChanged * secondMultiplierChanged +
+							thirdScoreChanged * thirdMultiplierChanged;
+					$('.total-visit-score-' + visitNumber).text(total);
+
+					var ppd = (total / 3).toFixed(2);
+					$('.visit-ppd-' + visitNumber).text(ppd);
+
+					$('.first-dart-visit-total-' + visitNumber).text(firstScoreChanged * firstMultiplierChanged);
+					$('.second-dart-visit-total-' + visitNumber).text(secondScoreChanged * secondMultiplierChanged);
+					$('.third-dart-visit-total-' + visitNumber).text(thirdScoreChanged * thirdMultiplierChanged);
+
+					firstDartField.data('score', firstScoreChanged);
+					secondDartField.data('score', secondScoreChanged);
+					thirdDartField.data('score', thirdScoreChanged);
+
+					firstDartMultiplierField.data('multiplier', firstMultiplierChanged);
+					secondDartMultiplierField.data('multiplier', secondMultiplierChanged);
+					thirdDartMultiplierField.data('multiplier', thirdMultiplierChanged);
+
+					// Save the data
+					var data = JSON.stringify({
+						'scoreId': visitNumber,
+						'firstDart': firstScoreChanged,
+						'secondDart': secondScoreChanged,
+						'thirdDart': thirdScoreChanged,
+						'firstDartMultiplier': firstMultiplierChanged,
+						'secondDartMultiplier': secondMultiplierChanged,
+						'thirdDartMultiplier': thirdMultiplierChanged,
+					});
+
+					$(this).children('span').removeClass('glyphicon-floppy-disk').addClass('glyphicon-edit');
+					$(this).data('issave', 0);
+
+					/// Depending on the data-finished attribute of submit button, use different route and redirect
+					var route = window.location.pathname;
+					var routeRedirect = window.location.pathname;
+
+					executePost(route, data, 'application/json',
+						function (response) {
+							if (response.statusCode == 200) {
+								firstDartField.text(firstScoreChanged);
+								secondDartField.text(secondScoreChanged);
+								thirdDartField.text(thirdScoreChanged);
+								firstDartMultiplierField.text(firstMultiplierChanged);
+								secondDartMultiplierField.text(secondMultiplierChanged);
+								thirdDartMultiplierField.text(thirdMultiplierChanged);
+							} else {
+								alert('Error changing score.');
+							}
+						},
+						function (error) {
+							// TODO Error handling
+							console.log("Unable to proceed: " + error.responseText);
+						}
+					);
+				} else {
+					firstDartField.text('').append('<input type="text" value="' + firstDartValue + '" class="form-control" style="max-width: 50px;" />');
+					secondDartField.text('').append('<input type="text" value="' + secondDartValue + '" class="form-control" style="max-width: 50px;" />');
+					thirdDartField.text('').append('<input type="text" value="' + thirdDartValue + '" class="form-control" style="max-width: 50px;" />');
+
+					firstDartMultiplierField.text('').append('<input type="text" value="' + firstDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
+					secondDartMultiplierField.text('').append('<input type="text" value="' + secondDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
+					thirdDartMultiplierField.text('').append('<input type="text" value="' + thirdDartMultiplierValue + '" class="form-control" style="max-width: 50px;" />');
+
+					$(this).children('span').removeClass('glyphicon-edit').addClass('glyphicon-floppy-disk');
+					$(this).data('issave', 1);
+				}
+			});
+
+			$('#continue-match').click(function () {
+				location.href = '/match/' + $(this).data('match');
 			});
 		});
 	script.
@@ -216,6 +324,11 @@ block content
 							span(class='glyphicon glyphicon-ok' aria-hidden='true')
 					else
 						td
+
+	div(style='margin-bottom: 20px;')
+		if match.winner_id !== undefined
+			button(type="button" class="btn btn-primary" id="continue-match" data-match=match.id)='continue match'
+
 	p.
 		Starting score was #{match.starting_score}, and a total of #{scores.length * 3} darts were thrown by #{Object.keys(players).length} players
 
@@ -236,19 +349,21 @@ block content
 					td(id='first-dart-visit-' + throws.id data-score=throws.first_dart)= throws.first_dart
 					td(id='first-dart-multiplier-visit-' + throws.id data-multiplier=throws.first_dart_multiplier)= throws.first_dart_multiplier
 					td
-						label(class='btn btn-success')= throws.first_dart * throws.first_dart_multiplier
+						label(class='btn btn-success' class='first-dart-visit-total-' + throws.id)= throws.first_dart * throws.first_dart_multiplier
 					td(id='second-dart-visit-' + throws.id data-score=throws.second_dart)= throws.second_dart
 					td(id='second-dart-multiplier-visit-' + throws.id data-multiplier=throws.second_dart_multiplier)= throws.second_dart_multiplier
 					td
-						label(class='btn btn-success')= throws.second_dart * throws.second_dart_multiplier
+						label(class='btn btn-success' class='second-dart-visit-total-' + throws.id)= throws.second_dart * throws.second_dart_multiplier
 					td(id='third-dart-visit-' + throws.id data-score=throws.third_dart)= throws.third_dart
 					td(id='third-dart-multiplier-visit-' + throws.id data-multiplier=throws.third_dart_multiplier)= throws.third_dart_multiplier
 					td
-						label(class='btn btn-success')= throws.third_dart * throws.third_dart_multiplier
-					td= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
-					td= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
+						label(class='btn btn-success' class='third-dart-visit-total-' + throws.id)= throws.third_dart * throws.third_dart_multiplier
+					td(class='total-visit-score-' + throws.id)= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
+					td(class='visit-ppd-' + throws.id)= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
 					td(class="txt-center")
-						button(type="button" class="btn btn-default edit-visit" data-visit=throws.id)
+						button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
 							span(class="glyphicon glyphicon-edit" aria-hidden="true")
+
+
 	div(style='text-align: center;')
 		canvas(id='dartboard-heatmap')

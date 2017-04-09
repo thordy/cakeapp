@@ -186,6 +186,9 @@ block scripts
 			$('#seeScoresButton').click(function () {
 				$('#scoresModal').modal('show');
 			});
+			$('#editScoresButton').click(function () {
+				location.href = window.location.pathname + '/results';
+			});
 			$('#cancelMatchButton').click(function () {
 				// TODO Confirm dialog?
 				executeDelete(window.location.pathname + '/cancel',
@@ -314,6 +317,7 @@ block content
 			span(class='caret')
 		ul(class='dropdown-menu')
 			li: a(id='seeScoresButton') See scores
+			li: a(id='editScoresButton') Edit scores
 			li: a(id='cancelMatchButton') Cancel Match
 
 
