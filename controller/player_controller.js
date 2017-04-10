@@ -73,8 +73,25 @@ router.get('/compare', function (req, res) {
 		for (id in playersMap) {
 			var player = playersMap[id];
 			playerStatistics.push(calculateStatistics(player.statistics));
+			player.statistics = calculateStatistics(player.statistics);
 		}
-		res.render('playerComparison', { players: playerStatistics });
+
+		// Get the highest checkout for each player
+		new StatisticsX01().getCheckouts(playerIds, function(err, rows) {
+			if (err) {
+				return helper.renderError(res, err);
+			}
+			for (var i = 0; i < rows.length; i++) {
+				var row = rows[i];
+				var stats = playersMap[row.player_id].statistics;
+				if (stats.highestCheckout === undefined || stats.highestCheckout < row.checkout) {
+					stats.highestCheckout = row.checkout;
+				}
+			}
+
+			var statistics = Object.keys(playersMap).map(function(v) { return playersMap[v].statistics; });
+			res.render('playerComparison', { players: statistics });
+		});
 	});
 });
 
@@ -92,7 +109,8 @@ function calculateStatistics(rawStatistics) {
 		first9ppd: 0,
 		best301: undefined,
 		best501: undefined,
-		'60+': 0, '100+': 0, '140+': 0, '180s': 0	
+		highestCheckout: undefined,
+		'60+': 0, '100+': 0, '140+': 0, '180s': 0
 	};
 	for (var i = 0; i < rawStatistics.length; i++) {
 		var stats = rawStatistics[i];
@@ -106,14 +124,16 @@ function calculateStatistics(rawStatistics) {
 		if (statistics.bestPpd < stats.ppd) {
 			statistics.bestPpd = stats.ppd;
 		}
-		if (stats.starting_score === 301) {
-			if (statistics.best301 === undefined || statistics.best301 > stats.darts_thrown) {
-				statistics.best301 = stats.darts_thrown;
+		if (statistics.id === stats.winner_id) {
+			if (stats.starting_score === 301) {
+				if (statistics.best301 === undefined || statistics.best301 > stats.darts_thrown) {
+					statistics.best301 = stats.darts_thrown;
+				}
 			}
-		}
-		else if (stats.starting_score === 501) {
-			if (statistics.best501 === undefined || statistics.best501 > stats.darts_thrown) {
-				statistics.best501 = stats.darts_thrown;
+			else if (stats.starting_score === 501) {
+				if (statistics.best501 === undefined || statistics.best501 > stats.darts_thrown) {
+					statistics.best501 = stats.darts_thrown;
+				}
 			}
 		}
 	}

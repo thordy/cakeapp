@@ -293,40 +293,41 @@ block content
 		Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
 		Stakes: #{match.stake === "" ? "None" : match.stake}
 
-	table(class='table table-striped table-bordered')
-		thead
-			tr
-				th Player
-				th Darts Thrown
-				th First 9 PPD
-				th PPD
-				th Scores
-				th Winner
-		tbody
-			each player in players
-				- var statistics = player.statistics;
+	if match.winner_id !== null
+		table(class='table table-striped table-bordered')
+			thead
 				tr
-					td
-						p= player.name
-					td
-						p= statistics.darts_thrown
-					td
-						p= statistics.first_nine_ppd.toFixed(2)
-					td
-						p= statistics.ppd.toFixed(2)
-					td
-						p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
-						p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
-						p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
-						p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
+					th Player
+					th Darts Thrown
+					th First 9 PPD
+					th PPD
+					th Scores
+					th Winner
+			tbody
+				each player in players
+					- var statistics = player.statistics;
+					tr
+						td
+							p= player.name
+						td
+							p= statistics.darts_thrown
+						td
+							p= statistics.first_nine_ppd.toFixed(2)
+						td
+							p= statistics.ppd.toFixed(2)
+						td
+							p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
+							p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
+							p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
+							p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
 
-					if match.winner_id !== undefined && player.id === match.winner_id
-						td
-							span(class='glyphicon glyphicon-ok' aria-hidden='true')
-					else
-						td
+						if match.winner_id !== undefined && player.id === match.winner_id
+							td
+								span(class='glyphicon glyphicon-ok' aria-hidden='true')
+						else
+							td
 	div(style='margin-bottom: 20px;')
-		if match.winner_id === undefined
+		if match.winner_id === null
 			button(type="button" class="btn btn-primary" id="continue-match" data-match=match.id) Continue match
 
 	p.

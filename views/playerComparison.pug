@@ -38,7 +38,7 @@ block content
 				tr
 					td(class='col-sm-2') Highest Checkout
 					each player in players
-						td TODO
+						td= player.highestCheckout === undefined ? '-' : player.highestCheckout
 				tr
 					td(class='col-sm-2') Best 301
 					each player in players

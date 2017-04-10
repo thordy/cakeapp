@@ -115,7 +115,7 @@ new Match({id: req.params.id})
 			for (var i = 0; i < statistics.length; i++) {
 				var stats = statistics[i];
 				var player = playersMap[stats.player_id];
-				player.statistics = stats; 
+				player.statistics = stats;
 			}
 			// Create a map of scores used to visualize throws in a heatmap
 			var scoresCount = {};
@@ -405,9 +405,7 @@ function writeStatistics(matchRow, callback) {
 							ppd: player.ppd,
 							first_nine_ppd: player.first9ppd,
 							checkout_percentage: player.checkoutPercentage,
-							darts_thrown: player.visits * 3,
-							is_winner: match.winner_id === player.id ? true : false,
-							starting_score: match.starting_score
+							darts_thrown: player.visits * 3
 						});
 						stats.attributes['60s_plus'] = player.highScores['60+'];
 						stats.attributes['100s_plus'] = player.highScores['100+'];
@@ -426,7 +424,7 @@ function writeStatistics(matchRow, callback) {
 							});
 					}
 				});
-		});	
+		});
 }
 
 
@@ -458,7 +456,7 @@ function getPlayerStatistics(players, scores) {
 		player.visits += 1;
 		if (player.visits <= 3) {
 			player.first9Score += totalVisitScore;
-		}		
+		}
 		player.ppdScore += totalVisitScore;
 
 		if (totalVisitScore >= 60 && totalVisitScore <= 99) {
@@ -485,7 +483,7 @@ function getPlayerStatistics(players, scores) {
 			player.first9ppd = player.first9Score / 9;
 		}
 	}
-	return playerMap;	
+	return playerMap;
 }
 module.exports = router
 
