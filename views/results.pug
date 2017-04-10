@@ -145,7 +145,7 @@ block scripts
 		var dataImageMap = {};
 
 		// Miss
-		dataImageMap['p.0.1'] = {'x': 0, 'y': 0};
+		dataImageMap['p.0.1'] = {'x': 50, 'y': 50};
 
 		dataImageMap['p.1.1'] = {'x': 348, 'y': 158};
 		dataImageMap['p.1.2'] = {'x': 361, 'y': 120};
@@ -231,7 +231,6 @@ block scripts
 		dataImageMap['p.25.2'] = {'x': 300, 'y': 310};
 
 		window.onload = function(){
-
 			function paintAtCoord(x, y, spread, size, intensity) {
 				var i = 0;
 				while (i < 70) {
@@ -328,43 +327,58 @@ block content
 							td
 	div(style='margin-bottom: 20px;')
 		if match.winner_id === null
-			button(type="button" class="btn btn-primary" id="continue-match" data-match=match.id) Continue match
+			button(type='button' class='btn btn-primary' id='continue-match' data-match=match.id) Continue match
 
+	h3 Match Results
 	p.
 		Starting score was #{match.starting_score}, and a total of #{scores.length * 3} darts were thrown by #{Object.keys(players).length} players
 
-	table(class='table table-striped table-bordered' id='table-match-visits')
-		thead
-			tr
-				th Player
-				th(colspan='3') First Dart
-				th(colspan='3') Second Dart
-				th(colspan='3') Third Dart
-				th Total
-				th PPD
-				th(class="txt-center") Options
-		tbody
-			each throws in scores
-				tr(id="visit-" + throws.id)
-					td= players[throws.player_id].name
-					td(id='first-dart-visit-' + throws.id data-score=throws.first_dart)= throws.first_dart
-					td(id='first-dart-multiplier-visit-' + throws.id data-multiplier=throws.first_dart_multiplier)= throws.first_dart_multiplier
-					td
-						label(class='btn btn-success' class='first-dart-visit-total-' + throws.id)= throws.first_dart * throws.first_dart_multiplier
-					td(id='second-dart-visit-' + throws.id data-score=throws.second_dart)= throws.second_dart
-					td(id='second-dart-multiplier-visit-' + throws.id data-multiplier=throws.second_dart_multiplier)= throws.second_dart_multiplier
-					td
-						label(class='btn btn-success' class='second-dart-visit-total-' + throws.id)= throws.second_dart * throws.second_dart_multiplier
-					td(id='third-dart-visit-' + throws.id data-score=throws.third_dart)= throws.third_dart
-					td(id='third-dart-multiplier-visit-' + throws.id data-multiplier=throws.third_dart_multiplier)= throws.third_dart_multiplier
-					td
-						label(class='btn btn-success' class='third-dart-visit-total-' + throws.id)= throws.third_dart * throws.third_dart_multiplier
-					td(class='total-visit-score-' + throws.id)= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
-					td(class='visit-ppd-' + throws.id)= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
-					td(class="txt-center")
-						button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
-							span(class="glyphicon glyphicon-edit" aria-hidden="true")
+	button(class='btn btn-primary btn-block' data-toggle="collapse" data-target="#visits_div") Show Visits
+	div(id="visits_div" class="collapse")
+		table(class='table table-striped table-bordered' id='match_visits_table')
+			thead
+				tr
+					th Player
+					th(colspan='3') First Dart
+					th(colspan='3') Second Dart
+					th(colspan='3') Third Dart
+					th Total
+					th PPD
+					th(class="txt-center") Options
+			tbody
+				each throws in scores
+					tr(id="visit-" + throws.id)
+						td= players[throws.player_id].name
+						td(id='first-dart-visit-' + throws.id data-score=throws.first_dart)= throws.first_dart
+						td(id='first-dart-multiplier-visit-' + throws.id data-multiplier=throws.first_dart_multiplier)
+							select(class='form-control' name='first-dart-multiplier-vist' + throws.id)
+								option(selected=throws.first_dart_multiplier === 1) Single
+								option(selected=throws.first_dart_multiplier === 2) Double
+								option(selected=throws.first_dart_multiplier === 3) Treble
+						td
+							label(class='label label-success' class='first-dart-visit-total-' + throws.id)= throws.first_dart * throws.first_dart_multiplier
+						td(id='second-dart-visit-' + throws.id data-score=throws.second_dart)= throws.second_dart
+						td(id='second-dart-multiplier-visit-' + throws.id data-multiplier=throws.second_dart_multiplier)
+							select(class='form-control' name='second-dart-multiplier-vist' + throws.id)
+								option(selected=throws.second_dart_multiplier === 1) Single
+								option(selected=throws.second_dart_multiplier === 2) Double
+								option(selected=throws.second_dart_multiplier === 3) Treble
+						td
+							label(class='label label-success' class='second-dart-visit-total-' + throws.id)= throws.second_dart * throws.second_dart_multiplier
+						td(id='third-dart-visit-' + throws.id data-score=throws.third_dart)= throws.third_dart
+						td(id='third-dart-multiplier-visit-' + throws.id data-multiplier=throws.third_dart_multiplier)
+							select(class='form-control' name='second-dart-multiplier-vist' + throws.id)
+								option(selected=throws.third_dart_multiplier === 1) Single
+								option(selected=throws.third_dart_multiplier === 2) Double
+								option(selected=throws.third_dart_multiplier === 3) Treble
+						td
+							label(class='label label-success' class='third-dart-visit-total-' + throws.id)= throws.third_dart * throws.third_dart_multiplier
+						td(class='total-visit-score-' + throws.id)= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
+						td(class='visit-ppd-' + throws.id)= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
+						td(class="txt-center")
+							button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
+								span(class="glyphicon glyphicon-edit" aria-hidden="true")
 
-
+	h3 Match Heatmap
 	div(style='text-align: center;')
 		canvas(id='dartboard-heatmap')

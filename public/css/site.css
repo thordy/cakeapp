@@ -32,12 +32,21 @@
 	padding: 10px;
 }
 
+#match_visits_table label {
+    display: block;
+}
+
 #score_selector_table label {
     display: block;
     text-align: center;
     border-radius: 0;
     margin: 0;
 }
+
+#matches_list_table span {
+    display: block;
+}
+
 
 a:hover {
 	cursor:pointer;
@@ -97,6 +106,6 @@ a:hover {
 #dartboard-heatmap {
     width: 600px;
     height: 600px;
-    background-image: url('../images/dartboard.jpg');
+    background-image: url('../images/dartboard.png');
     background-size: 100% 100%;
 }

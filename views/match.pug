@@ -3,13 +3,7 @@ extends layout.pug
 block scripts
 	script.
 		$(function () {
-			jQuery.getScript("/js/fastclick.js", function () {
-				//new FastClick(document.documentElement);
-				// FastClick.attach(document.body);
-			});
-
 			var scores = {};
-
 			$(document).ready(function () {
 				window.darts_thrown = 0;
 				$(document).scrollTop(170);

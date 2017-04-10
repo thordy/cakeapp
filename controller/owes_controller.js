@@ -48,7 +48,7 @@ router.put('/payback', function (req, res) {
 			.end();
 	}
 
-	new Owe().registerPayback(ower, owee, item, amount, function(err, updateCount) {
+	new Owe().registerPayback(ower, owee, amount, item, function(err, updateCount) {
 		if (err) {
 			return helper.renderError(res, err);
 		}
@@ -57,7 +57,7 @@ router.put('/payback', function (req, res) {
 			debug('Did not payback anything...');
 			return res.status(500).send().end();
 		}
-		debug('%s paid back %s %s to %s', ower, amount, item, owee);
+		debug('player %s paid back %s %s to player %s', ower, amount, item, owee);
 		return res.status(200)
 			.send()
 			.end();

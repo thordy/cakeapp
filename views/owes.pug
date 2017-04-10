@@ -18,17 +18,16 @@ block scripts
 				executePut('/cake/payback', JSON.stringify(payload), 'application/json',
 					function(response) {
 						$('#registerPaybackModal').modal('toggle');
-						var alert = $('#addPaybackSuccessAlert');
-						alert.show();
-						alert.text('Unable to add payback. ' + error.responseText);
+						location.href = window.location;
+						//- var alert = $('#addPaybackSuccessAlert');
+						//- alert.show();
+						//- alert.text('Unable to add payback. ' + error.responseText);
 					},
 					function(error) {
 						console.log(error);
-
 						var alert = $('#addPaybackFailedAlert');
 						alert.show();
 						alert.text('Unable to add payback. ' + error.responseText);
-
 						$('#registerPaybackModal').modal('toggle');
 					}
 				);
