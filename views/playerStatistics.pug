@@ -12,6 +12,7 @@ block content
 					th Win %
 					th First 9 PPD
 					th Overall PPD
+					th Checkout%
 					th Scores
 			tbody
 					tr
@@ -25,6 +26,8 @@ block content
 							p= player.first9ppd.toFixed(2)
 						td
 							p= player.ppd.toFixed(2)
+						td
+							p= (player.gamesWon * 100 / player.checkoutAttempts).toFixed(2) + '%'
 						td 
 							p= player['60+'] == 0 ? "" : "60+: " + player['60+']
 							p= player['100+'] == 0 ? "" : "100+: " + player['100+']

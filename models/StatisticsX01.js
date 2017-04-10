@@ -17,17 +17,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 			return callback('No player ids specified', []);
 		}
 		var placeHolders = new Array(playerIds.length + 1).join('?,').slice(0, -1);
-
-		var checkoutAttemptsQuery = `
-			SELECT
-				player_id,
-				COUNT(NULLIF(0, is_checkout_first)) +
-				COUNT(NULLIF(0, is_checkout_second)) +
-				COUNT(NULLIF(0, is_checkout_third)) AS 'checkout_attempts'
-			FROM score s
-			WHERE (is_checkout_first = 1 OR is_checkout_second = 1 OR is_checkout_third = 1)
-			GROUP BY player_id`;
-
+		var checkoutStatistics = {};
 		bookshelf.knex.raw(`
 			SELECT
 				MAX(s.id) as 'row_id',
@@ -43,7 +33,25 @@ var StatisticsX01 = bookshelf.Model.extend({
 			GROUP BY match_id`, playerIds
 		)
 		.then(function(rows) {
-			callback(null, rows);
+			checkoutStatistics.checkouts = rows;
+			bookshelf.knex.raw(`
+				SELECT
+					player_id,
+					COUNT(NULLIF(0, is_checkout_first)) +
+					COUNT(NULLIF(0, is_checkout_second)) +
+					COUNT(NULLIF(0, is_checkout_third)) AS 'checkout_attempts'
+				FROM score s
+				WHERE (is_checkout_first = 1 OR is_checkout_second = 1 OR is_checkout_third = 1)
+				AND player_id IN  (` + placeHolders + `)
+				GROUP BY player_id`, playerIds
+			)
+			.then(function(rows) {
+				checkoutStatistics.attempts = rows;
+				callback(null, checkoutStatistics);
+			})
+			.catch(function (err) {
+				callback(err)
+			});
 		})
 		.catch(function (err) {
 			callback(err)

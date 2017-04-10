@@ -27,11 +27,22 @@ router.post('/', function (req, res) {
 
 /* Get specific statistics for a given player */
 router.get('/:id/stats', function(req, res) {
-	new StatisticsX01().getAggregatedStatistics([req.params.id], function(err, rows) {
+	var playerId = req.params.id;
+	new StatisticsX01().getAggregatedStatistics([playerId], function(err, rows) {
 		if (err) {
 			return helper.renderError(res, err);
 		}
-		res.render('playerStatistics', { player: rows[0] });
+		var playerStatistics = rows[0];
+		new StatisticsX01().getCheckouts([playerId], function(err, rows) {
+			if (err) {
+				return helper.renderError(res, err);
+			}
+			playerStatistics.checkoutAttempts = 0;
+			if (rows.attempts.length !== 0) {
+				playerStatistics.checkoutAttempts = rows.attempts[0].checkout_attempts;
+			}
+			res.render('playerStatistics', { player: playerStatistics });
+		});
 	});
 });
 
@@ -81,12 +92,21 @@ router.get('/compare', function (req, res) {
 			if (err) {
 				return helper.renderError(res, err);
 			}
-			for (var i = 0; i < rows.length; i++) {
-				var row = rows[i];
+
+			// Find highest checkout for each player
+			for (var i = 0; i < rows.checkouts.length; i++) {
+				var row = rows.checkouts[i];
 				var stats = playersMap[row.player_id].statistics;
 				if (stats.highestCheckout === undefined || stats.highestCheckout < row.checkout) {
 					stats.highestCheckout = row.checkout;
 				}
+			}
+			// Calculate checkout percentage for each player
+			var attempts = row.attempts;
+			for (var i = 0; i < rows.attempts.length; i++) {
+				var row = rows.attempts[i];
+				var stats = playersMap[row.player_id].statistics;
+				stats.checkoutAttempts = row.checkout_attempts;
 			}
 
 			var statistics = Object.keys(playersMap).map(function(v) { return playersMap[v].statistics; });
@@ -107,6 +127,7 @@ function calculateStatistics(rawStatistics) {
 		ppd: 0,
 		bestPpd: 0,
 		first9ppd: 0,
+		checkoutAttempts: 0,
 		best301: undefined,
 		best501: undefined,
 		highestCheckout: undefined,
