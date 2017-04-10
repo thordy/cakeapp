@@ -292,7 +292,7 @@ block content
 		Finished: #{match.end_time === undefined ? '' : match.end_time} <br>
 		Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
 		Stakes: #{match.stake === "" ? "None" : match.stake}
-	
+
 	table(class='table table-striped table-bordered')
 		thead
 			tr
@@ -324,10 +324,9 @@ block content
 							span(class='glyphicon glyphicon-ok' aria-hidden='true')
 					else
 						td
-
 	div(style='margin-bottom: 20px;')
-		if match.winner_id !== undefined
-			button(type="button" class="btn btn-primary" id="continue-match" data-match=match.id)='continue match'
+		if match.winner_id === undefined
+			button(type="button" class="btn btn-primary" id="continue-match" data-match=match.id) Continue match
 
 	p.
 		Starting score was #{match.starting_score}, and a total of #{scores.length * 3} darts were thrown by #{Object.keys(players).length} players
