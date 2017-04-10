@@ -16,6 +16,10 @@ block content
 					each player in players
 						td= player.gamesWon + '/' + player.gamesPlayed
 				tr
+					td(class='col-sm-2') Win %
+					each player in players
+						td= ((player.gamesWon * 100) / player.gamesPlayed).toFixed(2)
+				tr
 					td(class='col-sm-2') PPD
 					each player in players
 						td= player.ppd.toFixed(2)
@@ -26,36 +30,40 @@ block content
 				tr
 					td(class='col-sm-2') Best PPD
 					each player in players
-						td TODO
+						td= player.bestPpd.toFixed(2)
 				tr
 					td(class='col-sm-2') Checkout%
 					each player in players
 						td TODO
 				tr
-					td(class='col-sm-2') High Checkout
+					td(class='col-sm-2') Highest Checkout
 					each player in players
 						td TODO
 				tr
 					td(class='col-sm-2') Best 301
 					each player in players
-						td TODO
+						td= player.best301 === undefined ? '-' : player.best301 + ' darts'
 				tr
 					td(class='col-sm-2') Best 501
 					each player in players
-						td TODO
+						td= player.best501 === undefined ? '-' : player.best501 + ' darts'
+				tr
+					td(class='separator_row')
+						each player in players
+							td(class='separator_row') High Scores
 				tr
 					td(class='col-sm-2') 60+
 					each player in players
-						td= player.highScores['60+']
+						td= player['60+']
 				tr
 					td(class='col-sm-2') 100+
 					each player in players
-						td= player.highScores['100+']
+						td= player['100+']
 				tr
 					td(class='col-sm-2') 140+
 					each player in players
-						td= player.highScores['140+']
+						td= player['140+']
 				tr
 					td(class='col-sm-2') 180
 					each player in players
-						td= player.highScores['180']
+						td= player['180s']

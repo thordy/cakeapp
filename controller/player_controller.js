@@ -3,8 +3,11 @@ var debug = require('debug')('dartapp:player-controller');
 var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
+
+var Bookshelf = require.main.require('./bookshelf.js');
 var Player = require.main.require('./models/Player');
 var Score = require.main.require('./models/Score');
+var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
@@ -24,22 +27,12 @@ router.post('/', function (req, res) {
 
 /* Get specific statistics for a given player */
 router.get('/:id/stats', function(req, res) {
-	new Player({id: req.params.id})
-		.fetch()
-		.then(function(row) {
-			var player = row.serialize();
-
-			Score.where( {player_id: req.params.id} )
-			.fetchAll()
-			.then(function (scoreRows) {
-				var scores = scoreRows.serialize();
-				var statistics = getPlayerStatistics([player], scores)[player.id];
-				res.render('playerStatistics', { player: statistics } );
-			});
-		})
-		.catch(function(err) {
-			helper.renderError(res, err);
-		});
+	new StatisticsX01().getAggregatedStatistics([req.params.id], function(err, rows) {
+		if (err) {
+			return helper.renderError(res, err);
+		}
+		res.render('playerStatistics', { player: rows[0] });
+	});
 });
 
 /* Get a list of all players */
@@ -60,70 +53,73 @@ router.get('/list', function (req, res) {
 router.get('/compare', function (req, res) {
 	var playerIds = req.query.player_id;
 	debug('Comparing players %s', playerIds);
-	Player
-		.where('id', 'IN', playerIds)
-		.fetchAll()
-		.then(function(rows) {
-			var players = rows.serialize();
-			Score
-				.where('player_id', 'IN', playerIds)
-				.fetchAll()
-				.then(function(scoreRows){
-					var playerMap = getPlayerStatistics(players, scoreRows.serialize());
-					res.render('playerComparison', { players: playerMap });
-				});
-		});
+
+	new StatisticsX01().getStatistics(playerIds, function(err, rows) {
+		if (err) {
+			return helper.renderError(res, err);
+		}
+		var playersMap = {};
+		for (var i = 0; i < rows.length; i++) {
+			var stats = rows[i];
+			if (playersMap[stats.player_id] === undefined) {
+				playersMap[stats.player_id] = { statistics: [stats] };
+			}
+			else {
+				playersMap[stats.player_id].statistics.push(stats);
+			}
+		}
+
+		var playerStatistics = [];
+		for (id in playersMap) {
+			var player = playersMap[id];
+			playerStatistics.push(calculateStatistics(player.statistics));
+		}
+		res.render('playerComparison', { players: playerStatistics });
+	});
 });
 
-function getPlayerStatistics(players, scores) {
-	var playerMap = {};
-	for (var i = 0; i < players.length; i++) {
-		var player = players[i];
-		playerMap[player.id] = {
-			id: player.id,
-			name: player.name,
-			gamesWon: player.games_won,
-			gamesPlayed: player.games_played,
-			ppdScore: 0,
-			ppd: 0,
-			first9ppd: 0,
-			first9Score: 0,
-			totalScore: 0,
-			visits: 0,
-			scores: [],
-			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
+function calculateStatistics(rawStatistics) {
+	if (rawStatistics.length === 0) {
+		return {};
+	}
+	var statistics = {
+		id: rawStatistics[0].id,
+		name: rawStatistics[0].name,
+		gamesWon: rawStatistics[0].gamesWon,
+		gamesPlayed: rawStatistics[0].gamesPlayed,
+		ppd: 0,
+		bestPpd: 0,
+		first9ppd: 0,
+		best301: undefined,
+		best501: undefined,
+		'60+': 0, '100+': 0, '140+': 0, '180s': 0	
+	};
+	for (var i = 0; i < rawStatistics.length; i++) {
+		var stats = rawStatistics[i];
+		statistics.ppd += stats.ppd;
+		statistics.first9ppd += stats.first_nine_ppd;
+		statistics['60+'] += stats['60s_plus'];
+		statistics['100+'] += stats['100s_plus'];
+		statistics['140+'] += stats['140s_plus'];
+		statistics['180s'] += stats['180s'];
+
+		if (statistics.bestPpd < stats.ppd) {
+			statistics.bestPpd = stats.ppd;
+		}
+		if (stats.starting_score === 301) {
+			if (statistics.best301 === undefined || statistics.best301 > stats.darts_thrown) {
+				statistics.best301 = stats.darts_thrown;
+			}
+		}
+		else if (stats.starting_score === 501) {
+			if (statistics.best501 === undefined || statistics.best501 > stats.darts_thrown) {
+				statistics.best501 = stats.darts_thrown;
+			}
 		}
 	}
-
-	for (var i = 0; i < scores.length; i++) {
-		var score = scores[i];
-		var player = playerMap[score.player_id];
-
-		var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
-				(score.second_dart * score.second_dart_multiplier) +
-				(score.third_dart * score.third_dart_multiplier);
-
-		player.visits += 1;
-		player.ppdScore += totalVisitScore;
-
-		if (totalVisitScore >= 60 && totalVisitScore <= 99) {
-			player.highScores['60+'] += 1;
-		}
-		else if (totalVisitScore >= 100 && totalVisitScore <= 139) {
-			player.highScores['100+'] += 1;
-		}
-		else if (totalVisitScore >= 140 && totalVisitScore <= 179) {
-			player.highScores['140+'] += 1;
-		}
-		else if (totalVisitScore == 180) {
-			player.highScores['180'] += 1;
-		}
-	}
-	for (id in playerMap) {
-		var player = playerMap[id];
-		player.ppd = player.ppdScore / (player.visits * 3);
-	}
-	return playerMap;	
+	statistics.ppd = statistics.ppd / rawStatistics.length;
+	statistics.first9ppd = statistics.first9ppd / rawStatistics.length;
+	return statistics;
 }
 
 module.exports = router

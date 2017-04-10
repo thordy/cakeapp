@@ -117,18 +117,23 @@ new Match({id: req.params.id})
 				var player = playersMap[stats.player_id];
 				player.statistics = stats; 
 			}
+			// Create a map of scores used to visualize throws in a heatmap
 			var scoresCount = {};
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
-
-				var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
-				scoresCount[firstDartIndex] = scoresCount[firstDartIndex] === undefined ? 1 : scoresCount[firstDartIndex] + 1;
-				var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
-				scoresCount[secondDartIndex] = scoresCount[secondDartIndex] === undefined ? 1 : scoresCount[secondDartIndex] + 1;
-				var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
-				scoresCount[thirdDartIndex] = scoresCount[thirdDartIndex] === undefined ? 1 : scoresCount[thirdDartIndex] + 1;
+				if (score.first_dart !== null) {
+					var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
+					scoresCount[firstDartIndex] = scoresCount[firstDartIndex] === undefined ? 1 : scoresCount[firstDartIndex] + 1;
+				}
+				if (score.second_dart !== null) {
+					var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
+					scoresCount[secondDartIndex] = scoresCount[secondDartIndex] === undefined ? 1 : scoresCount[secondDartIndex] + 1;
+				}
+				if (score.third_dart !== null) {
+					var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
+					scoresCount[thirdDartIndex] = scoresCount[thirdDartIndex] === undefined ? 1 : scoresCount[thirdDartIndex] + 1;
+				}
 			}
-			console.log(scoresCount)
 			res.render('results', {
 				match: match.serialize(),
 				scores: scores,
@@ -317,50 +322,9 @@ router.post('/:id/finish', function (req, res) {
 			end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 		})
 		.then(function (match) {
-			// Get all players in the match and set their statistics
-			Player2match
-				.where('match_id', '=', matchId)
-				.fetchAll()
-				.then(function(rows) {
-					var players = rows.serialize();
-					var playerIds = [];
-					for (var i = 0; i < players.length; i++){
-						playerIds.push(players[i].player_id);
-					}
-					Score
-						.where('match_id', '=', matchId)
-						.fetchAll()
-						.then(function(scoreRows){
-							var playerMap = getPlayerStatistics(players, scoreRows.serialize());
-							for (id in playerMap){
-								var player = playerMap[id];
-
-								var stats = new StatisticsX01({
-									match_id: matchId,
-									player_id: player.id,
-									ppd: player.ppd,
-									first_nine_ppd: player.first9ppd,
-									checkout_percentage: player.checkoutPercentage,
-									darts_thrown: player.visits * 3
-								});
-								stats.attributes['60s_plus'] = player.highScores['60+'];
-								stats.attributes['100s_plus'] = player.highScores['100+'];
-								stats.attributes['140s_plus'] = player.highScores['140+'];
-								stats.attributes['180s'] = player.highScores['180'];
-								stats
-									.save(null, {method: 'insert'})
-									.then(function(row) {
-										debug('Inserted statistics for match %s, player %s', matchId, player.id);
-										res.status(200).end();
-									})
-									.catch(function(err) {
-										debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
-										debug(err);
-										helper.renderError(res, err);
-									});
-							}
-						});
-				});
+			writeStatistics(match, function() {
+				res.status(200).end();
+			});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
@@ -382,6 +346,56 @@ router.post('/:id/finish', function (req, res) {
 		debug('Incremented games_won for player %s', currentPlayerId);
 	});
 });
+
+function writeStatistics(matchRow, callback) {
+	// Get all players in the match and set their statistics
+	var match = matchRow.serialize();
+	var matchId = match.id;
+	Player2match
+		.where('match_id', '=', matchId)
+		.fetchAll()
+		.then(function(rows) {
+			var players = rows.serialize();
+			var playerIds = [];
+			for (var i = 0; i < players.length; i++){
+				playerIds.push(players[i].player_id);
+			}
+			Score
+				.where('match_id', '=', matchId)
+				.fetchAll()
+				.then(function(scoreRows){
+					var playerMap = getPlayerStatistics(players, scoreRows.serialize());
+					for (id in playerMap){
+						var player = playerMap[id];
+						var stats = new StatisticsX01({
+							match_id: matchId,
+							player_id: player.id,
+							ppd: player.ppd,
+							first_nine_ppd: player.first9ppd,
+							checkout_percentage: player.checkoutPercentage,
+							darts_thrown: player.visits * 3,
+							is_winner: match.winner_id === player.id ? true : false,
+							starting_score: match.starting_score
+						});
+						stats.attributes['60s_plus'] = player.highScores['60+'];
+						stats.attributes['100s_plus'] = player.highScores['100+'];
+						stats.attributes['140s_plus'] = player.highScores['140+'];
+						stats.attributes['180s'] = player.highScores['180'];
+						stats
+							.save(null, { method: 'insert' })
+							.then(function(row) {
+								debug('Inserted statistics for match %s, player %s', matchId, player.id);
+								callback();
+							})
+							.catch(function(err) {
+								debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
+								debug(err);
+								helper.renderError(res, err);
+							});
+					}
+				});
+		});	
+}
 
 
 function getPlayerStatistics(players, scores) {

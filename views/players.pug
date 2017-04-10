@@ -4,15 +4,16 @@ block scripts
 	script.
 		$(function() {
 			$('#comparePlayersButton').click(function() {
-				var val = [];
-
-				var compareString = '?player_id=';
-
+				var comparePlayers = '?';
 		        $(':checkbox:checked').each(function(i){
-		        	val[i] = $(this).val();
-		        	compareString += $(this).val() + '&player_id=';
+		        	comparePlayers += 'player_id=' + $(this).val() + '&';
 		        });
-		        location.href = '/player/compare' + compareString;
+		        comparePlayers = comparePlayers.slice(0, -1);
+		        if (comparePlayers === '') {
+					$('#comparePlayersAlert').show();
+		        	return;
+		        }
+		        location.href = '/player/compare' + comparePlayers;
 			});
 
 			$('#addPlayerModal').on('shown.bs.modal', function () {
@@ -40,6 +41,9 @@ block scripts
 		});
 
 block content
+	div(id='comparePlayersAlert' class='alert alert-danger' role='alert' hidden='true').
+		Select at least one player to use for comparison
+
 	h2 Players
 	p.
 		This is an overview of all players who are participating in Cake Darts
