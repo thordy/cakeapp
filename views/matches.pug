@@ -38,13 +38,14 @@ block content
 						td
 						if match.is_finished
 							td
-								=players[match.winner_id].name
+								div
+									span(class='label label-success' style='line-height: inherit;')=players[match.winner_id].name
 						else
 							td(class='txt-center') -
 						td
 							each player in match.players
-								=player.name
-								br
+								div(style='margin-bottom: 5px;')
+									span(class='label label-info' style='line-height: inherit;')=player.name
 						if !match.is_finished
 							td: button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
 						else

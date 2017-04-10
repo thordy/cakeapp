@@ -267,6 +267,38 @@ router.post('/:id/throw', function (req, res) {
 	});
 });
 
+
+/* Modify the score */
+router.post('/:id/results', function (req, res) {
+	// Assign those values to vars since they will be used in other places
+	var scoreId = req.body.scoreId;
+	var firstDartScore = req.body.firstDart;
+	var secondDartScore = req.body.secondDart;
+	var thirdDartScore = req.body.thirdDart;
+	var firstDartMultiplier = req.body.firstDartMultiplier;
+	var secondDartMultiplier = req.body.secondDartMultiplier;
+	var thirdDartMultiplier = req.body.thirdDartMultiplier;
+
+	// Change current player, maybe check what round is that ?
+	new Score({id: scoreId})
+		.save({
+			first_dart: firstDartScore,
+			second_dart: secondDartScore,
+			third_dart: thirdDartScore,
+			first_dart_multiplier: firstDartMultiplier,
+			second_dart_multiplier: secondDartMultiplier,
+			third_dart_multiplier: thirdDartMultiplier
+		})
+		.then(function (match) {
+			res.status(200)
+				.send({'statusCode': 200})
+				.end();
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
+});
+
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
 	Match.forge({ id: req.params.id })
