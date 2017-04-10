@@ -9,7 +9,13 @@ block scripts
 			});
 
 			$('#registerPaybackButton').click(function() {
-				executePut('/cake/payback', $('#paybackForm').serialize(), 'application/x-www-form-urlencoded',
+				var payload = {
+					ower: parseInt($('input[name=ower]:checked', '#paybackForm').val()),
+					owee: parseInt($('input[name=owee]:checked', '#paybackForm').val()),
+					amount: $('#paybackAmount').val(),
+					item: $('#paybackItem').val()
+				}
+				executePut('/cake/payback', JSON.stringify(payload), 'application/json',
 					function(response) {
 						$('#registerPaybackModal').modal('toggle');
 						var alert = $('#addPaybackSuccessAlert');
@@ -83,14 +89,14 @@ block content
 					form(action='/cake/payback' method='PUT' id='paybackForm')
 						div(class='form-group')
 							p Ower
-							each player in owes
-								label(for='owerSelector' class='radio-inline control-label')= player.name
-								input(id='owerSelector' type='radio' name='ower' value=player._id)
+							each player in players
+								label(for='ower_' + player.id class='radio-inline control-label')= player.name
+								input(id='ower_' + player.id type='radio' name='ower' value=player.id)
 						div(class='form-group')
 							p Owee
-							each player in owes
-								label(for='oweeSelector' class='radio-inline control-label')= player.name
-								input(id='oweeSelector' type='radio' name='owee' value=player._id)
+							each player in players
+								label(for='owee_' + player.id class='radio-inline control-label')= player.name
+								input(id='owee_' + player.id type='radio' name='owee' value=player.id)
 						div(class='form-group')
 							label(for='amountInput' class='control-label') Amount
 								input(type='number' name='paybackAmount' min='0' step='1' class='form-control' value=1 id='paybackAmount')

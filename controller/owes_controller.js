@@ -16,12 +16,19 @@ router.get('/owes', function (req, res, next) {
 	Owe.collection()
 		.query(function(qb) {
 			qb.orderBy('player_ower_id','ASC');
-			qb.where('amount', '>', 0);
+			qb.where('amount', '<>', 0);
 		})
 		.fetch({ withRelated: ['player_ower', 'player_owee', 'owe_type'] })
 		.then(function (rows) {
 			var owes = rows.serialize();
-			res.render('owes', {owes: owes});
+			Player
+				.fetchAll()
+				.then(function(players) {
+					res.render('owes', { owes: owes, players: players.serialize() });
+				})
+				.catch(function(err) {
+					helper.renderError(res, err);
+				});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
@@ -32,38 +39,29 @@ router.get('/owes', function (req, res, next) {
 router.put('/payback', function (req, res) {
 	var ower = req.body.ower;	
 	var owee = req.body.owee;
-	var item = req.body.paybackItem;
-	var amount = req.body.paybackAmount;
+	var item = req.body.item;
+	var amount = req.body.amount;
 	
 	if (ower === owee) {
 		return res.status(400)
 			.send('Cannot register a payback between the same user')
 			.end();
 	}
-	Player.findById(ower)
-		.exec(function(err, player) {
-	    if (err) {
-	    	return helper.renderError(res, err);
-	    }
-	    var owes = player.owes;
-	    for (var i = 0; i < owes.length; i ++) {
-	    	var owe = owes[i];
-	    	if (owe.item === item && owe.owee == owee) {
-	    		owe.amount -= amount;
-	    		player.save(function(error, player){
-	    			debug('%s paid back %s %s to %s', ower, amount, item, owee);
-					return res.status(200)
-	    				.send()
-	    				.end();
-	    		});
-	    		return;
-	    	}
-	    }
-	    debug('%s does not owe %s any %s', ower, owee, item);
-	    res.status(400)
-	    	.send('No outstanding owes between selected players!')
-	    	.end();
-	});		
+
+	new Owe().registerPayback(ower, owee, item, amount, function(err, updateCount) {
+		if (err) {
+			return helper.renderError(res, err);
+		}
+
+		if (updateCount === 0) {
+			debug('Did not payback anything...');
+			return res.status(500).send().end();
+		}
+		debug('%s paid back %s %s to %s', ower, amount, item, owee);
+		return res.status(200)
+			.send()
+			.end();
+	});
 });
 
 module.exports = router
