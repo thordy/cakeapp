@@ -2,7 +2,7 @@ extends layout.pug
 
 block content
 	h2 Statistics for #{player.name}
-	
+
 	div(class='table-responsive')
 		table(class='table table-striped table-bordered')
 			thead
@@ -28,8 +28,33 @@ block content
 							p= player.ppd.toFixed(2)
 						td
 							p= (player.gamesWon * 100 / player.checkoutAttempts).toFixed(2) + '%'
-						td 
+						td
 							p= player['60+'] == 0 ? "" : "60+: " + player['60+']
 							p= player['100+'] == 0 ? "" : "100+: " + player['100+']
 							p= player['140+'] == 0 ? "" : "140+: " + player['140+']
 							p= player['180s'] == 0 ? "" : "180:  " + player['180s']
+
+	div(class='table-responsive')
+			table(class='table table-striped table-bordered')
+				thead
+					tr
+						th Dart
+						th Count
+						th Hit %
+				tbody
+					each score, key  in scores
+						each value, multiplier in scores[key]
+							tr
+								td(class='col-sm-2 dart-score-container')
+									if multiplier == 3
+										label(style='display:block; text-align:center; background-color: #d9534f')= 'T-' + key
+									else if multiplier == 2
+										label(style='display:block; text-align:center; background-color: orange')= 'D-' + key
+									else
+										if key == 0
+											-key = 'Miss'
+										else if key == 25
+											-key = 'Bull'
+										label(style='display:block; text-align:center')= key
+								td= value
+								td= (value * 100 / scores.totalThrows).toFixed(2) + '%'

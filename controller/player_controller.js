@@ -41,7 +41,73 @@ router.get('/:id/stats', function(req, res) {
 			if (rows.attempts.length !== 0) {
 				playerStatistics.checkoutAttempts = rows.attempts[0].checkout_attempts;
 			}
-			res.render('playerStatistics', { player: playerStatistics });
+			Score.forge()
+				.where('player_id', '=', playerId)
+				.fetchAll()
+				.then(function (scoreRows) {
+					var scores = scoreRows.serialize();
+
+					var scoreMap = scores.reduce(function (map, score) {
+						if (score.first_dart !== null) {
+							var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
+							map[firstDartIndex] = map[firstDartIndex] === undefined ? 1 : map[firstDartIndex] + 1;
+						}
+						if (score.second_dart !== null) {
+							var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
+							map[secondDartIndex] = map[secondDartIndex] === undefined ? 1 : map[secondDartIndex] + 1;
+						}
+						if (score.third_dart !== null) {
+							var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
+							map[thirdDartIndex] = map[thirdDartIndex] === undefined ? 1 : map[thirdDartIndex] + 1;
+						}
+						return map;
+					}, {});
+
+					var map = {
+						'25': { '1': 0, '2': 0 },
+						'20': { '1': 0, '2': 0, '3': 0 },
+						'19': { '1': 0, '2': 0, '3': 0 },
+						'18': { '1': 0, '2': 0, '3': 0 },
+						'17': { '1': 0, '2': 0, '3': 0 },
+						'16': { '1': 0, '2': 0, '3': 0 },
+						'15': { '1': 0, '2': 0, '3': 0 },
+						'14': { '1': 0, '2': 0, '3': 0 },
+						'13': { '1': 0, '2': 0, '3': 0 },
+						'12': { '1': 0, '2': 0, '3': 0 },
+						'11': { '1': 0, '2': 0, '3': 0 },
+						'10': { '1': 0, '2': 0, '3': 0 },
+						'9': { '1': 0, '2': 0, '3': 0 },
+						'8': { '1': 0, '2': 0, '3': 0 },
+						'7': { '1': 0, '2': 0, '3': 0 },
+						'6': { '1': 0, '2': 0, '3': 0 },
+						'5': { '1': 0, '2': 0, '3': 0 },
+						'4': { '1': 0, '2': 0, '3': 0 },
+						'3': { '1': 0, '2': 0, '3': 0 },
+						'2': { '1': 0, '2': 0, '3': 0 },
+						'1': { '1': 0, '2': 0, '3': 0 },
+						'0': { '1': 0 },
+						'totalThrows': 0
+					}
+					for (var i = 0; i < scores.length; i++) {
+						var score = scores[i];
+						if (score.first_dart !== null) {
+							map[score.first_dart][score.first_dart_multiplier] += 1;
+							map.totalThrows++;
+						}
+						if (score.second_dart !== null) {
+							map[score.second_dart][score.second_dart_multiplier] += 1;
+							map.totalThrows++;
+						}
+						if (score.third_dart !== null) {
+							map[score.third_dart][score.third_dart_multiplier] += 1;
+							map.totalThrows++;
+						}
+					}
+					res.render('playerStatistics', { player: playerStatistics, scores: map });
+				})
+				.catch(function(err) {
+					helper.renderError(res, err);
+				});
 		});
 	});
 });

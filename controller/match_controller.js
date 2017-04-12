@@ -199,8 +199,11 @@ router.post('/:id/throw', function (req, res) {
 	var matchId = req.body.matchId;
 	var currentPlayerId = req.body.playerId;
 	var firstDartScore = req.body.firstDart;
+	firstDartScore = firstDartScore === undefined ? 0 : firstDartScore;
 	var secondDartScore = req.body.secondDart;
+	secondDartScore = secondDartScore === undefined ? 0 : secondDartScore;
 	var thirdDartScore = req.body.thirdDart;
+	thirdDartScore = thirdDartScore === undefined ? 0 : thirdDartScore;
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
@@ -405,7 +408,7 @@ function writeStatistics(matchRow, callback) {
 							ppd: player.ppd,
 							first_nine_ppd: player.first9ppd,
 							checkout_percentage: player.checkoutPercentage,
-							darts_thrown: player.visits * 3
+							darts_thrown: player.dartsThrown
 						});
 						stats.attributes['60s_plus'] = player.highScores['60+'];
 						stats.attributes['100s_plus'] = player.highScores['100+'];
@@ -441,6 +444,7 @@ function getPlayerStatistics(players, scores) {
 			totalScore: 0,
 			visits: 0,
 			scores: [],
+			dartsThrown: 0,
 			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
 		}
 	}
@@ -471,10 +475,19 @@ function getPlayerStatistics(players, scores) {
 		else if (totalVisitScore == 180) {
 			player.highScores['180'] += 1;
 		}
+		if (score.first_dart !== null) {
+			player.dartsThrown++;
+		}
+		if (score.second_dart !== null) {
+			player.dartsThrown++;
+		}
+		if (score.third_dart !== null) {
+			player.dartsThrown++;
+		}
 	}
 	for (id in playerMap) {
 		var player = playerMap[id];
-		player.ppd = player.ppdScore / (player.visits * 3);
+		player.ppd = player.ppdScore / player.dartsThrown;
 		if (player.visits < 3) {
 			// With 301 you could finish in 6 darts
 			player.first9ppd = player.first9Score / 6;

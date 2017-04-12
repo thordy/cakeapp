@@ -16,6 +16,10 @@ block scripts
 		        location.href = '/player/compare' + comparePlayers;
 			});
 
+			$('.view-player-btn').click(function() {
+				location.href = '/player/' + $(this).data('player-id') + '/stats'
+			});
+
 			$('#addPlayerModal').on('shown.bs.modal', function () {
 			    $('#playerNameInput').focus();
 			});
@@ -67,9 +71,9 @@ block content
 						td= player.games_won
 						td= player.games_played == 0 ? 0 : (player.games_won * 100 / player.games_played).toFixed(2)
 						td
-							a(class='btn btn-primary' href='/player/' + player.id + '/stats') View
+							button(class='btn btn-primary view-player-btn' data-player-id=player.id disabled=player.games_played === 0) View
 						td
-							input(type='checkbox' name=player.name value=player.id)
+							input(type='checkbox' name=player.name value=player.id disabled=player.games_played === 0)
 
 		button(type='button' class='btn btn-block btn-primary' id='comparePlayersButton') Compare Players
 		button(type='button' class='btn btn-block btn-primary' data-toggle='modal' data-target='#addPlayerModal') Add Player
