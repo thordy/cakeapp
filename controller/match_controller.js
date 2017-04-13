@@ -281,7 +281,8 @@ router.post('/:id/results', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-
+	debug('Updating score %s to first: %s, %s, second: %s, %s, third: %s, %s', scoreId, firstDartScore, 
+		firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
 	// Change current player, maybe check what round is that ?
 	new Score({id: scoreId})
 		.save({

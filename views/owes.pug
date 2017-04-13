@@ -19,9 +19,6 @@ block scripts
 					function(response) {
 						$('#registerPaybackModal').modal('toggle');
 						location.href = window.location;
-						//- var alert = $('#addPaybackSuccessAlert');
-						//- alert.show();
-						//- alert.text('Unable to add payback. ' + error.responseText);
 					},
 					function(error) {
 						console.log(error);
@@ -43,7 +40,7 @@ block content
 	h2 Owes
 	p.
 		This table shows which players owe eachother items for lost matches
-	table(class='table table-striped table-bordered')
+	table(id='player_owes_table' class='table table-striped table-bordered')
 		thead
 			tr
 				th Ower
@@ -89,13 +86,13 @@ block content
 						div(class='form-group')
 							p Ower
 							each player in players
-								label(for='ower_' + player.id class='radio-inline control-label')= player.name
 								input(id='ower_' + player.id type='radio' name='ower' value=player.id)
+								label(for='ower_' + player.id + '' class='radio-inline control-label')= player.name
 						div(class='form-group')
 							p Owee
 							each player in players
-								label(for='owee_' + player.id class='radio-inline control-label')= player.name
 								input(id='owee_' + player.id type='radio' name='owee' value=player.id)
+								label(for='owee_' + player.id + '' class='radio-inline control-label')= player.name
 						div(class='form-group')
 							label(for='amountInput' class='control-label') Amount
 								input(type='number' name='paybackAmount' min='0' step='1' class='form-control' value=1 id='paybackAmount')

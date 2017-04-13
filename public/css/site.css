@@ -1,3 +1,55 @@
+/* General CSS */
+a:hover {
+	cursor:pointer;
+}
+.txt-center {
+    text-align: center;
+}
+
+/* CSS Related to matches page */
+#matches_list_table span {
+    display: block;
+}
+
+/* CSS Related to player comparison page */
+#player_comparison_table td:first-child {
+    text-align: left;
+}
+#player_comparison_table td, th {
+    text-align: center;
+}
+
+/* CSS Related to player statistics page */
+#player_statistics_table td {
+    text-align: center;
+}
+#player_scores_table td {
+    text-align: center;
+}
+#player_scores_table label {
+    display: block;
+}
+
+/* CSS Related to players page */
+#player_overview_table td, th {
+    text-align: center;
+}
+
+/* CSS Related to results page */
+#match_result_table td {
+    text-align: center;
+}
+#match_visits_table label {
+    display: block;
+}
+#dartboard-heatmap {
+    width: 600px;
+    height: 600px;
+    background-image: url('../images/dartboard.png');
+    background-size: 100% 100%;
+}
+
+/* CSS Related to match page */ 
 .btn-score {
     background-color: white;
     color: black;
@@ -8,70 +60,35 @@
     color: black;
     border: 2px solid #e7e7e7;
 }
-
 .btn-triple {
     background-color: #ffcc66;
     color: black;
     border: 2px solid #e7e7e7;
 }
-
 #score_selector_table {
-	border-spacing: 0px;
+    border-spacing: 0px;
 }
-
 #score_selector_table td {
-	padding: 0px;
-	border: 1px solid #000;
-	vertical-align: middle;
+    padding: 0px;
+    border: 1px solid #000;
+    vertical-align: middle;
 }
-
 #score_selector_table button {
-	border: 0;
-	border-radius: 0;
-	line-height: 0.8;
-	padding: 10px;
+    border: 0;
+    border-radius: 0;
+    line-height: 0.8;
+    padding: 10px;
 }
-
-#match_visits_table label {
-    display: block;
-}
-
 #score_selector_table label {
     display: block;
     text-align: center;
     border-radius: 0;
     margin: 0;
 }
-
-#matches_list_table span {
-    display: block;
-}
-
-
-a:hover {
-	cursor:pointer;
-}
-
-.dart-score-container {
-    padding: 3px !important;
-}
-
-.no-border {
-    border: none !important;
-}
-
-.dart-score-container label {
-    background-color: #404040;
-    color: #fff;
-    line-height: 2;
-    font-size: 15pt;
-}
-
 .label-player-score {
     padding: 5px 0px 0px 0px;
     font-size: 20pt;
 }
-
 .label-player-name {
     font-size: 10pt;
     padding: 0px;
@@ -79,33 +96,32 @@ a:hover {
     color: #ffffff;
     text-transform: uppercase;
 }
-
 .label-inactive-player {
     background-color: #404040;
     border-bottom: 4px solid black !important;
 }
-
 .label-active-player {
     background-color: #d9534f;
     border-bottom: 4px solid #962724 !important;
 }
+.dart-score-container {
+    padding: 3px !important;
+}
+.no-border {
+    border: none !important;
+}
+.dart-score-container label {
+    background-color: #404040;
+    color: #fff;
+    line-height: 2;
+    font-size: 15pt;
+}
 
-.txt-center {
+/* CSS related to owes page */
+#player_owes_table td {
     text-align: center;
 }
-#player_comparison_table td:first-child {
-    text-align: left;
-}
-#player_comparison_table td, th {
-    text-align: center;
-}
-#player_overview_table td, th {
-    text-align: center;
-}
-
-#dartboard-heatmap {
-    width: 600px;
-    height: 600px;
-    background-image: url('../images/dartboard.png');
-    background-size: 100% 100%;
+#paybackForm label {
+    padding-left: 10px;
+    padding-right: 10px
 }
