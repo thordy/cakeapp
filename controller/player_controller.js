@@ -86,7 +86,7 @@ router.get('/:id/stats', function(req, res) {
 							scoresMap.totalThrows++;
 						}
 					}
-					res.render('playerStatistics', { player: playerStatistics, scores: scoresMap });
+					res.render('playerStatistics', { player: playerStatistics, scoresMap: scoresMap });
 				})
 				.catch(function(err) {
 					helper.renderError(res, err);

@@ -118,27 +118,52 @@ new Match({id: req.params.id})
 				player.statistics = stats;
 			}
 			// Create a map of scores used to visualize throws in a heatmap
-			var scoresCount = {};
+			var scoresMap = {
+					'25': { '1': 0, '2': 0 },
+					'20': { '1': 0, '2': 0, '3': 0 },
+					'19': { '1': 0, '2': 0, '3': 0 },
+					'18': { '1': 0, '2': 0, '3': 0 },
+					'17': { '1': 0, '2': 0, '3': 0 },
+					'16': { '1': 0, '2': 0, '3': 0 },
+					'15': { '1': 0, '2': 0, '3': 0 },
+					'14': { '1': 0, '2': 0, '3': 0 },
+					'13': { '1': 0, '2': 0, '3': 0 },
+					'12': { '1': 0, '2': 0, '3': 0 },
+					'11': { '1': 0, '2': 0, '3': 0 },
+					'10': { '1': 0, '2': 0, '3': 0 },
+					'9': { '1': 0, '2': 0, '3': 0 },
+					'8': { '1': 0, '2': 0, '3': 0 },
+					'7': { '1': 0, '2': 0, '3': 0 },
+					'6': { '1': 0, '2': 0, '3': 0 },
+					'5': { '1': 0, '2': 0, '3': 0 },
+					'4': { '1': 0, '2': 0, '3': 0 },
+					'3': { '1': 0, '2': 0, '3': 0 },
+					'2': { '1': 0, '2': 0, '3': 0 },
+					'1': { '1': 0, '2': 0, '3': 0 },
+					'0': { '1': 0 },
+					totalThrows: 0
+			}
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
 				if (score.first_dart !== null) {
-					var firstDartIndex = 'p.' + score.first_dart + '.' + score.first_dart_multiplier;
-					scoresCount[firstDartIndex] = scoresCount[firstDartIndex] === undefined ? 1 : scoresCount[firstDartIndex] + 1;
+					scoresMap[score.first_dart][score.first_dart_multiplier] += 1;
+					scoresMap.totalThrows++;
 				}
 				if (score.second_dart !== null) {
-					var secondDartIndex = 'p.' + score.second_dart + '.' + score.second_dart_multiplier;
-					scoresCount[secondDartIndex] = scoresCount[secondDartIndex] === undefined ? 1 : scoresCount[secondDartIndex] + 1;
+					scoresMap[score.second_dart][score.second_dart_multiplier] += 1;
+					scoresMap.totalThrows++;
 				}
 				if (score.third_dart !== null) {
-					var thirdDartIndex = 'p.' + score.third_dart + '.' + score.third_dart_multiplier;
-					scoresCount[thirdDartIndex] = scoresCount[thirdDartIndex] === undefined ? 1 : scoresCount[thirdDartIndex] + 1;
+					scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
+					scoresMap.totalThrows++;
 				}
 			}
 			res.render('results', {
 				match: match.serialize(),
 				scores: scores,
 				players: playersMap,
-				scoresCount: scoresCount
+				//scoresCount: scoresCount,
+				scoresMap: scoresMap
 			});
 		})
 		.catch(function (err) {

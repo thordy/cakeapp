@@ -48,6 +48,12 @@ a:hover {
     background-image: url('../images/dartboard.png');
     background-size: 100% 100%;
 }
+#hits_table td {
+    text-align: center;
+}
+#hits_table label {
+    display: block;
+}
 
 /* CSS Related to match page */ 
 .btn-score {
