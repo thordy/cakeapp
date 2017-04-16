@@ -49,49 +49,64 @@ router.get('/:id', function (req, res) {
 		.fetch({
 			withRelated: [
 				'players',
-				{
-					'scores' : function (qb) {
-						qb.where('is_bust', '0');
-					}
-				},
-				{
-					'player2match' : function (qb) {
-						qb.orderBy('order', 'asc');
-					}
-				}
+				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
+				{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
 			]
 		})
 		.then(function (match) {
 			var players = match.related('players').serialize();
 			var scores = match.related('scores').serialize();
-			var player2match = match.related('player2match').serialize();
 			var match = match.serialize();
 
-			var playerScores = {};
-			for (var i = 0; i < players.length; i++){
-				var player = players[i];
-				playerScores['p' + player.id] = {
+			var playersMap = players.reduce(function ( map, player ) {
+				map['p' + player.id] = {
 					name: player.name,
-					playerOrder: player2match.order,
+					ppd: 0,
+					first9ppd: 0,
+					first9Score: 0,
+					totalScore: 0,
+					visits: 0,
 					current_score: match.starting_score,
-					current: player.id === match.current_player_id ? true : false,
-					scores: []
+					current: player.id === match.current_player_id ? true : false
 				}
-			}
+				return map;
+			}, {});
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
-				var player = playerScores['p' + score.player_id];
-				player.scores.push(score);
-				player.current_score = player.current_score - ((score.first_dart * score.first_dart_multiplier) +
+				var player = playersMap['p' + score.player_id];
+
+				var visitScore = ((score.first_dart * score.first_dart_multiplier) +
 					(score.second_dart * score.second_dart_multiplier) +
 					(score.third_dart * score.third_dart_multiplier));
+				player.current_score = player.current_score - visitScore;
+				player.totalScore += visitScore;
+				player.visits += 1;
+				if (player.visits <= 3) {
+					player.first9Score += visitScore;
+				}
 			}
-			match.scores = scores;
 
+			// Set player ppd and first9ppd
+			for (var id in playersMap) {
+				var player = playersMap[id];
+				var dartsThrown = player.visits === 0 ? 1 : (player.visits * 3);
+
+				if (player.visits <= 3) {
+					player.first9ppd = player.first9Score / dartsThrown;
+				}
+				else {
+					player.first9ppd = player.first9Score / 9;
+				}
+				player.ppd = player.totalScore / dartsThrown;
+			}
+
+			// Set all scores and round number
+			match.scores = scores;
+			match.roundNumber = Math.floor(scores.length / players.length) + 1;
 			res.render('match', {
 				match: match,
-				players: playerScores
+				players: playersMap
 			});
 		})
 		.catch(function (err) {
@@ -158,11 +173,13 @@ new Match({id: req.params.id})
 					scoresMap.totalThrows++;
 				}
 			}
+
+			
+			
 			res.render('results', {
 				match: match.serialize(),
 				scores: scores,
 				players: playersMap,
-				//scoresCount: scoresCount,
 				scoresMap: scoresMap
 			});
 		})

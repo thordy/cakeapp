@@ -2,6 +2,10 @@ extends layout.pug
 
 block scripts
 	script.
+		$(document).ready(function(){
+		    $('[data-toggle="popover"]').popover(); 
+		});
+	script.
 		$(function () {
 			var scores = {};
 			$(document).ready(function () {
@@ -10,6 +14,8 @@ block scripts
 			});
 
 			$('#score_selector_table .throw_buttons :button').click(function () {
+			    $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
+
 				var dart;
 				if (window.darts_thrown === 0) {
 					dart = $('#first');
@@ -94,6 +100,7 @@ block scripts
 			});
 
 			$('#submitScoreButton').click(function () {
+				$('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 				// Scores
 				var firstScoreNumeric = $('#first').attr('data-score');
 				var secondScoreNumeric = $('#second').attr('data-score');
@@ -155,6 +162,7 @@ block scripts
 			});
 
 			$('#undoButton').click(function () {
+				$('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 				if (window.darts_thrown < 1) {
 					return;
 				}
@@ -211,21 +219,23 @@ block content
 					td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1' data-checkout='0')
 					td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
 					td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
-					td(colspan='2'): button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
+					td(colspan='2')
+						button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
 					td(colspan='2')
 						button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
 							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
 				- var length = 12 / Object.keys(players).length
 				tr(class='row')
-					td
+					td(class='txt-center')= 'Round ' + match.roundNumber
 					each player in players
+						- var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
 						if player.id = player.current
-							td(colspan=length class='label-active-player')
-								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
+							td(colspan=length + '' class='label-active-player')
+								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 						else
-							td(colspan=length class='label-inactive-player')
-								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id)= player.current_score
+							td(colspan=length + '' class='label-inactive-player')
+								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0' data-multiplier='1') Miss<br/>&nbsp;
@@ -305,7 +315,6 @@ block content
 			li: a(id='seeScoresButton') See scores
 			li: a(id='editScoresButton') Edit scores
 			li: a(id='cancelMatchButton') Cancel Match
-
 
 	div(class='modal fade' id='scoresModal' tabindex='-1' role='dialog' aria-labelledby='scoresModalLabel')
 		div(class='modal-dialog' role='document')

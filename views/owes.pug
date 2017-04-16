@@ -17,7 +17,6 @@ block scripts
 				}
 				executePut('/cake/payback', JSON.stringify(payload), 'application/json',
 					function(response) {
-						$('#registerPaybackModal').modal('toggle');
 						location.href = window.location;
 					},
 					function(error) {
@@ -25,7 +24,6 @@ block scripts
 						var alert = $('#addPaybackFailedAlert');
 						alert.show();
 						alert.text('Unable to add payback. ' + error.responseText);
-						$('#registerPaybackModal').modal('toggle');
 					}
 				);
 			});
@@ -81,7 +79,7 @@ block content
 						span(aria-hidden='true') &times;
 					h4(class='modal-title' id='registerPaybackModalLabel') Register Payback between two player
 				div(class='modal-body')
-					form(action='/cake/payback' method='PUT' id='paybackForm')
+					form(id='paybackForm')
 						div(class='form-group')
 							p Ower
 							each player in players
@@ -102,4 +100,4 @@ block content
 								option Beer
 					div(class='modal-footer')
 						button(type='button' class='btn btn-default' data-dismiss='modal') Close
-						button(type='submit' name='submit' class='btn btn-primary' id='registerPaybackButton') Register
+						button(type='submit' name='submit' class='btn btn-primary' data-dismiss='modal' id='registerPaybackButton') Register

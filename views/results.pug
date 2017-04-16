@@ -2,18 +2,12 @@ extends layout.pug
 
 block scripts
 	script.
-		var scoresMap = "#{scores}";
 		$(document).ready(function(){
 			$('#hits_table').DataTable({
 				searching: false,
 		    	bInfo : false,
 		    	order: [[ 2,  'desc' ]],
-		        columnDefs: [
-		            {
-		                targets: [ 1 ],
-		                visible: true
-					}
-		        ]		    	
+		        columnDefs: [ { targets: [ 1 ], visible: true } ]
 			});
 		});		
 	script.
