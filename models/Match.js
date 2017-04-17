@@ -26,6 +26,28 @@ var Match = bookshelf.Model.extend({
     },
     statistics: function() {
         return this.hasMany(Statisticsx01);
+    },
+    finalizeMatch: function(matchId, winningPlayerId, callback) {
+        // Increment played matches and games won
+        bookshelf.knex.raw(`
+            UPDATE player
+            SET games_played = games_played + 1
+            WHERE id IN (SELECT player_id from player2match WHERE match_id = ?)`, matchId)
+        .then(function(rows) {
+            bookshelf.knex.raw(`
+                UPDATE player
+                SET games_won = games_won + 1
+                WHERE id = ?`, winningPlayerId)
+            .then(function(rows) {
+                callback(null, rows);
+            })
+            .catch(function (err) {
+                callback(err)
+            });
+        })
+        .catch(function (err) {
+            callback(err)
+        });
     }
 },
 {

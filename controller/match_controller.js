@@ -173,9 +173,6 @@ new Match({id: req.params.id})
 					scoresMap.totalThrows++;
 				}
 			}
-
-			
-			
 			res.render('results', {
 				match: match.serialize(),
 				scores: scores,
@@ -373,61 +370,67 @@ router.post('/:id/finish', function (req, res) {
 	var isCheckoutThird = req.body.isCheckoutThird;
 	debug('Match %s finished', matchId);
 
-	// Insert new score and change current player in match
-	new Score({
-		match_id: matchId,
-		player_id: currentPlayerId,
-		first_dart: firstDartScore,
-		second_dart: secondDartScore,
-		third_dart: thirdDartScore,
-		first_dart_multiplier: firstDartMultiplier,
-		second_dart_multiplier: secondDartMultiplier,
-		third_dart_multiplier: thirdDartMultiplier,
-		is_checkout_first: isCheckoutFirst,
-		is_checkout_second: isCheckoutSecond,
-		is_checkout_third: isCheckoutThird,
-	})
-	.save(null, {method: 'insert'})
-	.then(function(row) {
-		debug('Set final score for player %s', currentPlayerId);
+	// Load the match object since we need certain values from the table
+	Match.where('id', '=', matchId)
+		.fetch()
+		.then(function(row) {
+			var match = row.serialize();
 
-		// Update match with winner
-		new Match({ id: matchId })
-		.save({
-			current_player_id: currentPlayerId,
-			is_finished: true,
-			winner_id: currentPlayerId,
-			end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
-		})
-		.then(function (match) {
-			writeStatistics(match, function() {
-				res.status(200).end();
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+			// Insert new score and change current player in match,
+			new Score({
+					match_id: matchId,
+					player_id: currentPlayerId,
+					first_dart: firstDartScore,
+					second_dart: secondDartScore,
+					third_dart: thirdDartScore,
+					first_dart_multiplier: firstDartMultiplier,
+					second_dart_multiplier: secondDartMultiplier,
+					third_dart_multiplier: thirdDartMultiplier,
+					is_checkout_first: isCheckoutFirst,
+					is_checkout_second: isCheckoutSecond,
+					is_checkout_third: isCheckoutThird,
+				})
+				.save(null, {method: 'insert'})
+				.then(function(row) {
+					debug('Set final score for player %s', currentPlayerId);
+
+					// Update match with winner
+					new Match({ id: matchId })
+					.save({
+						current_player_id: currentPlayerId,
+						is_finished: true,
+						winner_id: currentPlayerId,
+						end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
+					})
+					.then(function (row) {
+						writeStatistics(match, function(err) {
+							if(err) {
+								debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
+								debug(err);
+								return helper.renderError(res, err);
+							}
+							res.status(200).end();
+						});
+					})
+					.catch(function (err) {
+						helper.renderError(res, err);
+					});
+				})
+				.catch(function(err) {
+					helper.renderError(res, err);
+				});
+				Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
+					if (err) {
+						debug(err);
+						return;
+					}
+					debug('Finished finalie Match');
+				});		
 		});
-	})
-	.catch(function(err) {
-		helper.renderError(res, err);
-	});
-
-	// Increment played matches nad games won
-	Bookshelf.knex.raw(`UPDATE player SET games_played = games_played + 1
-		WHERE id IN (SELECT player_id from player2match WHERE match_id = ?)`, matchId)
-	.then(function(rows) {
-		debug('Incremented played matches for all players');
-	});
-	Bookshelf.knex.raw(`UPDATE player SET games_won = games_won + 1
-		WHERE id = ?`, currentPlayerId)
-	.then(function(rows) {
-		debug('Incremented games_won for player %s', currentPlayerId);
-	});
 });
 
-function writeStatistics(matchRow, callback) {
+function writeStatistics(match, callback) {
 	// Get all players in the match and set their statistics
-	var match = matchRow.serialize();
 	var matchId = match.id;
 	Player2match
 		.where('match_id', '=', matchId)
@@ -442,7 +445,7 @@ function writeStatistics(matchRow, callback) {
 				.where('match_id', '=', matchId)
 				.fetchAll()
 				.then(function(scoreRows){
-					var playerMap = getPlayerStatistics(players, scoreRows.serialize());
+					var playerMap = getPlayerStatistics(players, scoreRows.serialize(), match.starting_score);
 					for (id in playerMap){
 						var player = playerMap[id];
 						var stats = new StatisticsX01({
@@ -451,7 +454,10 @@ function writeStatistics(matchRow, callback) {
 							ppd: player.ppd,
 							first_nine_ppd: player.first9ppd,
 							checkout_percentage: player.checkoutPercentage,
-							darts_thrown: player.dartsThrown
+							darts_thrown: player.dartsThrown,
+							accuracy_20: player.accuracyStats.accuracy20,
+							accuracy_19: player.accuracyStats.accuracy19,
+							overall_accuracy: player.accuracyStats.overallAccuracy
 						});
 						stats.attributes['60s_plus'] = player.highScores['60+'];
 						stats.attributes['100s_plus'] = player.highScores['100+'];
@@ -464,9 +470,7 @@ function writeStatistics(matchRow, callback) {
 								callback();
 							})
 							.catch(function(err) {
-								debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
-								debug(err);
-								helper.renderError(res, err);
+								callback(err);
 							});
 					}
 				});
@@ -474,13 +478,15 @@ function writeStatistics(matchRow, callback) {
 }
 
 
-function getPlayerStatistics(players, scores) {
+function getPlayerStatistics(players, scores, startingScore) {
 	var playerMap = {};
 	for (var i = 0; i < players.length; i++) {
 		var player = players[i];
 		playerMap[player.player_id] = {
 			id: player.player_id,
+			remainingScore: startingScore,
 			ppdScore: 0,
+			ppdDarts: 0,
 			ppd: 0,
 			first9ppd: 0,
 			first9Score: 0,
@@ -488,7 +494,13 @@ function getPlayerStatistics(players, scores) {
 			visits: 0,
 			scores: [],
 			dartsThrown: 0,
-			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 }
+			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 },
+			accuracyStats: {
+				accuracy20: 0, attempts20: 0, hits20: 0,
+				accuracy19: 0, attempts19: 0, hits19: 0, 
+				misses: 0,				
+				overallAccuracy: 0
+			}
 		}
 	}
 
@@ -499,6 +511,7 @@ function getPlayerStatistics(players, scores) {
 		var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
 				(score.second_dart * score.second_dart_multiplier) +
 				(score.third_dart * score.third_dart_multiplier);
+		player.remainingScore -= totalVisitScore;
 
 		player.visits += 1;
 		if (player.visits <= 3) {
@@ -519,12 +532,15 @@ function getPlayerStatistics(players, scores) {
 			player.highScores['180'] += 1;
 		}
 		if (score.first_dart !== null) {
+			getAccuracyStats(score.first_dart, player.accuracyStats);
 			player.dartsThrown++;
 		}
 		if (score.second_dart !== null) {
+			getAccuracyStats(score.second_dart, player.accuracyStats);
 			player.dartsThrown++;
 		}
 		if (score.third_dart !== null) {
+			getAccuracyStats(score.third_dart, player.accuracyStats);
 			player.dartsThrown++;
 		}
 	}
@@ -538,8 +554,64 @@ function getPlayerStatistics(players, scores) {
 		else {
 			player.first9ppd = player.first9Score / 9;
 		}
+
+		// Set accuracy stats for each players
+		var accuracyStats = player.accuracyStats;
+		debug(accuracyStats);
+		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) / 
+			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);		
+		accuracyStats.accuracy20 = accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
+		accuracyStats.accuracy19 = accuracyStats.accuracy19 / (accuracyStats.attempts19 + accuracyStats.misses);
 	}
 	return playerMap;
 }
-module.exports = router
 
+function getAccuracyStats(score, accuracyStats) {
+	switch (score) {
+		case 20:
+			accuracyStats.hits20 += 1;
+			accuracyStats.attempts20 += 1;
+			accuracyStats.accuracy20 += 100;
+			break;
+		case 5:
+		case 1:
+			accuracyStats.attempts20 += 1;
+			accuracyStats.accuracy20 += 70;
+			break;
+		case 12:
+		case 18:
+			accuracyStats.attempts20 += 1;
+			accuracyStats.accuracy20 += 30;
+			break;
+		case 9:
+		case 4:
+			accuracyStats.attempts20 += 1;
+			accuracyStats.accuracy20 += 5;
+			break;
+		case 19:
+			accuracyStats.hits19 += 1;
+			accuracyStats.attempts19 += 1;
+			accuracyStats.accuracy19 += 100;
+			break;
+		case 7:
+		case 3:
+			accuracyStats.attempts19 += 1;
+			accuracyStats.accuracy19 += 70;
+			break;
+		case 16:
+		case 17:
+			accuracyStats.attempts19 += 1;
+			accuracyStats.accuracy19 += 30;
+			break;
+		case 8:
+		case 2:
+			accuracyStats.attempts19 += 1;
+			accuracyStats.accuracy19 += 5;
+			break;
+		default:
+			accuracyStats.misses += 1;
+			break;
+	}
+}
+
+module.exports = router

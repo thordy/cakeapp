@@ -11,6 +11,6 @@ var Player = bookshelf.Model.extend({
     },
     statistics: function() {
         return this.hasMany(Statisticsx01);
-    }    
+    }
 });
 module.exports = Player;

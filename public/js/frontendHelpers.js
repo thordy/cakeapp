@@ -157,4 +157,4 @@ function paintAtCoordinate(heatmap, x, y, spread, size, intensity) {
 		i += 1;
 		heatmap.addPoint(x + xoff * spread, y + yoff * spread, size, intensity / 1000);
 	}
-}		
+}

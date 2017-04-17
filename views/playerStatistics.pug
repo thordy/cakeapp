@@ -12,10 +12,10 @@ block scripts
 		});
 	script.
 		var scoresMap = !{JSON.stringify(scoresMap)};
-		window.onload = function(){
-			var canvas = $('#dartboard-heatmap')[0];
+		window.onload = (function(){
+		    var canvas = $('#dartboard-heatmap')[0];
 			drawHeatmap(canvas, scoresMap, 0, 5, 20, 30);
-		}
+		});
 
 		$(function () {
 			$("#heatmap_value_selector").change(function () {
@@ -31,7 +31,7 @@ block scripts
 				}
 				drawHeatmap(canvas, scoresMap, display, size, spread, intensity);
 			});
-		});
+		});		
 		
 block content
 	h2 Statistics for #{player.name}
