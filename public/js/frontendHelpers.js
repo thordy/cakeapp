@@ -11,14 +11,14 @@ function executeGet(url, success, error) {
 		type: 'GET',
 		success: success,
 		error: error
-	});	
+	});
 }
 
 /**
  * Execute a jQuery Ajax POST
  * @param {String} url - URL to execute against
- * @param {Object} data - Data to send 
- * @param {String} contentType - Content type string  
+ * @param {Object} data - Data to send
+ * @param {String} contentType - Content type string
  * @param {function} success - Function callback on success
  * @param {function} error - Function callback on error
  */
@@ -30,14 +30,14 @@ function executePost(url, data, contentType, success, error) {
 		contentType: contentType,
 		success: success,
 		error: error
-	});	
+	});
 }
 
 /**
  * Execute a jQuery Ajax PUT
  * @param {String} url - URL to execute against
- * @param {Object} data - Data to send 
- * @param {String} contentType - Content type string  
+ * @param {Object} data - Data to send
+ * @param {String} contentType - Content type string
  * @param {function} success - Function callback on success
  * @param {function} error - Function callback on error
  */
@@ -55,8 +55,8 @@ function executePut(url, data, contentType, success, error) {
 /**
  * Execute a jQuery Ajax DELETE
  * @param {String} url - URL to execute against
- * @param {Object} data - Data to send 
- * @param {String} contentType - Content type string  
+ * @param {Object} data - Data to send
+ * @param {String} contentType - Content type string
  * @param {function} success - Function callback on success
  * @param {function} error - Function callback on error
  */
@@ -66,7 +66,7 @@ function executeDelete(url, success, error) {
 		type: 'DELETE',
 		success: success,
 		error: error
-	});	
+	});
 }
 
 /* Hash containing the x/y coordinates for each dart hit to draw on heat map.
@@ -96,15 +96,15 @@ var heatmapDataPoints = {
 	'0': { '1': {'x': 50, 'y': 50} } }
 
 /**
- * Draw a heat map on the given canvas with the given scores. 
+ * Draw a heat map on the given canvas with the given scores.
  * @param {object} canvas - Canvas where the heatmap should be drawn
- * @param {object} scoresMap - Hash with number of hits for each value
+ * @param {object} scoresMap - Hash with number of hits for each valuek
  * @param {integer} display - Which values to display, 0 = ALL, 1 = SINGLES, 2 = DOUBLES, 3 = TREBLES
  * @param {integer} size - Size to use when painting
  * @param {integer} spread - Spread to use when painting
  * @param {integer} intensity - Intensity to use when painting
 */
-function drawHeatmap(canvas, scoresMap, display = 0, size = 20, spread = 20, intensity = 50) {
+function drawHeatmap(canvas, scoresMap, display, size, spread, intensity) {
 	var heatmap = createWebGLHeatmap({ canvas: canvas, intensityToAlpha: true });
 	for (var dart in scoresMap) {
 		var dartScores = scoresMap[dart];

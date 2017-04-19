@@ -9,7 +9,7 @@ block scripts
 		    	order: [[ 2,  'desc' ]],
 		        columnDefs: [ { targets: [ 1 ], visible: true } ]
 			});
-		});		
+		});
 	script.
 		$(function () {
 			$('.edit-visit').click(function () {
@@ -149,18 +149,21 @@ block scripts
 			});
 		});
 	script.
+		var size = 20;
+		var spread = 20;
+		var intensity = 50;
 		var scoresMap = !{JSON.stringify(scoresMap)};
 		window.onload = function(){
 			var canvas = $('#dartboard-heatmap')[0];
-			drawHeatmap(canvas, scoresMap);
+			drawHeatmap(canvas, scoresMap, 0, size, spread, intensity);
 		}
 		$(function () {
 			$("#heatmap_value_selector").change(function () {
 				var canvas = $('#dartboard-heatmap')[0];
 				var display = this.value;
-				drawHeatmap(canvas, scoresMap, display);
+				drawHeatmap(canvas, scoresMap, display, size, spread, intensity);
 			});
-		});		
+		});
 
 block content
 	h2 Results
@@ -264,7 +267,7 @@ block content
 		option(value=0 default=true) All
 		option(value=1) Singles
 		option(value=2) Doubles
-		option(value=3) Trebles	
+		option(value=3) Trebles
 	div(style='text-align: center;')
 		canvas(id='dartboard-heatmap')
 
@@ -289,7 +292,7 @@ block content
 									else
 										label(style='background-color: orange')= 'D-' + key
 								else
-									if key == 0 
+									if key == 0
 										label Miss
 									else if key == 25
 										label Bull

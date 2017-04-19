@@ -320,7 +320,7 @@ router.post('/:id/results', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	debug('Updating score %s to first: %s, %s, second: %s, %s, third: %s, %s', scoreId, firstDartScore, 
+	debug('Updating score %s to first: %s, %s, second: %s, %s, third: %s, %s', scoreId, firstDartScore,
 		firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
 	// Change current player, maybe check what round is that ?
 	new Score({id: scoreId})
@@ -425,7 +425,7 @@ router.post('/:id/finish', function (req, res) {
 						return;
 					}
 					debug('Finished finalie Match');
-				});		
+				});
 		});
 });
 
@@ -497,8 +497,8 @@ function getPlayerStatistics(players, scores, startingScore) {
 			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 },
 			accuracyStats: {
 				accuracy20: 0, attempts20: 0, hits20: 0,
-				accuracy19: 0, attempts19: 0, hits19: 0, 
-				misses: 0,				
+				accuracy19: 0, attempts19: 0, hits19: 0,
+				misses: 0,
 				overallAccuracy: 0
 			}
 		}
@@ -558,8 +558,8 @@ function getPlayerStatistics(players, scores, startingScore) {
 		// Set accuracy stats for each players
 		var accuracyStats = player.accuracyStats;
 		debug(accuracyStats);
-		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) / 
-			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);		
+		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
+			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
 		accuracyStats.accuracy20 = accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
 		accuracyStats.accuracy19 = accuracyStats.accuracy19 / (accuracyStats.attempts19 + accuracyStats.misses);
 	}
