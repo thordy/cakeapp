@@ -6,7 +6,7 @@ bookshelf.plugin('registry');
 var Player = require('./Player');
 var Player2Match = require('./Player2match');
 var Score = require('./Score');
-var Statisticsx01 = require('./Statisticsx01');
+var StatisticsX01 = require('./StatisticsX01');
 
 var Match = bookshelf.Model.extend({
     tableName: 'match',
@@ -25,7 +25,7 @@ var Match = bookshelf.Model.extend({
         return this.hasMany(Score);
     },
     statistics: function() {
-        return this.hasMany(Statisticsx01);
+        return this.hasMany(StatisticsX01);
     },
     finalizeMatch: function(matchId, winningPlayerId, callback) {
         // Increment played matches and games won

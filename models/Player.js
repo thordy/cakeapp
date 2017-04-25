@@ -2,7 +2,7 @@
 
 var bookshelf = require('../bookshelf');
 var Player2match = require.main.require('./models/Player2match');
-var Statisticsx01 = require('./Statisticsx01');
+var StatisticsX01 = require('./StatisticsX01');
 
 var Player = bookshelf.Model.extend({
     tableName: 'player',
@@ -10,7 +10,7 @@ var Player = bookshelf.Model.extend({
         return this.belongsToMany(Player2Match);
     },
     statistics: function() {
-        return this.hasMany(Statisticsx01);
+        return this.hasMany(StatisticsX01);
     }
 });
 module.exports = Player;
