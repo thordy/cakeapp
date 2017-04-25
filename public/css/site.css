@@ -55,7 +55,7 @@ a:hover {
     display: block;
 }
 
-/* CSS Related to match page */ 
+/* CSS Related to match page */
 .btn-score {
     background-color: white;
     color: black;
@@ -130,4 +130,10 @@ a:hover {
 #paybackForm label {
     padding-left: 10px;
     padding-right: 10px
+}
+
+.beer {
+    background-position: left;
+    background-repeat: no-repeat;
+    background-image: url(../images/beer.png);
 }

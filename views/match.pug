@@ -230,11 +230,11 @@ block content
 					each player in players
 						- var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
 						if player.id = player.current
-							td(colspan=length + '' class='label-active-player')
+							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 						else
-							td(colspan=length + '' class='label-inactive-player')
+							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')

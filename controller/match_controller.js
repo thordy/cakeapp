@@ -86,6 +86,12 @@ router.get('/:id', function (req, res) {
 					player.first9Score += visitScore;
 				}
 			}
+			var lowestScore = undefined;
+			for (var id in playersMap) {
+				if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
+					lowestScore = playersMap[id].current_score;
+				}
+			}
 
 			// Set player ppd and first9ppd
 			for (var id in playersMap) {
@@ -99,6 +105,13 @@ router.get('/:id', function (req, res) {
 					player.first9ppd = player.first9Score / 9;
 				}
 				player.ppd = player.totalScore / dartsThrown;
+
+				if (lowestScore < 171 && player.current_score > 200) {
+					player.isBeerCheckoutSafe = false;
+				}
+				else {
+					player.isBeerCheckoutSafe = true;
+				}
 			}
 
 			// Set all scores and round number
@@ -507,7 +520,9 @@ function getPlayerStatistics(players, scores, startingScore) {
 	for (var i = 0; i < scores.length; i++) {
 		var score = scores[i];
 		var player = playerMap[score.player_id];
-
+		if (score.is_bust) {
+			continue;
+		}
 		var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
 				(score.second_dart * score.second_dart_multiplier) +
 				(score.third_dart * score.third_dart_multiplier);
