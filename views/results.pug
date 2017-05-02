@@ -222,9 +222,9 @@ block content
 			thead
 				tr
 					th Player
-					th(colspan='3') First Dart
-					th(colspan='3') Second Dart
-					th(colspan='3') Third Dart
+					th First Dart
+					th Second Dart
+					th Third Dart
 					th Total
 					th PPD
 					th(class="txt-center") Options
@@ -232,31 +232,33 @@ block content
 				each throws in scores
 					tr(id="visit-" + throws.id)
 						td= players[throws.player_id].name
-						td(id='first-dart-visit-' + throws.id data-score=throws.first_dart)= throws.first_dart
-						td(id='first-dart-multiplier-visit-' + throws.id data-multiplier=throws.first_dart_multiplier)
-							select(class='form-control' name='first-dart-multiplier-vist' + throws.id disabled)
-								option(selected=throws.first_dart_multiplier === 1) Single
-								option(selected=throws.first_dart_multiplier === 2) Double
-								option(selected=throws.first_dart_multiplier === 3) Treble
-						td
-							label(class='label label-success' class='first-dart-visit-total-' + throws.id)= throws.first_dart * throws.first_dart_multiplier
-						td(id='second-dart-visit-' + throws.id data-score=throws.second_dart)= throws.second_dart
-						td(id='second-dart-multiplier-visit-' + throws.id data-multiplier=throws.second_dart_multiplier)
-							select(class='form-control' name='second-dart-multiplier-vist' + throws.id disabled)
-								option(selected=throws.second_dart_multiplier === 1) Single
-								option(selected=throws.second_dart_multiplier === 2) Double
-								option(selected=throws.second_dart_multiplier === 3) Treble
-						td
-							label(class='label label-success' class='second-dart-visit-total-' + throws.id)= throws.second_dart * throws.second_dart_multiplier
-						td(id='third-dart-visit-' + throws.id data-score=throws.third_dart)= throws.third_dart
-						td(id='third-dart-multiplier-visit-' + throws.id data-multiplier=throws.third_dart_multiplier)
-							select(class='form-control' name='second-dart-multiplier-vist' + throws.id disabled)
-								option(selected=throws.third_dart_multiplier === 1) Single
-								option(selected=throws.third_dart_multiplier === 2) Double
-								option(selected=throws.third_dart_multiplier === 3) Treble
-						td
-							label(class='label label-success' class='third-dart-visit-total-' + throws.id)= throws.third_dart * throws.third_dart_multiplier
-						td(class='total-visit-score-' + throws.id)= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
+
+						td(id='first-dart-visit-' + throws.id data-score=throws.first_dart + '' class='dart-score-container')
+							if throws.first_dart_multiplier === 3
+								label(style='background-color: #d9534f')= 'T-' + throws.first_dart
+							else if throws.first_dart_multiplier === 2
+								label(style='background-color: orange')= 'D-' + throws.first_dart
+							else
+								label(class='background-color: black')= throws.first_dart
+
+						td(id='second-dart-visit-' + throws.id data-score=throws.second_dart + '' class='dart-score-container')
+							if throws.second_dart_multiplier === 3
+								label(style='background-color: #d9534f')= 'T-' + throws.second_dart
+							else if throws.second_dart_multiplier === 2
+								label(style='background-color: orange')= 'D-' + throws.second_dart
+							else
+								label(class='background-color: black')= throws.second_dart
+
+						td(id='third-dart-visit-' + throws.id data-score=throws.third_dart + '' class='dart-score-container')
+							if throws.third_dart_multiplier === 3
+								label(style='background-color: #d9534f')= 'T-' + throws.third_dart
+							else if throws.third_dart_multiplier === 2
+								label(style='background-color: orange')= 'D-' + throws.third_dart
+							else
+								label(class='background-color: black')= throws.third_dart								
+
+						td(class='total-visit-score-' + throws.id)
+							label= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
 						td(class='visit-ppd-' + throws.id)= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
 						td(class="txt-center")
 							button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
