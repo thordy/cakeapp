@@ -86,6 +86,12 @@ router.get('/:id', function (req, res) {
 					player.first9Score += visitScore;
 				}
 			}
+			var lastVisit = scores[scores.length - 1];
+			if (lastVisit !== undefined) {
+				var lastPlayer = playersMap['p' + lastVisit.player_id];
+				lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
+			}
+
 			var lowestScore = undefined;
 			for (var id in playersMap) {
 				if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
@@ -113,7 +119,6 @@ router.get('/:id', function (req, res) {
 					player.isBeerCheckoutSafe = true;
 				}
 			}
-
 			// Set all scores and round number
 			match.scores = scores;
 			match.roundNumber = Math.floor(scores.length / players.length) + 1;
@@ -627,6 +632,18 @@ function getAccuracyStats(score, accuracyStats) {
 			accuracyStats.misses += 1;
 			break;
 	}
+}
+
+function isViliusVisit(visit) {
+	if (visit.first_dart_multiplier != 1 || visit.second_dart_multiplier != 1 || visit.third_dart_multiplier != 1) {
+		return false;
+	}
+	if ((visit.first_dart == 20 && visit.second_dart == 0 && visit.third_dart == 20) || 
+		(visit.first_dart == 0 && visit.second_dart == 20 && visit.third_dart == 20) || 
+		(visit.first_dart == 20 && visit.second_dart == 20 && visit.third_dart == 0)) {
+		return true;
+	}
+	return false;
 }
 
 module.exports = router

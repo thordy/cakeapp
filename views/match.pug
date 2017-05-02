@@ -235,7 +235,8 @@ block content
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 						else
-							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer')
+							- var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
+							td(colspan=length + '' class=css)
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')

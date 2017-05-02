@@ -128,11 +128,8 @@ router.get('/compare', function (req, res) {
 				playersMap[stats.player_id].statistics.push(stats);
 			}
 		}
-
-		var playerStatistics = [];
 		for (id in playersMap) {
 			var player = playersMap[id];
-			playerStatistics.push(calculateStatistics(player.statistics));
 			player.statistics = calculateStatistics(player.statistics);
 		}
 
@@ -177,6 +174,9 @@ function calculateStatistics(rawStatistics) {
 		bestPpd: 0,
 		first9ppd: 0,
 		checkoutAttempts: 0,
+		accuracy20: 0,
+		accuracy19: 0,
+		overallAccuracy: 0,
 		best301: undefined,
 		best501: undefined,
 		highestCheckout: undefined,
@@ -190,6 +190,11 @@ function calculateStatistics(rawStatistics) {
 		statistics['100+'] += stats['100s_plus'];
 		statistics['140+'] += stats['140s_plus'];
 		statistics['180s'] += stats['180s'];
+
+		// Calculate accuracy
+		statistics.accuracy19 += rawStatistics.accuracy_19;
+		statistics.accuracy20 += rawStatistics.accuracy_20;
+		statistics.overallAccuracy += rawStatistics.overall_accuracy;
 
 		if (statistics.bestPpd < stats.ppd) {
 			statistics.bestPpd = stats.ppd;

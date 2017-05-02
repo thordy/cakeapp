@@ -39,8 +39,12 @@ a:hover {
 #match_result_table td {
     text-align: center;
 }
+#match_result_table label {
+    display: block;
+}
 #match_visits_table label {
     display: block;
+    text-align: center;
 }
 #dartboard-heatmap {
     width: 600px;
@@ -136,4 +140,10 @@ a:hover {
     background-position: left;
     background-repeat: no-repeat;
     background-image: url(../images/beer.png);
+}
+
+.vilius {
+    background-position: left;
+    background-repeat: no-repeat;
+    background-image: url(../images/vilius.png);
 }
