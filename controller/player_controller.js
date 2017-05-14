@@ -172,6 +172,7 @@ function calculateStatistics(rawStatistics) {
 		gamesPlayed: rawStatistics[0].gamesPlayed,
 		ppd: 0,
 		bestPpd: 0,
+		bestFirst9Ppd: 0,
 		first9ppd: 0,
 		checkoutAttempts: 0,
 		accuracy20: 0,
@@ -198,6 +199,9 @@ function calculateStatistics(rawStatistics) {
 
 		if (statistics.bestPpd < stats.ppd) {
 			statistics.bestPpd = stats.ppd;
+		}
+		if (statistics.bestFirst9Ppd < stats.first_nine_ppd) {
+			statistics.bestFirst9Ppd = stats.first_nine_ppd;
 		}
 		if (statistics.id === stats.winner_id) {
 			if (stats.starting_score === 301) {

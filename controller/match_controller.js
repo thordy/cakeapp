@@ -308,7 +308,8 @@ router.post('/:id/throw', function (req, res) {
 	})
 	.save(null, {method: 'insert'})
 	.then(function(row) {
-		debug('Added score for player %s', currentPlayerId);
+		debug('Added score for player %s (%s-%s, %s-%s, %s-%s)', currentPlayerId,
+			firstDartScore, firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
 
 		// Change current player, maybe check what round is that ?
 		new Match({
@@ -484,7 +485,7 @@ function writeStatistics(match, callback) {
 						stats
 							.save(null, { method: 'insert' })
 							.then(function(row) {
-								debug('Inserted statistics for match %s, player %s', matchId, player.id);
+								debug('Inserted statistics for match %s', matchId);
 								callback();
 							})
 							.catch(function(err) {
@@ -638,8 +639,8 @@ function isViliusVisit(visit) {
 	if (visit.first_dart_multiplier != 1 || visit.second_dart_multiplier != 1 || visit.third_dart_multiplier != 1) {
 		return false;
 	}
-	if ((visit.first_dart == 20 && visit.second_dart == 0 && visit.third_dart == 20) || 
-		(visit.first_dart == 0 && visit.second_dart == 20 && visit.third_dart == 20) || 
+	if ((visit.first_dart == 20 && visit.second_dart == 0 && visit.third_dart == 20) ||
+		(visit.first_dart == 0 && visit.second_dart == 20 && visit.third_dart == 20) ||
 		(visit.first_dart == 20 && visit.second_dart == 20 && visit.third_dart == 0)) {
 		return true;
 	}
