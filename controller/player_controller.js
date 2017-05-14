@@ -166,7 +166,7 @@ function calculateStatistics(rawStatistics) {
 		return {};
 	}
 	var statistics = {
-		id: rawStatistics[0].id,
+		id: rawStatistics[0].player_id,
 		name: rawStatistics[0].name,
 		gamesWon: rawStatistics[0].gamesWon,
 		gamesPlayed: rawStatistics[0].gamesPlayed,
