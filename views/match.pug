@@ -193,7 +193,9 @@ block scripts
 				location.href = window.location.pathname + '/results';
 			});
 			$('#cancelMatchButton').click(function () {
-				// TODO Confirm dialog?
+				if (!confirm('Game will be cancelled.')) {
+					return;
+				}
 				executeDelete(window.location.pathname + '/cancel',
 					function (response) {
 						location.href = '/match/list';
