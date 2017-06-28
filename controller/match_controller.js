@@ -122,7 +122,7 @@ router.get('/:id', function (req, res) {
 			// Set all scores and round number
 			match.scores = scores;
 			match.roundNumber = Math.floor(scores.length / players.length) + 1;
-			res.render('match', {
+			res.render('match_socket', {
 				match: match,
 				players: playersMap
 			});

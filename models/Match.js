@@ -48,6 +48,32 @@ var Match = bookshelf.Model.extend({
         .catch(function (err) {
             callback(err)
         });
+    },
+    setCurrentPlayer: function(matchId, currentPlayerId, players, callback) {
+        // We might as well load the player2match model in here for given match id
+        var numPlayers = players.length;
+        var currentPlayerOrder = 1;
+        var playersArray = {};
+        for (var i = 0; i < players.length; i++){
+            var player = players[i];
+            if (player.player_id === currentPlayerId) {
+                currentPlayerOrder = player.order;
+            }
+            playersArray[parseInt(player.order)] = {
+                playerId: player.player_id
+            }
+        }
+        var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
+        var nextPlayerId = playersArray[nextPlayerOrder].playerId;
+
+        new Match({ id: matchId })
+            .save({current_player_id: nextPlayerId})
+            .then(function (match) {
+                callback(null, match);
+            })
+            .catch(function (err) {
+                callback(err)
+            });
     }
 },
 {
