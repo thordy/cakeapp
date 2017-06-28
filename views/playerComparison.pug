@@ -18,7 +18,7 @@ block content
 				tr
 					td(class='col-sm-2') Win %
 					each player in players
-						td= ((player.gamesWon * 100) / player.gamesPlayed).toFixed(2)
+						td= ((player.gamesWon * 100) / player.gamesPlayed).toFixed(2) + '%'
 				tr
 					td(class='col-sm-2') PPD
 					each player in players
@@ -31,6 +31,10 @@ block content
 					td(class='col-sm-2') Best PPD
 					each player in players
 						td= player.bestPpd.toFixed(2)
+				tr
+					td(class='col-sm-2') Best First 9 PPD
+					each player in players
+						td= player.bestFirst9Ppd.toFixed(2)
 				tr
 					td(class='col-sm-2') Checkout%
 					each player in players
