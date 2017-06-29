@@ -331,6 +331,8 @@ router.post('/:id/throw', function (req, res) {
 
 /* Modify the score */
 router.post('/:id/results', function (req, res) {
+	// TODO Only allow if match is not finished
+
 	// Assign those values to vars since they will be used in other places
 	var scoreId = req.body.scoreId;
 	var firstDartScore = req.body.firstDart;
@@ -341,7 +343,7 @@ router.post('/:id/results', function (req, res) {
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
 	debug('Updating score %s to first: %s, %s, second: %s, %s, third: %s, %s', scoreId, firstDartScore,
 		firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
-	// Change current player, maybe check what round is that ?
+
 	new Score({id: scoreId})
 		.save({
 			first_dart: firstDartScore,
