@@ -24,13 +24,18 @@ block scripts
 					var td = $('#player_score_' + player.id);
 					var label = td.find('.label-player-score');
 					label.text(player.current_score);
+					
 					if (player.id === currentPlayerId) {
 						td.addClass('label-active-player')
 						td.removeClass('label-inactive-player');
+						label.attr('id', 'current_player');
+						label.attr('data-current-player-id', player.id);
 					}
 					else {
 						td.addClass('label-inactive-player');
-						td.removeClass('label-active-player')
+						td.removeClass('label-active-player');
+						label.attr('id', 'label_' + player.id);
+						label.removeAttr('data-current-player-id');
 					}
 				}
 				// Reset UI elements
@@ -60,7 +65,7 @@ block scripts
 				var isCheckoutThird = $('#third').attr('data-checkout');
 
 				var matchId = $(this).data('match-id');
-				var currentPlayerId = $(this).data('current-player-id');
+				var currentPlayerId = $('.current_player').data('current-player-id');
 				var playersInMatch = $(this).data('players-in-match');
 				var isBust = $(this).data('busted');
 				var isFinished = $(this).data('finished');
@@ -80,7 +85,7 @@ block scripts
 					'isCheckoutSecond': isCheckoutSecond,
 					'isCheckoutThird': isCheckoutThird,
 				});
-
+				console.log(data);
 				socket.emit('throw', data);
 			});
 		});
