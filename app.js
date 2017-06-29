@@ -3,7 +3,7 @@ var debug = require('debug')('dartapp:main');
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
-var server = require('http').createServer(app);  
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
 
@@ -54,7 +54,7 @@ app.use(function(req, res, next){
 
 var Match = require.main.require('./models/Match');
 var Score = require.main.require('./models/Score');
-io.on('connection', function(client) {  
+io.on('connection', function(client) {
     console.log('Client connected');
 
     client.on('join', function(data) {
@@ -69,26 +69,48 @@ io.on('connection', function(client) {
           debug('ERROR: ' + err);
           return;
         }
-        new Match().setCurrentPlayer(matchId, body.currentPlayerId, body.playersInMatch, function(err, match) {
+        new Match().setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
           if (err) {
             debug('ERROR: ' + err);
             return;
           }
-          Score.forge()
-            .where('match_id', '=', matchId)
-            .fetchAll()
-            .then(function (scores) {
+
+          // TODO get matches and related scores
+          new Match({ id: matchId })
+            .fetch({
+              withRelated: [ { 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } } ]
+            })
+            .then(function (match) {
+              var scores = match.related('scores').serialize();
+              var match = match.serialize();
+              var players = {}
+
+              for (var i = 0; i < scores.length; i++) {
+                var score = scores[i];
+                var key = 'p' + score.player_id;
+                if (players[key] === undefined) {
+                  players[key] = { id: score.player_id, current_score: match.starting_score }
+                }
+                var player = players[key];
+                var visitScore = ((score.first_dart * score.first_dart_multiplier) +
+                  (score.second_dart * score.second_dart_multiplier) +
+                  (score.third_dart * score.third_dart_multiplier));
+                player.current_score = player.current_score - visitScore;
+              }
+
+              players.current_player = match.current_player_id;
+
               // Send update to client initiating the request
-              client.emit('score_update', JSON.stringify(scores));
+              client.emit('score_update', players);
               // and all other clients listening
-              client.broadcast.emit('score_update', JSON.stringify(scores));
+              client.broadcast.emit('score_update', players);
             })
             .catch(function (err) {
               debug('ERROR: ' + err);
-            });          
+            });
         });
       });
-    });    
+    });
 });
 
 server.listen(3000, function () {

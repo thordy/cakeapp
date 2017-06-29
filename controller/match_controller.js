@@ -60,6 +60,7 @@ router.get('/:id', function (req, res) {
 
 			var playersMap = players.reduce(function ( map, player ) {
 				map['p' + player.id] = {
+					id: player.id,
 					name: player.name,
 					ppd: 0,
 					first9ppd: 0,
@@ -119,6 +120,7 @@ router.get('/:id', function (req, res) {
 					player.isBeerCheckoutSafe = true;
 				}
 			}
+
 			// Set all scores and round number
 			match.scores = scores;
 			match.roundNumber = Math.floor(scores.length / players.length) + 1;

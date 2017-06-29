@@ -9,13 +9,38 @@ block scripts
 			socket.on('connect', function(data) {
 				socket.emit('join', 'Client Conneting');
 			});
-			
+
 			socket.on('messages', function(data) {
 				console.log('Received data from server: ' + data);
 			});
 
-			socket.on('score_update', function(data) {
-				console.log(data);
+			socket.on('score_update', function(players) {
+				console.log(players);
+
+				// Set updated score per player
+				var currentPlayerId = players.current_player;
+				for (key in players) {
+					var player = players[key];
+					var td = $('#player_score_' + player.id);
+					var label = td.find('.label-player-score');
+					label.text(player.current_score);
+					if (player.id === currentPlayerId) {
+						td.addClass('label-active-player')
+						td.removeClass('label-inactive-player');
+					}
+					else {
+						td.addClass('label-inactive-player');
+						td.removeClass('label-active-player')
+					}
+				}
+				// Reset UI elements
+				window.darts_thrown = 0;
+				$('#first').text('');
+				$('#first').removeAttr('data-score');
+				$('#second').text('');
+				$('#second').removeAttr('data-score');
+				$('#third').text('');
+				$('#third').removeAttr('data-score');
 			});
 
 			$('#submitScoreButton').click(function () {
@@ -57,7 +82,7 @@ block scripts
 				});
 
 				socket.emit('throw', data);
-			});							
+			});
 		});
 	script.
 		$(function () {
@@ -224,13 +249,14 @@ block content
 					td(class='txt-center')= 'Round ' + match.roundNumber
 					each player in players
 						- var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
-						if player.id = player.current
-							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer')
+
+						if player.current
+							td(id='player_score_' + player.id + '' colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 						else
 							- var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
-							td(colspan=length + '' class=css)
+							td(id='player_score_' + player.id + '' colspan=length + '' class=css)
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
 				tr(class='throw_buttons row')

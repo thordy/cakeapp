@@ -65,9 +65,8 @@ var Match = bookshelf.Model.extend({
         }
         var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
         var nextPlayerId = playersArray[nextPlayerOrder].playerId;
-
         new Match({ id: matchId })
-            .save({current_player_id: nextPlayerId})
+            .save( {current_player_id: nextPlayerId} )
             .then(function (match) {
                 callback(null, match);
             })
