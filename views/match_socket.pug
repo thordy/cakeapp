@@ -15,8 +15,6 @@ block scripts
 			});
 
 			socket.on('score_update', function(players) {
-				console.log(players);
-
 				// Set updated score per player
 				var currentPlayerId = players.current_player;
 				for (key in players) {
@@ -29,7 +27,7 @@ block scripts
 						td.addClass('label-active-player')
 						td.removeClass('label-inactive-player');
 						label.attr('id', 'current_player');
-						label.attr('data-current-player-id', player.id);
+						$('#submitScoreButton').data('current-player-id', player.id);
 					}
 					else {
 						td.addClass('label-inactive-player');
@@ -38,6 +36,7 @@ block scripts
 						label.removeAttr('data-current-player-id');
 					}
 				}
+
 				// Reset UI elements
 				window.darts_thrown = 0;
 				$('#first').text('');
@@ -65,7 +64,7 @@ block scripts
 				var isCheckoutThird = $('#third').attr('data-checkout');
 
 				var matchId = $(this).data('match-id');
-				var currentPlayerId = $('.current_player').data('current-player-id');
+				var currentPlayerId = $(this).data('current-player-id');
 				var playersInMatch = $(this).data('players-in-match');
 				var isBust = $(this).data('busted');
 				var isFinished = $(this).data('finished');
