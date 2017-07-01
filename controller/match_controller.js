@@ -428,8 +428,7 @@ router.post('/:id/finish', function (req, res) {
 					.then(function (row) {
 						writeStatistics(match, function(err) {
 							if(err) {
-								debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
-								debug(err);
+								debug('ERROR Unable to insert statistics match %s, player %s: %s', matchId, player.id, err);
 								return helper.renderError(res, err);
 							}
 							res.status(200).end();
@@ -444,10 +443,13 @@ router.post('/:id/finish', function (req, res) {
 				});
 				Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
 					if (err) {
-						debug(err);
+						debug('Unable to finalize match: %s', err);
 						return;
 					}
-					debug('Finished finalie Match');
+					// Send match finished message to all clients, and remove namespace
+					var nsp = this.io.of('/match/' + matchId);
+					nsp.emit('match_finished', 'Match is finished!');
+					removeNamespace(matchId);
 				});
 		});
 });
@@ -486,10 +488,8 @@ function writeStatistics(match, callback) {
 						stats.attributes['100s_plus'] = player.highScores['100+'];
 						stats.attributes['140s_plus'] = player.highScores['140+'];
 						stats.attributes['180s'] = player.highScores['180'];
-						stats
-							.save(null, { method: 'insert' })
-							.then(function(row) {
-								debug('Inserted statistics for match %s', matchId);
+						debug('Inserting match statistics for player %s', id);
+						stats.save(null, { method: 'insert' }).then(function(row) {
 								callback();
 							})
 							.catch(function(err) {
@@ -499,7 +499,6 @@ function writeStatistics(match, callback) {
 				});
 		});
 }
-
 
 function getPlayerStatistics(players, scores, startingScore) {
 	var playerMap = {};
@@ -536,7 +535,6 @@ function getPlayerStatistics(players, scores, startingScore) {
 		var totalVisitScore = (score.first_dart * score.first_dart_multiplier) +
 				(score.second_dart * score.second_dart_multiplier) +
 				(score.third_dart * score.third_dart_multiplier);
-		player.remainingScore -= totalVisitScore;
 
 		player.visits += 1;
 		if (player.visits <= 3) {
@@ -557,17 +555,18 @@ function getPlayerStatistics(players, scores, startingScore) {
 			player.highScores['180'] += 1;
 		}
 		if (score.first_dart !== null) {
-			getAccuracyStats(score.first_dart, player.accuracyStats);
+			getAccuracyStats(score.first_dart, score.first_dart_multiplier, player.accuracyStats, player.remainingScore);
 			player.dartsThrown++;
 		}
 		if (score.second_dart !== null) {
-			getAccuracyStats(score.second_dart, player.accuracyStats);
+			getAccuracyStats(score.second_dart, score.second_dart_multiplier, player.accuracyStats, player.remainingScore);
 			player.dartsThrown++;
 		}
 		if (score.third_dart !== null) {
-			getAccuracyStats(score.third_dart, player.accuracyStats);
+			getAccuracyStats(score.third_dart, score.third_dart_multiplier, player.accuracyStats, player.remainingScore);
 			player.dartsThrown++;
 		}
+		player.remainingScore -= totalVisitScore;
 	}
 	for (id in playerMap) {
 		var player = playerMap[id];
@@ -582,7 +581,6 @@ function getPlayerStatistics(players, scores, startingScore) {
 
 		// Set accuracy stats for each players
 		var accuracyStats = player.accuracyStats;
-		debug(accuracyStats);
 		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
 		accuracyStats.accuracy20 = accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
@@ -591,50 +589,54 @@ function getPlayerStatistics(players, scores, startingScore) {
 	return playerMap;
 }
 
-function getAccuracyStats(score, accuracyStats) {
+function getAccuracyStats(score, multiplier, stats, remainingScore) {
+	if (remainingScore - (score * multiplier) < 171) {
+		// We only want to calculate accuracy stats when player has a remaining score over 170
+		return;
+	}
 	switch (score) {
 		case 20:
-			accuracyStats.hits20 += 1;
-			accuracyStats.attempts20 += 1;
-			accuracyStats.accuracy20 += 100;
+			stats.hits20 += 1;
+			stats.attempts20 += 1;
+			stats.accuracy20 += 100;
 			break;
 		case 5:
 		case 1:
-			accuracyStats.attempts20 += 1;
-			accuracyStats.accuracy20 += 70;
+			stats.attempts20 += 1;
+			stats.accuracy20 += 70;
 			break;
 		case 12:
 		case 18:
-			accuracyStats.attempts20 += 1;
-			accuracyStats.accuracy20 += 30;
+			stats.attempts20 += 1;
+			stats.accuracy20 += 30;
 			break;
 		case 9:
 		case 4:
-			accuracyStats.attempts20 += 1;
-			accuracyStats.accuracy20 += 5;
+			stats.attempts20 += 1;
+			stats.accuracy20 += 5;
 			break;
 		case 19:
-			accuracyStats.hits19 += 1;
-			accuracyStats.attempts19 += 1;
-			accuracyStats.accuracy19 += 100;
+			stats.hits19 += 1;
+			stats.attempts19 += 1;
+			stats.accuracy19 += 100;
 			break;
 		case 7:
 		case 3:
-			accuracyStats.attempts19 += 1;
-			accuracyStats.accuracy19 += 70;
+			stats.attempts19 += 1;
+			stats.accuracy19 += 70;
 			break;
 		case 16:
 		case 17:
-			accuracyStats.attempts19 += 1;
-			accuracyStats.accuracy19 += 30;
+			stats.attempts19 += 1;
+			stats.accuracy19 += 30;
 			break;
 		case 8:
 		case 2:
-			accuracyStats.attempts19 += 1;
-			accuracyStats.accuracy19 += 5;
+			stats.attempts19 += 1;
+			stats.accuracy19 += 5;
 			break;
 		default:
-			accuracyStats.misses += 1;
+			stats.misses += 1;
 			break;
 	}
 }
@@ -651,9 +653,25 @@ function isViliusVisit(visit) {
 	return false;
 }
 
+function removeNamespace(matchId) {
+	var namespace = '/match/' + matchId;
+	delete io.nsps[namespace];
+	
+	/*var nsp = io.of(namespace);
+	nsp.disconnect();
+	const connectedSockets = Object.keys(nsp.connected);
+	for (i = 0; i < connectedSockets.length; i++) {
+		// Disconnect all connected clients
+		connectedSockets[0].disconnect();
+	}
+	nsp.removeAllListeners();
+	delete io.nsps[namespace];*/
+	debug("Removed socket.io namespace '%s'", namespace)
+}
+
 function setupNamespace(matchId) {
-	var nsp = this.io.of('/match/' + matchId);
-	debug("Creating namespace: /match/" + matchId);
+	var namespace = '/match/' + matchId;
+	var nsp = this.io.of(namespace);
 	nsp.on('connection', function(client){
 		debug('Client connected: ' + client.handshake.address);
 
@@ -707,27 +725,21 @@ function setupNamespace(matchId) {
 			});
 		});
 	});
+	debug("Created socket.io namespace '%s'", namespace);
 }
-
 
 module.exports = function (io) {
 	this.io = io;
 
-	// TODO need to setup all namespaces when app is starting
-	Match.forge()
-	.where('is_finished', '<>', 1)
-	.fetchAll()
-	.then(function (rows) {
+	// Create socket.io namespaces for all matches which are currently active
+	Match.forge().where('is_finished', '<>', 1).fetchAll().then(function (rows) {
 		var matches = rows.serialize();
 		for (var i = 0; i < matches.length; i++) {
-			var match = matches[i];
-			setupNamespace(match.id);
+			setupNamespace(matches[i].id);
 		}
 	})
 	.catch(function (err) {
-		debug('ERROR: ' + err)
+		debug('Unable to get active matches from database: %s', err);
 	});  
-
 	return router;
 };
-// module.exports = router

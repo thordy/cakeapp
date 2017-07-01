@@ -15,6 +15,11 @@ block scripts
 				console.log(data);
 			});
 
+			socket.on('match_finished', function(data) {
+				// Forward all clients to results page when match is finished
+				location.href = window.location.pathname + '/results';
+			});
+
 			socket.on('score_update', function(players) {
 				// Set updated score per player
 				var currentPlayerId = players.current_player;
