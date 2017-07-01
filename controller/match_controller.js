@@ -215,6 +215,7 @@ router.post('/new', function (req, res) {
 	// Get first player in the list, order should be handled in frontend
 	var currentPlayerId = req.body.players[0];
 
+	// TODO Make this into single method in Match model
 	new Match({
 		starting_score: req.body.matchType,
 		current_player_id: currentPlayerId,
@@ -241,6 +242,7 @@ router.post('/new', function (req, res) {
 			.insert(playersInMatch)
 			.then(function (rows) {
 				debug('Added players %s', playersArray);
+				setupNamespace(match.id);
 				res.redirect('/match/' + match.id);
 			})
 			.catch(function (err) {
@@ -314,9 +316,7 @@ router.post('/:id/throw', function (req, res) {
 			firstDartScore, firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
 
 		// Change current player, maybe check what round is that ?
-		new Match({
-			id: matchId
-		})
+		new Match({ id: matchId })
 			.save({current_player_id: nextPlayerId})
 			.then(function (match) {
 				res.redirect('/match/' + matchId);
@@ -651,4 +651,83 @@ function isViliusVisit(visit) {
 	return false;
 }
 
-module.exports = router
+function setupNamespace(matchId) {
+	var nsp = this.io.of('/match/' + matchId);
+	debug("Creating namespace: /match/" + matchId);
+	nsp.on('connection', function(client){
+		debug('Client connected: ' + client.handshake.address);
+
+		client.on('join', function(data) {
+			client.emit('connected', 'Connected to server');
+		});
+		
+		client.on('throw', function(data) {
+			debug('Revieced throw from ' + client.handshake.address);
+			var body = JSON.parse(data);
+			var matchId = body.matchId;
+
+			new Score().addVisit(body, function(err, rows) {
+				if (err) {
+					debug('ERROR: ' + err);
+					return;
+				}
+				new Match().setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
+					if (err) {
+						debug('ERROR: ' + err);
+						return;
+					}
+					new Match({ id: matchId })
+					.fetch( { withRelated: [ { 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } } ] })
+					.then(function (match) {
+						var scores = match.related('scores').serialize();
+						var match = match.serialize();
+						var players = body.playersInMatch.reduce(function ( map, player ) {
+							map['p' + player.player_id] = { id: player.player_id, current_score: match.starting_score }
+							return map;
+						}, {});						
+						// Calculate score for each player
+						for (var i = 0; i < scores.length; i++) {
+							var score = scores[i];
+							var key = 'p' + score.player_id;
+							var player = players[key];
+							var visitScore = ((score.first_dart * score.first_dart_multiplier) +
+								(score.second_dart * score.second_dart_multiplier) +
+								(score.third_dart * score.third_dart_multiplier));
+								player.current_score = player.current_score - visitScore;
+						}
+						// Set current player
+						players.current_player = match.current_player_id;
+
+						nsp.emit('score_update', players);
+					})
+					.catch(function (err) {
+						debug('ERROR: ' + err);
+					});
+				});
+			});
+		});
+	});
+}
+
+
+module.exports = function (io) {
+	this.io = io;
+
+	// TODO need to setup all namespaces when app is starting
+	Match.forge()
+	.where('is_finished', '<>', 1)
+	.fetchAll()
+	.then(function (rows) {
+		var matches = rows.serialize();
+		for (var i = 0; i < matches.length; i++) {
+			var match = matches[i];
+			setupNamespace(match.id);
+		}
+	})
+	.catch(function (err) {
+		debug('ERROR: ' + err)
+	});  
+
+	return router;
+};
+// module.exports = router

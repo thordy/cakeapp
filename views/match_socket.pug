@@ -5,13 +5,14 @@ block scripts
 		$(document).ready(function(){
 		    $('[data-toggle="popover"]').popover();
 
-			var socket = io.connect('http://localhost:3000');
+			var matchId = $('#submitScoreButton').data('match-id');
+			var socket = io('http://localhost:3000/match/' + matchId);
 			socket.on('connect', function(data) {
 				socket.emit('join', 'Client Conneting');
 			});
 
-			socket.on('messages', function(data) {
-				console.log('Received data from server: ' + data);
+			socket.on('connected', function(data) {
+				console.log(data);
 			});
 
 			socket.on('score_update', function(players) {
@@ -45,6 +46,8 @@ block scripts
 				$('#second').removeAttr('data-score');
 				$('#third').text('');
 				$('#third').removeAttr('data-score');
+				$('#submitScoreButton').data('busted', 0);
+				$('#submitScoreButton').data('finished', 0);
 			});
 
 			$('#submitScoreButton').click(function () {
@@ -84,8 +87,21 @@ block scripts
 					'isCheckoutSecond': isCheckoutSecond,
 					'isCheckoutThird': isCheckoutThird,
 				});
-				console.log(data);
-				socket.emit('throw', data);
+
+				if (isFinished) {
+					executePost(window.location.pathname + '/finish', data, 'application/json',
+						function (response) {
+							location.href = window.location.pathname + '/results';
+						},
+						function (error) {
+							// TODO Error handling
+							console.log("Unable to proceed: " + error.responseText);
+						}
+					)
+				}
+				else {
+					socket.emit('throw', data);
+				}
 			});
 		});
 	script.
@@ -168,14 +184,16 @@ block scripts
 
 				if (isBust) {
 					if (confirm('Bust')) {
-						// Bust, 'click' submit
 						submitButton.data('busted', 1).trigger('click');
 						return;
 					} else {
 						// Clear the score for thrown dart
 						dart.text('');
+						dart.attr('data-score', 0);
+						dart.attr('data-multiplier', 1);
 					}
-				} else {
+				}
+				else {
 					currentPlayer.text(scoreAfterThrow);
 					scores[window.darts_thrown] = dartScore;
 					window.darts_thrown++;
