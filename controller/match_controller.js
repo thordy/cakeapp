@@ -7,6 +7,7 @@ var router = express.Router();
 var moment = require('moment');
 var Player = require.main.require('./models/Player');
 var Match = require.main.require('./models/Match');
+var Game = require.main.require('./models/Game');
 var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
@@ -212,38 +213,56 @@ router.post('/new', function (req, res) {
 
 	// Get first player in the list, order should be handled in frontend
 	var currentPlayerId = req.body.players[0];
+	var gameType = req.body.gameType;
 
-	new Match({
-		starting_score: req.body.matchType,
-		current_player_id: currentPlayerId,
+	/**
+	 * Check the game type and add new one
+	 * This is only for starting new match,
+	 * for next sets we need to pass game id to /new/gameid route 
+	 */
+	debug('New game added', gameType);
+	new Game({
+		game_type_id: gameType,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
 	.save(null, {method: 'insert'})
-	.then(function (match) {
-		debug('Created match %s', match.id);
+	.then(function (game) {
+		new Match({
+			starting_score: req.body.matchType,
+			current_player_id: currentPlayerId,
+			game_id: game.id,
+			created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+		})
+		.save(null, {method: 'insert'})
+		.then(function (match) {
+			debug('Created match %s', match.id);
 
-		var playersArray = req.body.players;
-		var playerOrder = 1;
-		var playersInMatch = [];
-		for (var i in playersArray) {
-			playersInMatch.push({
-				player_id: playersArray[i],
-				match_id: match.id,
-				order: playerOrder
-			});
-			playerOrder++;
-		}
+			var playersArray = req.body.players;
+			var playerOrder = 1;
+			var playersInMatch = [];
+			for (var i in playersArray) {
+				playersInMatch.push({
+					player_id: playersArray[i],
+					match_id: match.id,
+					order: playerOrder
+				});
+				playerOrder++;
+			}
 
-		Bookshelf
-			.knex('player2match')
-			.insert(playersInMatch)
-			.then(function (rows) {
-				debug('Added players %s', playersArray);
-				res.redirect('/match/' + match.id);
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
+			Bookshelf
+				.knex('player2match')
+				.insert(playersInMatch)
+				.then(function (rows) {
+					debug('Added players %s', playersArray);
+					res.redirect('/match/' + match.id);
+				})
+				.catch(function (err) {
+					helper.renderError(res, err);
+				});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 	})
 	.catch(function (err) {
 		helper.renderError(res, err);

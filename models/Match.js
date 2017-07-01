@@ -15,6 +15,9 @@ var Match = bookshelf.Model.extend({
             qb.orderBy(column, order);
         });
     },
+    game: function() {
+        return this.belongsTo('Game', 'id');
+    },
     players: function() {
         return this.belongsToMany(Player, 'id').through(Player2Match, 'match_id');
     },
