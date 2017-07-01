@@ -23,6 +23,9 @@ a:hover {
 #player_statistics_table td {
     text-align: center;
 }
+#player_accuracy_table td {
+    text-align: center;
+}
 #player_scores_table td {
     text-align: center;
 }

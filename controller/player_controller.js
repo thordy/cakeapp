@@ -109,7 +109,7 @@ router.get('/list', function (req, res) {
 		});
 });
 
-/* Get comparable statistics for the given players s*/
+/* Get comparable statistics for the given players */
 router.get('/compare', function (req, res) {
 	var playerIds = req.query.player_id;
 	debug('Comparing players %s', playerIds);
@@ -148,11 +148,13 @@ router.get('/compare', function (req, res) {
 				}
 			}
 			// Calculate checkout percentage for each player
-			var attempts = row.attempts;
-			for (var i = 0; i < rows.attempts.length; i++) {
-				var row = rows.attempts[i];
-				var stats = playersMap[row.player_id].statistics;
-				stats.checkoutAttempts = row.checkout_attempts;
+			if (row !== undefined) {
+				var attempts = row.attempts;
+				for (var i = 0; i < rows.attempts.length; i++) {
+					var row = rows.attempts[i];
+					var stats = playersMap[row.player_id].statistics;
+					stats.checkoutAttempts = row.checkout_attempts;
+				}
 			}
 
 			var statistics = Object.keys(playersMap).map(function(v) { return playersMap[v].statistics; });

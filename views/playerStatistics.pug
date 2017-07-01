@@ -59,12 +59,28 @@ block content
 						td
 							p= player.ppd.toFixed(2)
 						td
-							p= (player.gamesWon * 100 / player.checkoutAttempts).toFixed(2) + '%'
+							p= (player.gamesWon * 100 / player.checkoutAttempts === undefined ? 0 : player.checkoutAttempts).toFixed(2) + '%'
 						td
 							p= player['60+'] == 0 ? "" : "60+: " + player['60+']
 							p= player['100+'] == 0 ? "" : "100+: " + player['100+']
 							p= player['140+'] == 0 ? "" : "140+: " + player['140+']
 							p= player['180s'] == 0 ? "" : "180:  " + player['180s']
+
+	div(class='table-responsive')
+		table(id='player_accuracy_table' class='table table-striped table-bordered')
+			thead
+				tr
+					th Overall Accuracy
+					th Accuracy 20s
+					th Accuracy 19s
+			tbody
+					tr
+						td
+							p= player.overall_accuracy === null ? 'Not Available' : player.overall_accuracy.toFixed(2)
+						td
+							p= player.accuracy_20 === null ? 'Not Available' : player.accuracy_20.toFixed(2)
+						td
+							p= player.accuracy_19 === null ? 'Not Available' : player.accuracy_19.toFixed(2)			
 
 	div(class='table-responsive')
 		h2 Hits

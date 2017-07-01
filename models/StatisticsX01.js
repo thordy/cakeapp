@@ -89,12 +89,15 @@ var StatisticsX01 = bookshelf.Model.extend({
 		var placeHolders = new Array(playerIds.length + 1).join('?,').slice(0, -1);
 		bookshelf.knex.raw(`
 			SELECT
-				SUM(s.ppd) / p.games_played as 'ppd',
-				SUM(s.first_nine_ppd) / p.games_played as 'first9ppd',
-				SUM(s.'60s_plus') as '60+',
-				SUM(s.'100s_plus') as '100+',
-				SUM(s.'140s_plus') as '140+',
-				SUM(s.'180s') as '180s',
+				SUM(s.ppd) / p.games_played AS 'ppd',
+				SUM(s.first_nine_ppd) / p.games_played AS 'first9ppd',
+				SUM(s.'60s_plus') AS '60+',
+				SUM(s.'100s_plus') AS '100+',
+				SUM(s.'140s_plus') AS '140+',
+				SUM(s.'180s') AS '180s',
+				SUM(accuracy_20) / COUNT(s.id) AS 'accuracy_20',
+				SUM(accuracy_19) / COUNT(s.id) AS 'accuracy_19',
+				SUM(overall_accuracy) / COUNT(s.id) AS 'overall_accuracy',
 				p.name,
 				p.games_played AS 'gamesPlayed',
 				p.games_won AS 'gamesWon',
