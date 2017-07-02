@@ -56,6 +56,8 @@ router.get('/:id', function (req, res) {
 		.fetch({
 			withRelated: [
 				'players',
+				'game',
+				'game.game_type',
 				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
 				{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
 			]
@@ -131,7 +133,9 @@ router.get('/:id', function (req, res) {
 			match.roundNumber = Math.floor(scores.length / players.length) + 1;
 			res.render('match', {
 				match: match,
-				players: playersMap
+				players: playersMap,
+				game: match.game,
+				game_type: match.game.game_type,
 			});
 		})
 		.catch(function (err) {
