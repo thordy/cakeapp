@@ -145,10 +145,16 @@ block scripts
 		});
 
 block content
-	h2 Results
+	div(class='clearfix')
+		h2(class='pull-left') Results
+		if match.winner_id === null
+			button(type='button' class='btn btn-primary pull-right mt-30' id='continue-match' data-match=match.id) Continue match
+		else if game.is_finished === 0
+			button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id) Continue game
 
 	p.
 		ID: #{match.id} <br>
+		Game type: #{match.game.game_type.name} <br>
 		Started: #{match.created_at} <br>
 		Finished: #{match.end_time === undefined ? '' : match.end_time} <br>
 		Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
@@ -187,9 +193,6 @@ block content
 								span(class='glyphicon glyphicon-ok' aria-hidden='true')
 						else
 							td
-	div(style='margin-bottom: 20px;')
-		if match.winner_id === null
-			button(type='button' class='btn btn-primary' id='continue-match' data-match=match.id) Continue match
 
 	h3 Match Results
 	p.
@@ -447,44 +450,50 @@ block content
 								button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
 									span(class="glyphicon glyphicon-edit" aria-hidden="true")
 
-	h3 Match Heatmap
-	select(id='heatmap_value_selector' name='dartValues')
-		option(value=0 default=true) All
-		option(value=1) Singles
-		option(value=2) Doubles
-		option(value=3) Trebles
-	div(style='text-align: center;')
-		canvas(id='dartboard-heatmap')
+	br
+	if match.winner_id !== null
+		button(class='btn btn-primary btn-block' data-toggle='collapse' data-target='#heatmap_div') Show Heatmap
+	div(id='heatmap_div' class=match.winner_id === null ? 'collapse in' : 'collapse')
+		h3 Match Heatmap
+		select(id='heatmap_value_selector' name='dartValues')
+			option(value=0 default=true) All
+			option(value=1) Singles
+			option(value=2) Doubles
+			option(value=3) Trebles
+		div(style='text-align: center;')
+			canvas(id='dartboard-heatmap')
 
-	h3 Hits
-	div(class='table-responsive')
-		table(id='hits_table' class='table table-striped table-bordered')
-			thead
-				tr
-					th Dart
-					th Count
-					th Hit %
-			tbody
-				each score, key in scoresMap
-					each value, multiplier in scoresMap[key]
-						if value !== 0
-							tr
-								td(class='col-sm-2 dart-score-container' data-order=key + multiplier)
-									if multiplier == 3
-										label(style='background-color: #d9534f')= 'T-' + key
-									else if multiplier == 2
-										if key == 25
-											label(style='background-color: orange') Bull
+	br
+	if match.winner_id !== null
+		button(class='btn btn-primary btn-block' data-toggle='collapse' data-target='#hits_div') Show Hits
+	div(id='hits_div' class=match.winner_id === null ? 'collapse in' : 'collapse')
+		h3 Hits
+		div(class='table-responsive')
+			table(id='hits_table' class='table table-striped table-bordered')
+				thead
+					tr
+						th Dart
+						th Count
+						th Hit %
+				tbody
+					each score, key in scoresMap
+						each value, multiplier in scoresMap[key]
+							if value !== 0
+								tr
+									td(class='col-sm-2 dart-score-container' data-order=key + multiplier)
+										if multiplier == 3
+											label(style='background-color: #d9534f')= 'T-' + key
+										else if multiplier == 2
+											if key == 25
+												label(style='background-color: orange') Bull
+											else
+												label(style='background-color: orange')= 'D-' + key
 										else
-											label(style='background-color: orange')= 'D-' + key
-									else
-										if key == 0
-											label Miss
-										else if key == 25
-											label Bull
-										else
-											label= key
-								td= value
-								td= (value * 100 / scoresMap.totalThrows).toFixed(2) + '%'
-
-
+											if key == 0
+												label Miss
+											else if key == 25
+												label Bull
+											else
+												label= key
+									td= value
+									td= (value * 100 / scoresMap.totalThrows).toFixed(2) + '%'

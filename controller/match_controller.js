@@ -146,8 +146,17 @@ router.get('/:id', function (req, res) {
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
 new Match({id: req.params.id})
-		.fetch( { withRelated: ['players', 'statistics', 'scores'] } )
+		.fetch({ 
+			withRelated: [
+				'players',
+				'statistics', 
+				'scores',
+				'game',
+				'game.game_type',
+			] 
+		})
 		.then(function (match) {
+			var game = match.related('game').serialize();
 			var players = match.related('players').serialize();
 			var statistics = match.related('statistics').serialize();
 			var scores = match.related('scores').serialize();
@@ -202,11 +211,30 @@ new Match({id: req.params.id})
 					scoresMap.totalThrows++;
 				}
 			}
-			res.render('results', {
-				match: match.serialize(),
-				scores: scores,
-				players: playersMap,
-				scoresMap: scoresMap
+			knex = Bookshelf.knex;
+			knex('match')
+			.select(knex.raw(`
+				match.winner_id, 
+				count(match.winner_id) as wins, 
+				game_type.matches_required`
+			))
+			.where(knex.raw('match.game_id = ?', [game.id]))
+			.join(knex.raw('game on game.id = match.game_id'))
+			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
+			.groupBy('match.winner_id')
+			.orderByRaw('count(match.winner_id) DESC')
+			.then(function(rows) {
+				res.render('results', {
+					match: match.serialize(),
+					scores: scores,
+					players: playersMap,
+					scoresMap: scoresMap,
+					game_data: rows,
+					game: game,
+				});
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
 			});
 		})
 		.catch(function (err) {
@@ -352,13 +380,13 @@ router.post('/:id/throw', function (req, res) {
 		new Match({
 			id: matchId
 		})
-			.save({current_player_id: nextPlayerId})
-			.then(function (match) {
-				res.redirect('/match/' + matchId);
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
+		.save({current_player_id: nextPlayerId})
+		.then(function (match) {
+			res.redirect('/match/' + matchId);
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 	})
 	.catch(function(err) {
 		return helper.renderError(res, err);
@@ -496,15 +524,15 @@ function writeStatistics(match, callback) {
 		.then(function(rows) {
 			var players = rows.serialize();
 			var playerIds = [];
-			for (var i = 0; i < players.length; i++){
+			for (var i = 0; i < players.length; i++) {
 				playerIds.push(players[i].player_id);
 			}
 			Score
 				.where('match_id', '=', matchId)
 				.fetchAll()
-				.then(function(scoreRows){
+				.then(function(scoreRows) {
 					var playerMap = getPlayerStatistics(players, scoreRows.serialize(), match.starting_score);
-					for (id in playerMap){
+					for (id in playerMap) {
 						var player = playerMap[id];
 						var stats = new StatisticsX01({
 							match_id: matchId,

@@ -151,3 +151,8 @@ a:hover {
     background-repeat: no-repeat;
     background-image: url(../images/vilius.png);
 }
+
+.mt-30
+{
+    margin-top: 30px;
+}
