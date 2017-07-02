@@ -6,6 +6,8 @@ bookshelf.plugin('registry');
 var Player = require('./Player');
 var Player2Match = require('./Player2match');
 var Score = require('./Score');
+var Game = require('./Game');
+var GameType = require('./GameType');
 var StatisticsX01 = require('./StatisticsX01');
 
 var Match = bookshelf.Model.extend({
@@ -16,7 +18,7 @@ var Match = bookshelf.Model.extend({
         });
     },
     game: function() {
-        return this.belongsTo('Game', 'id');
+        return this.belongsTo(Game);
     },
     players: function() {
         return this.belongsToMany(Player, 'id').through(Player2Match, 'match_id');

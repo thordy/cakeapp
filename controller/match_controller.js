@@ -23,7 +23,13 @@ router.get('/list', function (req, res) {
 
 	// Fetch related players
 	new Matches()
-		.fetch( {withRelated: 'players'} )
+		.fetch({
+			withRelated: [
+				'players',
+				'game',
+				'game.game_type',
+			]
+		})
 		.then(function (rows) {
 			var matches = rows.serialize();
 			var players = {};
@@ -36,7 +42,7 @@ router.get('/list', function (req, res) {
 			}
 			res.render('matches', {
 				matches: matches,
-				players: players
+				players: players,
 			});
 		})
 		.catch(function (err) {
@@ -237,28 +243,36 @@ router.post('/new', function (req, res) {
 		.then(function (match) {
 			debug('Created match %s', match.id);
 
-			var playersArray = req.body.players;
-			var playerOrder = 1;
-			var playersInMatch = [];
-			for (var i in playersArray) {
-				playersInMatch.push({
-					player_id: playersArray[i],
-					match_id: match.id,
-					order: playerOrder
-				});
-				playerOrder++;
-			}
+			// Update game and set current match id
+			new Game({
+				id: game.id,
+				current_match_id: match.id
+			})
+			.save()
+			.then(function (game) {
+				var playersArray = req.body.players;
+				var playerOrder = 1;
+				var playersInMatch = [];
+				for (var i in playersArray) {
+					playersInMatch.push({
+						player_id: playersArray[i],
+						match_id: match.id,
+						order: playerOrder
+					});
+					playerOrder++;
+				}
 
-			Bookshelf
-				.knex('player2match')
-				.insert(playersInMatch)
-				.then(function (rows) {
-					debug('Added players %s', playersArray);
-					res.redirect('/match/' + match.id);
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
-				});
+				Bookshelf
+					.knex('player2match')
+					.insert(playersInMatch)
+					.then(function (rows) {
+						debug('Added players %s', playersArray);
+						res.redirect('/match/' + match.id);
+					})
+					.catch(function (err) {
+						helper.renderError(res, err);
+					});
+			});
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
