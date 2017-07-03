@@ -136,18 +136,20 @@ router.get('/:id', function (req, res) {
 router.get('/:id/results', function (req, res) {
 new Match({id: req.params.id})
 		.fetch( { withRelated: ['players', 'statistics', 'scores'] } )
-		.then(function (match) {
-			var players = match.related('players').serialize();
-			var statistics = match.related('statistics').serialize();
-			var scores = match.related('scores').serialize();
+		.then(function (row) {
+			var players = row.related('players').serialize();
+			var statistics = row.related('statistics').serialize();
+			var scores = row.related('scores').serialize();
 			var playersMap = players.reduce(function ( map, player ) {
 				map[player.id] = player;
 				return map;
 			}, {});
+			var match = row.serialize();
 
 			for (var i = 0; i < statistics.length; i++) {
 				var stats = statistics[i];
 				var player = playersMap[stats.player_id];
+				player.remaining_score = match.starting_score;
 				player.statistics = stats;
 			}
 			// Create a map of scores used to visualize throws in a heatmap
@@ -190,9 +192,14 @@ new Match({id: req.params.id})
 					scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
 					scoresMap.totalThrows++;
 				}
+				if (score.is_bust !== 1) {
+					var player = playersMap[score.player_id];
+					player.remaining_score = player.remaining_score -
+						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
+				}
 			}
 			res.render('results', {
-				match: match.serialize(),
+				match: match,
 				scores: scores,
 				players: playersMap,
 				scoresMap: scoresMap
