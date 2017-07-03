@@ -13,9 +13,9 @@ exports.up = function(knex, Promise) {
             table.integer('100s_plus');
             table.integer('140s_plus')
             table.integer('180s');
-            table.boolean('accuracy_20');
-            table.boolean('accuracy_19');
-            table.boolean('overall_accuracy');
+            table.double('accuracy_20');
+            table.double('accuracy_19');
+            table.double('overall_accuracy');
 
             table.foreign('match_id').references('match.id');
             table.foreign('player_id').references('player.id');
