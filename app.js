@@ -7,9 +7,11 @@ var helper = require('./helpers.js');
 
 // Register all the routes
 var matchController = require('./controller/match_controller');
+var gameController = require('./controller/game_controller');
 var cakeController = require('./controller/owes_controller');
 var playerController = require('./controller/player_controller');
 app.use('/match', matchController);
+app.use('/game', gameController);
 app.use('/cake', cakeController);
 app.use('/player', playerController)
 

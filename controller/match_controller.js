@@ -64,6 +64,8 @@ router.get('/:id', function (req, res) {
 		})
 		.then(function (match) {
 			var players = match.related('players').serialize();
+			console.log(match.related('player2match').serialize());
+			console.log(match.related('players').serialize());
 			var scores = match.related('scores').serialize();
 			var match = match.serialize();
 
@@ -80,6 +82,8 @@ router.get('/:id', function (req, res) {
 				}
 				return map;
 			}, {});
+
+			console.log(playersMap);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
@@ -282,6 +286,7 @@ router.post('/new', function (req, res) {
 			})
 			.save()
 			.then(function (game) {
+				console.log(req.body.players);
 				var playersArray = req.body.players;
 				var playerOrder = 1;
 				var playersInMatch = [];
