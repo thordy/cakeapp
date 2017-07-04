@@ -1,4 +1,8 @@
 /* General CSS */
+body {
+    font-family: "Open Sans"
+}
+
 a:hover {
 	cursor:pointer;
 }

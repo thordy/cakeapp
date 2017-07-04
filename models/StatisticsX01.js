@@ -27,13 +27,13 @@ var StatisticsX01 = bookshelf.Model.extend({
 				IFNULL(s.second_dart * s.second_dart_multiplier, 0) +
 				IFNULL(s.third_dart * s.third_dart_multiplier, 0) as 'checkout'
 			FROM score s
-			JOIN match m ON m.id = s.match_id
+			JOIN \`match\` m ON m.id = s.match_id
 			WHERE m.winner_id = s.player_id
 			AND s.player_id IN (` + placeHolders + `)
 			GROUP BY match_id`, playerIds
 		)
 		.then(function(rows) {
-			checkoutStatistics.checkouts = rows;
+			checkoutStatistics.checkouts = rows[0];
 			bookshelf.knex.raw(`
 				SELECT
 					player_id,
@@ -46,7 +46,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 				GROUP BY player_id`, playerIds
 			)
 			.then(function(rows) {
-				checkoutStatistics.attempts = rows;
+				checkoutStatistics.attempts = rows[0];
 				callback(null, checkoutStatistics);
 			})
 			.catch(function (err) {
@@ -72,11 +72,11 @@ var StatisticsX01 = bookshelf.Model.extend({
 				m.starting_score
 			FROM statistics_x01 s
 			JOIN player p ON p.id = s.player_id
-			JOIN match m ON m.id = s.match_id
+			JOIN \`match\` m ON m.id = s.match_id
 			WHERE s.player_id IN (` + placeHolders + `)`, playerIds
 		)
 		.then(function(rows) {
-			callback(null, rows);
+			callback(null, rows[0]);
 		})
 		.catch(function (err) {
 			callback(err)
@@ -105,12 +105,12 @@ var StatisticsX01 = bookshelf.Model.extend({
 				m.starting_score
 			FROM statistics_x01 s
 			JOIN player p ON p.id = s.player_id
-			JOIN match m ON m.id = s.match_id
+			JOIN \`match\` m ON m.id = s.match_id
 			WHERE s.player_id IN (` + placeHolders + `)
 			GROUP BY s.player_id`, playerIds
 		)
 		.then(function(rows) {
-			callback(null, rows);
+			callback(null, rows[0]);
 		})
 		.catch(function (err) {
 			callback(err)

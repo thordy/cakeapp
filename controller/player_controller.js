@@ -140,8 +140,9 @@ router.get('/compare', function (req, res) {
 			}
 
 			// Find highest checkout for each player
-			for (var i = 0; i < rows.checkouts.length; i++) {
-				var row = rows.checkouts[i];
+			var checkouts = rows.checkouts;
+			for (var i = 0; i < checkouts.length; i++) {
+				var row = checkouts[i];
 				var stats = playersMap[row.player_id].statistics;
 				if (stats.highestCheckout === undefined || stats.highestCheckout < row.checkout) {
 					stats.highestCheckout = row.checkout;
@@ -149,9 +150,9 @@ router.get('/compare', function (req, res) {
 			}
 			// Calculate checkout percentage for each player
 			if (row !== undefined) {
-				var attempts = row.attempts;
-				for (var i = 0; i < rows.attempts.length; i++) {
-					var row = rows.attempts[i];
+				var attempts = rows.attempts;
+				for (var i = 0; i < attempts.length; i++) {
+					var row = attempts[i];
 					var stats = playersMap[row.player_id].statistics;
 					stats.checkoutAttempts = row.checkout_attempts;
 				}

@@ -4,6 +4,7 @@ exports.up = function(knex, Promise) {
         .createTable('player', function(table) {
             table.increments('id').primary();
             table.string('name').notNullable();
+            table.string('nickname');
             table.integer('games_played').notNullable().default(0);
             table.integer('games_won').notNullable().default(0);
             table.float('ppd');
