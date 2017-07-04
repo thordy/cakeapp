@@ -6,8 +6,9 @@ exports.up = function(knex, Promise) {
             table.dateTime('end_time');
             table.integer('starting_score').notNullable();
             table.boolean('is_finished').notNullable().default(0);
-            table.integer('current_player_id').notNullable();
-            table.integer('winner_id');
+            table.integer('current_player_id').unsigned().notNullable();
+            table.integer('winner_id').unsigned();
+
             table.foreign('current_player_id').references('player.id');
             table.foreign('winner_id').references('player.id');
             table.timestamps(true, true);
