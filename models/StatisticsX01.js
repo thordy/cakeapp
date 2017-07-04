@@ -33,7 +33,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 			GROUP BY match_id`, playerIds
 		)
 		.then(function(rows) {
-			checkoutStatistics.checkouts = rows;
+			checkoutStatistics.checkouts = rows[0];
 			bookshelf.knex.raw(`
 				SELECT
 					player_id,
@@ -46,7 +46,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 				GROUP BY player_id`, playerIds
 			)
 			.then(function(rows) {
-				checkoutStatistics.attempts = rows;
+				checkoutStatistics.attempts = rows[0];
 				callback(null, checkoutStatistics);
 			})
 			.catch(function (err) {
@@ -76,7 +76,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 			WHERE s.player_id IN (` + placeHolders + `)`, playerIds
 		)
 		.then(function(rows) {
-			callback(null, rows);
+			callback(null, rows[0]);
 		})
 		.catch(function (err) {
 			callback(err)
@@ -107,7 +107,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 			GROUP BY s.player_id`, playerIds
 		)
 		.then(function(rows) {
-			callback(null, rows);
+			callback(null, rows[0]);
 		})
 		.catch(function (err) {
 			callback(err)
