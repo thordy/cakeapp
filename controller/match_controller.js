@@ -214,7 +214,6 @@ new Match({id: req.params.id})
 						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
 				}
 			}
-<<<<<<< HEAD
 			knex = Bookshelf.knex;
 			knex('match')
 			.select(knex.raw(`
@@ -239,13 +238,6 @@ new Match({id: req.params.id})
 			})
 			.catch(function (err) {
 				helper.renderError(res, err);
-=======
-			res.render('results', {
-				match: match,
-				scores: scores,
-				players: playersMap,
-				scoresMap: scoresMap
->>>>>>> master
 			});
 		})
 		.catch(function (err) {
