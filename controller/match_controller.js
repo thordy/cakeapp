@@ -150,28 +150,22 @@ router.get('/:id', function (req, res) {
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
 new Match({id: req.params.id})
-		.fetch({ 
-			withRelated: [
-				'players',
-				'statistics', 
-				'scores',
-				'game',
-				'game.game_type',
-			] 
-		})
-		.then(function (match) {
-			var game = match.related('game').serialize();
-			var players = match.related('players').serialize();
-			var statistics = match.related('statistics').serialize();
-			var scores = match.related('scores').serialize();
+		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game_type'] } )
+		.then(function (row) {
+			var players = row.related('players').serialize();
+			var game = row.related('game').serialize();
+			var statistics = row.related('statistics').serialize();
+			var scores = row.related('scores').serialize();
 			var playersMap = players.reduce(function ( map, player ) {
 				map[player.id] = player;
 				return map;
 			}, {});
+			var match = row.serialize();
 
 			for (var i = 0; i < statistics.length; i++) {
 				var stats = statistics[i];
 				var player = playersMap[stats.player_id];
+				player.remaining_score = match.starting_score;
 				player.statistics = stats;
 			}
 			// Create a map of scores used to visualize throws in a heatmap
@@ -214,7 +208,13 @@ new Match({id: req.params.id})
 					scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
 					scoresMap.totalThrows++;
 				}
+				if (score.is_bust !== 1) {
+					var player = playersMap[score.player_id];
+					player.remaining_score = player.remaining_score -
+						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
+				}
 			}
+<<<<<<< HEAD
 			knex = Bookshelf.knex;
 			knex('match')
 			.select(knex.raw(`
@@ -239,6 +239,13 @@ new Match({id: req.params.id})
 			})
 			.catch(function (err) {
 				helper.renderError(res, err);
+=======
+			res.render('results', {
+				match: match,
+				scores: scores,
+				players: playersMap,
+				scoresMap: scoresMap
+>>>>>>> master
 			});
 		})
 		.catch(function (err) {
@@ -411,7 +418,7 @@ router.post('/:id/results', function (req, res) {
 	var firstDartMultiplier = req.body.firstDartMultiplier;
 	var secondDartMultiplier = req.body.secondDartMultiplier;
 	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	debug('Updating score %s to first: %s, %s, second: %s, %s, third: %s, %s', scoreId, firstDartScore,
+	debug('Updating score %s to  (%s-%s, %s-%s, %s-%s)', scoreId, firstDartScore,
 		firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
 
 	new Score({id: scoreId})
