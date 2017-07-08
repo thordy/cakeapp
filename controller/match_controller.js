@@ -70,6 +70,7 @@ router.get('/:id', function (req, res) {
 			var playersMap = players.reduce(function ( map, player ) {
 				map['p' + player.id] = {
 					name: player.name,
+					wins: 0,
 					ppd: 0,
 					first9ppd: 0,
 					first9Score: 0,
@@ -131,11 +132,38 @@ router.get('/:id', function (req, res) {
 			// Set all scores and round number
 			match.scores = scores;
 			match.roundNumber = Math.floor(scores.length / players.length) + 1;
-			res.render('match', {
-				match: match,
-				players: playersMap,
-				game: match.game,
-				game_type: match.game.game_type,
+
+			knex = Bookshelf.knex;
+			knex('match')
+			.select(knex.raw(`
+				match.winner_id, 
+				count(match.winner_id) as wins, 
+				game_type.matches_required`
+			))
+			.where(knex.raw('match.game_id = ?', [match.game_id]))
+			.join(knex.raw('game on game.id = match.game_id'))
+			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
+			.groupBy('match.winner_id')
+			.orderByRaw('count(match.winner_id) DESC')
+			.then(function(rows) {
+				var playerWins = {};
+				for (var i = 0; i < rows.length; i++) {
+					if (rows[i].winner_id) {
+						var playerId = rows[i].winner_id;
+						var wins = rows[i].wins;					
+						playersMap['p' + playerId].wins = wins;
+						console.log(playerId);
+					}
+				}	
+				res.render('match', {
+					match: match,
+					players: playersMap,
+					game: match.game,
+					game_type: match.game.game_type,
+				});			
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
 			});
 		})
 		.catch(function (err) {
@@ -491,7 +519,7 @@ router.post('/:id/finish', function (req, res) {
 					.then(function (row) {
 						writeStatistics(match, function(err) {
 							if(err) {
-								debug('ERROR Unable to insert statistics match %s, player %s', matchId, player.id);
+								debug('ERROR Unable to insert statistics match %s, player %s', matchId, currentPlayerId);
 								debug(err);
 								return helper.renderError(res, err);
 							}
