@@ -55,7 +55,7 @@ router.get('/:id', function (req, res) {
 	new Match({ id: req.params.id })
 		.fetch({
 			withRelated: [
-				'players',
+				{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
 				'game',
 				'game.game_type',
 				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
@@ -64,8 +64,6 @@ router.get('/:id', function (req, res) {
 		})
 		.then(function (match) {
 			var players = match.related('players').serialize();
-			console.log(match.related('player2match').serialize());
-			console.log(match.related('players').serialize());
 			var scores = match.related('scores').serialize();
 			var match = match.serialize();
 
@@ -82,8 +80,6 @@ router.get('/:id', function (req, res) {
 				}
 				return map;
 			}, {});
-
-			console.log(playersMap);
 
 			for (var i = 0; i < scores.length; i++) {
 				var score = scores[i];
@@ -150,7 +146,7 @@ router.get('/:id', function (req, res) {
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
 new Match({id: req.params.id})
-		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game_type'] } )
+		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type'] } )
 		.then(function (row) {
 			var players = row.related('players').serialize();
 			var game = row.related('game').serialize();
@@ -228,7 +224,7 @@ new Match({id: req.params.id})
 			.orderByRaw('count(match.winner_id) DESC')
 			.then(function(rows) {
 				res.render('results', {
-					match: match.serialize(),
+					match: match,
 					scores: scores,
 					players: playersMap,
 					scoresMap: scoresMap,
@@ -285,7 +281,6 @@ router.post('/new', function (req, res) {
 			})
 			.save()
 			.then(function (game) {
-				console.log(req.body.players);
 				var playersArray = req.body.players;
 				var playerOrder = 1;
 				var playersInMatch = [];
@@ -293,7 +288,8 @@ router.post('/new', function (req, res) {
 					playersInMatch.push({
 						player_id: playersArray[i],
 						match_id: match.id,
-						order: playerOrder
+						order: playerOrder,
+						game_id: game.id,
 					});
 					playerOrder++;
 				}
@@ -499,7 +495,49 @@ router.post('/:id/finish', function (req, res) {
 								debug(err);
 								return helper.renderError(res, err);
 							}
-							res.status(200).end();
+
+							// Check how many matches are required in this game to win
+							new Game({ id: match.game_id})
+								.fetch({
+									withRelated: [
+										'game_type',
+									]
+								})
+								.then(function (rows) {
+													
+									var game = rows.serialize();
+									var matchesRequired = game.game_type.matches_required;
+									
+									// How many games has current player won ?
+									var currentWinner = currentPlayerId;
+									var gameId = game.id;
+
+									knex = Bookshelf.knex;
+									knex('match')
+									.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))		
+									.where(knex.raw('match.game_id = ?', [gameId]))
+									.where(knex.raw('match.winner_id = ?', [currentWinner]))
+									.then(function(rows) {
+										if (rows[0].wins == matchesRequired) {
+											new Game({ id: game.id}) 
+											.save({
+												is_finished: true,
+												winner_id: currentPlayerId,
+											})
+											.then(function (row) {
+												res.status(200).end();
+											});										
+										} else {
+											res.status(200).end();
+										}
+									})
+									.catch(function (err) {
+										helper.renderError(res, err);
+									});							
+								})
+								.catch(function (err) {
+									helper.renderError(res, err);
+								});
 						});
 					})
 					.catch(function (err) {

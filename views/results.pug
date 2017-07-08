@@ -186,30 +186,19 @@ block content
 						td
 							//p= statistics.ppd.toFixed(2)
 						td
-<<<<<<< HEAD
 							//p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
 							//p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
 							//p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
 							//p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
-
-=======
-							p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
-							p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
-							p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
-							p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
->>>>>>> master
 						if match.winner_id !== undefined && player.id === match.winner_id
 							td
 								span(class='glyphicon glyphicon-ok' aria-hidden='true')
 						else
 							td
-<<<<<<< HEAD
-=======
 								p= player.remaining_score + ' left'
 	div(style='margin-bottom: 20px;')
 		if match.winner_id === null
 			button(type='button' class='btn btn-primary' id='continue-match' data-match=match.id) Continue match
->>>>>>> master
 
 	h3 Match Results
 	p.

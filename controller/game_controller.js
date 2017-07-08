@@ -16,6 +16,40 @@ var helper = require('../helpers.js');
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
+/* Get a list of all games */
+router.get('/list', function (req, res) {
+	// Get collection of matches
+	var Games = Bookshelf.Collection.extend({ model: Game });
+
+	// Fetch related players
+	new Games()
+		.fetch({
+			withRelated: [
+				'game_winner',
+				'game_type',
+				'players'
+			]
+		})
+		.then(function (rows) {
+			var games = rows.serialize();
+			var players = {};
+			for (var i = 0; i < games.length; i++) {
+				var game = games[i];
+				for (var j = 0; j < game.players.length; j++){
+					var player = game.players[j];
+					players[player.id] = { name: player.name }
+				}
+			}
+			res.render('games', {
+				games: games,
+				players: players,
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
+});
+
 /**
  * Continue game or show results
  */
@@ -25,7 +59,7 @@ router.get('/:gameid/match/:matchid', function (req, res) {
 	new Match({ id: req.params.matchid })
 		.fetch({
 			withRelated: [
-				'players',
+				{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
 				'game',
 				'game.game_type',
 				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
@@ -65,7 +99,8 @@ router.get('/:gameid/match/:matchid', function (req, res) {
                         playersInMatch.push({
                             player_id: playersArray[i].id,
                             match_id: newmatch.id,
-                            order: playerOrder
+                            order: playerOrder,
+							game_id: game.id
                         });
                         playerOrder++;
                     }
@@ -175,7 +210,8 @@ router.post('/new', function (req, res) {
 					playersInMatch.push({
 						player_id: playersArray[i],
 						match_id: match.id,
-						order: playerOrder
+						order: playerOrder,
+						game_id: game.id,
 					});
 					playerOrder++;
 				}

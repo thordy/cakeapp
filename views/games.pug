@@ -1,0 +1,54 @@
+extends layout.pug
+
+block scripts
+	script.
+		$(document).ready(function(){
+			$('#games_list_table').DataTable({
+				searching: false,
+				pageLength: 25,
+				bLengthChange: false,
+		    	bInfo : false,
+		    	order: [[ 1,  'desc' ]]
+		    });
+		});
+	script.
+		$(function() {
+			$('.btn-continue-game').click(function() {
+				window.location.href = '/match/' + $(this).data('match');
+			});
+		});
+
+block content
+	h2 Games
+	p.
+		Overview over all played games
+
+	// TODO Add pagination to this table to limit number of matches displayed
+	div(class='table-responsive')
+		table(class='table table-striped table-bordered' id='matches_list_table')
+			thead
+				tr
+					th(hidden=true)
+					th Start Time
+					th Game type
+					th Players	
+					th Winner				
+					th Results	
+			tbody
+				each game in games
+					tr
+						th(hidden='true' scope='row')= game.id
+						td(class='col-sm-2')= game.created_at
+						td(class='col-sm-2')= game.game_type.name						
+						td(class='col-sm-1')
+							each player in game.players
+								div(style='margin-bottom: 5px;')
+									span(class='label label-info' style='line-height: inherit;')=player.name
+						if game.is_finished
+							td(class='col-sm-1')
+								div: span(class='label label-success' style='line-height: inherit;')=players[game.winner_id].name
+						else
+							td(class='col-sm-2')
+						td(class='col-sm-2')
+							if !game.is_finished
+								button(type='button' id='continueGameButton' data-match=game.current_match_id class='btn btn-primary btn-block btn-continue-game') Continue
