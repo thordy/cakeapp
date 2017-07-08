@@ -233,14 +233,16 @@ block content
 					each player in players
 						- var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
 						if player.id = player.current
-							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer')
+							td(colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer' style='padding-right: 10px;')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
+								div(class='btn btn-info pull-right' style='margin-top: -40px; mergin-right: 10px !important;')= player.wins
 						else
 							- var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
-							td(colspan=length + '' class=css)
+							td(colspan=length + '' class=css style='padding-right: 10px;')
 								label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
 								label(class='label-player-name' id='label_player_name_' + player.name)= player.name
+								div(class='btn btn-info pull-right' style='margin-top: -40px; mergin-right: 10px !important;')= player.wins
 				tr(class='throw_buttons row')
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0' data-multiplier='1') Miss<br/>&nbsp;
 					td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20' data-multiplier='1') 20<br/>.

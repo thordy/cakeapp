@@ -37,12 +37,35 @@ router.get('/list', function (req, res) {
 				var game = games[i];
 				for (var j = 0; j < game.players.length; j++){
 					var player = game.players[j];
-					players[player.id] = { name: player.name }
+					players[player.id] = { name: player.name, wins: 0 }
 				}
 			}
-			res.render('games', {
-				games: games,
-				players: players,
+			knex = Bookshelf.knex;
+			knex('match')
+			.select(knex.raw(`
+				match.winner_id, 
+				count(match.winner_id) as wins, 
+				game_type.matches_required`
+			))
+			.where(knex.raw('match.game_id = ?', [game.id]))
+			.join(knex.raw('game on game.id = match.game_id'))
+			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
+			.groupBy('match.winner_id')
+			.orderByRaw('count(match.winner_id) DESC')
+			.then(function(rows) {
+				var playerWins = {};
+				for (var i = 0; i < rows.length; i++) {
+					var playerId = rows[i].winner_id;
+					var wins = rows[i].wins;					
+					players[playerId].wins = wins;
+				}	
+				res.render('games', {
+					games: games,
+					players: players
+				});				
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
 			});
 		})
 		.catch(function (err) {
