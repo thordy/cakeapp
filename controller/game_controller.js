@@ -55,9 +55,12 @@ router.get('/list', function (req, res) {
 			.then(function(rows) {
 				var playerWins = {};
 				for (var i = 0; i < rows.length; i++) {
-					var playerId = rows[i].winner_id;
-					var wins = rows[i].wins;					
-					players[playerId].wins = wins;
+					var player = rows[i];
+					if (player.winner_id) {
+						var playerId = player.winner_id;
+						var wins = rows[i].wins;					
+						players[playerId].wins = wins;
+					}
 				}	
 				res.render('games', {
 					games: games,

@@ -42,8 +42,8 @@ block content
 						td(class='col-sm-2')= game.game_type.name						
 						td(class='col-sm-1')
 							each player in players
-								span(class='btn btn-primary' style='margin-bottom: 5px;')=player.name
-									span(class='badge pull-right' style='margin-top: 2px;')=player.wins
+								span(class='label label-primary' style='margin-bottom: 5px;')=player.name + ' (' + player.wins + ')'
+									//span(class='badge pull-right' style='margin-top: 2px;')=player.wins
 						if game.is_finished
 							td(class='col-sm-1')
 								div: span(class='label label-success' style='line-height: inherit;')=players[game.winner_id].name
