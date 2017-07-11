@@ -12,6 +12,7 @@ var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
+var _ = require('underscore');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
@@ -31,41 +32,35 @@ router.get('/list', function (req, res) {
 			]
 		})
 		.then(function (rows) {
-			var games = rows.serialize();
-			var players = {};
-			for (var i = 0; i < games.length; i++) {
-				var game = games[i];
+			var games = _.indexBy(rows.serialize(), 'id');
+			_.each(games, function(game) {
 				for (var j = 0; j < game.players.length; j++){
 					var player = game.players[j];
-					players[player.id] = { name: player.name, wins: 0 }
+					player.legs_won = 0;
 				}
-			}
+				game.players = _.indexBy(game.players, 'id');
+			});
+
 			knex = Bookshelf.knex;
 			knex('match')
 			.select(knex.raw(`
+				game.id as game_id,
 				match.winner_id, 
 				count(match.winner_id) as wins, 
 				game_type.matches_required`
 			))
-			.where(knex.raw('match.game_id = ?', [game.id]))
+			// .where(knex.raw('match.game_id = ?', [game.id]))
 			.join(knex.raw('game on game.id = match.game_id'))
 			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-			.groupBy('match.winner_id')
-			.orderByRaw('count(match.winner_id) DESC')
+			.groupBy(['match.winner_id', 'game.id'])
 			.then(function(rows) {
-				var playerWins = {};
 				for (var i = 0; i < rows.length; i++) {
-					var player = rows[i];
-					if (player.winner_id) {
-						var playerId = player.winner_id;
-						var wins = rows[i].wins;					
-						players[playerId].wins = wins;
-					}
+					var winner = rows[i];
+					var game = games[winner.game_id];
+					var player = game.players[winner.winner_id];
+					player.legs_won = winner.wins;
 				}	
-				res.render('games', {
-					games: games,
-					players: players
-				});				
+				res.render('games', { games: games });
 			})
 			.catch(function (err) {
 				helper.renderError(res, err);

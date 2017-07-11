@@ -158,8 +158,8 @@ block content
 	p.
 		ID: #{match.id} <br>
 		Game type: #{match.game.game_type.name} <br>
-		Started: #{match.created_at} <br>
-		Finished: #{match.end_time === undefined ? '' : match.end_time} <br>
+		Started: #{match.created_at.toISOString()} <br>
+		Finished: #{match.end_time === undefined ? '' : match.end_time.toISOString()} <br>
 		Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
 		Stakes: #{match.stake === undefined ? "None" : match.stake}
 
