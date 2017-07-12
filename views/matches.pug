@@ -43,7 +43,7 @@ block content
 					tr
 						th(hidden='true' scope='row')= match.id
 						td(class='col-sm-2')= match.created_at.toISOString()
-						td(class='col-sm-2')= match.end_time === undefined ? '' : match.end_time.toISOString()
+						td(class='col-sm-2')= match.end_time === null ? '' : match.end_time.toISOString()
 						td(class='col-sm-2 txt-center')= match.starting_score
 						if match.is_finished
 							td(class='col-sm-1')

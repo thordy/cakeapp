@@ -10,6 +10,11 @@ a:hover {
     text-align: center;
 }
 
+/* CSS Related to games page */
+#games_list_table span {
+    display: block;
+}
+
 /* CSS Related to matches page */
 #matches_list_table span {
     display: block;
