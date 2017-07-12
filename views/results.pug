@@ -127,7 +127,7 @@ block scripts
 				location.href = '/match/' + $(this).data('match');
 			});
 			$('#continue-game').click(function () {
-				location.href = '/game/' + $(this).data('game') + '/match/' + $(this).data('match');
+				location.href = '/game/' + $(this).data('game');
 			});
 		});
 	script.
@@ -153,7 +153,7 @@ block content
 		if match.winner_id === null
 			button(type='button' class='btn btn-primary pull-right mt-30' id='continue-match' data-match=match.id) Continue match
 		else if game.is_finished === 0
-			button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id data-match=match.id) Continue game
+			button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id) Continue game
 
 	p.
 		ID: #{match.id} <br>

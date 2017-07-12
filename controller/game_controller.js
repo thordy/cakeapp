@@ -74,112 +74,97 @@ router.get('/list', function (req, res) {
 });
 
 /**
- * Continue game or show results
+ * This method should handle resuming a game with creating a new match
+ * or resuming a game with unfinished match
  */
+router.get('/:gameid', function (req, res) {
+	// Get game by id and check the current match id
+	new Game({ id: req.params.gameid })
+		.fetch()
+		.then(function (game) {
+			var gameData = game.serialize();
+			var currentMatchId = gameData.current_match_id;
+			var isGameFinished = gameData.is_finished;
+			if (isGameFinished) {
+				// TODO redirect to this game results page once it is implemented
+				res.redirect('/game/list');
+			} else {
+				new Match({ id: currentMatchId })
+				.fetch({
+					withRelated: [
+						{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
+						'game',
+						'game.game_type',
+						{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
+						{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
+					]
+				})
+				.then(function (match) {
+					var matchData = match.serialize();
+					// Check if the match is finished
+					if (!matchData.is_finished) {
+						// If not finished, redirect to it
+						res.redirect('/match/' + matchData.id);
+					} else {
+						// If the match is finished, create new one
+						var players = match.related('players').serialize();
+						players.push(players.shift())
 
-/* Render the match view */
-router.get('/:gameid/match/:matchid', function (req, res) {
-	new Match({ id: req.params.matchid })
-		.fetch({
-			withRelated: [
-				{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
-				'game',
-				'game.game_type',
-				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
-				{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
-			]
-		})
-		.then(function (match) {
-            var players = match.related('players').serialize();
-            var matchData = match.serialize();
-            players.push(players.shift())
+						// Get first player in the list, order should be handled in frontend
+						var currentPlayerId = players[0].id;
 
-            // Get first player in the list, order should be handled in frontend
-            var currentPlayerId = players[0].id;
+						new Match({
+							starting_score: matchData.starting_score,
+							current_player_id: currentPlayerId,
+							game_id: req.params.gameid,
+							created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+						})
+						.save(null, {method: 'insert'})
+						.then(function (newmatch) {
+							debug('Created match %s', newmatch.id);
 
-            new Match({
-                starting_score: matchData.starting_score,
-                current_player_id: currentPlayerId,
-                game_id: req.params.gameid,
-                created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-            })
-            .save(null, {method: 'insert'})
-            .then(function (newmatch) {
-                debug('Created match %s', newmatch.id);
+							// Update game and set current match id
+							new Game({
+								id: req.params.gameid,
+								current_match_id: newmatch.id
+							})
+							.save()
+							.then(function (game) {
+								console.log(players);
+								var playersArray = players;
+								var playerOrder = 1;
+								var playersInMatch = [];
+								for (var i in playersArray) {
+									playersInMatch.push({
+										player_id: playersArray[i].id,
+										match_id: newmatch.id,
+										order: playerOrder,
+										game_id: game.id
+									});
+									playerOrder++;
+								}
 
-                // Update game and set current match id
-                new Game({
-                    id: req.params.gameid,
-                    current_match_id: newmatch.id
-                })
-                .save()
-                .then(function (game) {
-                    console.log(players);
-                    var playersArray = players;
-                    var playerOrder = 1;
-                    var playersInMatch = [];
-                    for (var i in playersArray) {
-                        playersInMatch.push({
-                            player_id: playersArray[i].id,
-                            match_id: newmatch.id,
-                            order: playerOrder,
-							game_id: game.id
-                        });
-                        playerOrder++;
-                    }
-
-                    Bookshelf
-                        .knex('player2match')
-                        .insert(playersInMatch)
-                        .then(function (rows) {
-                            debug('Added players %s', playersArray);
-                            res.redirect('/match/' + newmatch.id);
-                        })
-                        .catch(function (err) {
-                            helper.renderError(res, err);
-                        });
-                });
-            })
-            .catch(function (err) {
-                helper.renderError(res, err);
-            });
-
-            /*
-            var gameType = req.body.gameType;
-
-            /**
-             * Check the game type and add new one
-             * This is only for starting new match,
-             * for next sets we need to pass game id to /new/gameid route 
-             *
-            debug('New game added', gameType);
-            new Game({
-                game_type_id: gameType,
-                created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-            })
-            .save(null, {method: 'insert'})
-            .then(function (game) {
-
-            })
-            .catch(function (err) {
-                helper.renderError(res, err);
-            });            
-                        console.log(players);
-            /*
-			
-			var scores = match.related('scores').serialize();
-			var match = match.serialize();
-
-			// Set all scores and round number
-			match.scores = scores;
-			match.roundNumber = Math.floor(scores.length / players.length) + 1;
-			res.render('match', {
-				match: match,
-				players: playersMap,
-				game: match.game,
-				game_type: match.game.game_type,
-			});
-            */
+								Bookshelf
+									.knex('player2match')
+									.insert(playersInMatch)
+									.then(function (rows) {
+										debug('Added players %s', playersArray);
+										res.redirect('/match/' + newmatch.id);
+									})
+									.catch(function (err) {
+										helper.renderError(res, err);
+									});
+							});
+						})
+						.catch(function (err) {
+							helper.renderError(res, err);
+						});
+					}
+				})
+				.catch(function (err) {
+					helper.renderError(res, err);
+				});		
+			}	
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);

@@ -14,7 +14,7 @@ block scripts
 	script.
 		$(function() {
 			$('.btn-continue-game').click(function () {
-				location.href = '/game/' + $(this).data('game') + '/match/' + $(this).data('match');
+				location.href = '/game/' + $(this).data('game');
 			});
 			$('.btn-view-results').click(function() {
 				location.href = '/match/' + $(this).closest('tr').find('th').text() + '/results';
@@ -56,6 +56,6 @@ block content
 							td(class='col-sm-2')
 						td(class='col-sm-2')
 							if !game.is_finished
-								button(type='button' id='continueGameButton' data-game=game.id data-match=game.current_match_id class='btn btn-primary btn-block btn-continue-game') Continue
+								button(type='button' id='continueGameButton' data-game=game.id class='btn btn-primary btn-block btn-continue-game') Continue
 							else
 								button(type='button' class='btn btn-primary btn-block btn-view-results') View								
