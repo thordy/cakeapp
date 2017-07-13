@@ -45,11 +45,10 @@ router.get('/list', function (req, res) {
 			knex('match')
 			.select(knex.raw(`
 				game.id as game_id,
-				match.winner_id, 
-				count(match.winner_id) as wins, 
+				match.winner_id,
+				count(match.winner_id) as wins,
 				game_type.matches_required`
 			))
-			// .where(knex.raw('match.game_id = ?', [game.id]))
 			.join(knex.raw('game on game.id = match.game_id'))
 			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
 			.groupBy(['match.winner_id', 'game.id'])
@@ -61,7 +60,7 @@ router.get('/list', function (req, res) {
 						var player = game.players[winner.winner_id];
 						player.legs_won = winner.wins;
 					}
-				}	
+				}
 				res.render('games', { games: games });
 			})
 			.catch(function (err) {
@@ -130,7 +129,6 @@ router.get('/:gameid', function (req, res) {
 							})
 							.save()
 							.then(function (game) {
-								console.log(players);
 								var playersArray = players;
 								var playerOrder = 1;
 								var playersInMatch = [];
@@ -163,8 +161,8 @@ router.get('/:gameid', function (req, res) {
 				})
 				.catch(function (err) {
 					helper.renderError(res, err);
-				});		
-			}	
+				});
+			}
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
@@ -185,7 +183,7 @@ router.post('/new', function (req, res) {
 	/**
 	 * Check the game type and add new one
 	 * This is only for starting new match,
-	 * for next sets we need to pass game id to /new/gameid route 
+	 * for next sets we need to pass game id to /new/gameid route
 	 */
 	debug('New game added', gameType);
 	new Game({
