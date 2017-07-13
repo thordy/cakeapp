@@ -26,7 +26,6 @@ block content
 	p.
 		Overview over all played matches
 
-	// TODO Add pagination to this table to limit number of matches displayed
 	div(class='table-responsive')
 		table(class='table table-striped table-bordered' id='matches_list_table')
 			thead
@@ -34,16 +33,17 @@ block content
 					th(hidden=true)
 					th Start Time
 					th End Time
-					th Game Type
+					th Match Type
 					th Winner
 					th Players
+					th Game type
 					th Results
 			tbody
 				each match in matches
 					tr
 						th(hidden='true' scope='row')= match.id
-						td(class='col-sm-2')= match.created_at
-						td(class='col-sm-2')= match.end_time === undefined ? '' : match.end_time
+						td(class='col-sm-2')= match.created_at.toISOString()
+						td(class='col-sm-2')= match.end_time === null ? '' : match.end_time.toISOString()
 						td(class='col-sm-2 txt-center')= match.starting_score
 						if match.is_finished
 							td(class='col-sm-1')
@@ -54,6 +54,7 @@ block content
 							each player in match.players
 								div(style='margin-bottom: 5px;')
 									span(class='label label-info' style='line-height: inherit;')=player.name
+						td(class='col-sm-1 txt-center')= match.game.game_type.name
 						td(class='col-sm-2')
 							if !match.is_finished
 								button(type='button' id='continueMatchButton' class='btn btn-primary btn-block btn-continue-match') Continue
