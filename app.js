@@ -7,9 +7,11 @@ var helper = require('./helpers.js');
 
 // Register all the routes
 var matchController = require('./controller/match_controller');
+var gameController = require('./controller/game_controller');
 var cakeController = require('./controller/owes_controller');
 var playerController = require('./controller/player_controller');
 app.use('/match', matchController);
+app.use('/game', gameController);
 app.use('/cake', cakeController);
 app.use('/player', playerController)
 
@@ -20,8 +22,14 @@ app.use(express.static('public'));
 /** Entry point for application, main route */
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
+  var GameType = require('./models/GameType');
 	Player.fetchAll().then(function(players) {
-		res.render('index', { players: players.serialize() });
+      GameType.fetchAll().then(function(gameTypes) {
+        res.render('index', { 
+          players: players.serialize(),
+          gameTypes: gameTypes.serialize()
+        });
+      });
 	})
   .catch(function(err) {
     helper.renderError(res, err);

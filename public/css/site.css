@@ -10,6 +10,11 @@ a:hover {
     text-align: center;
 }
 
+/* CSS Related to games page */
+#games_list_table span {
+    display: block;
+}
+
 /* CSS Related to matches page */
 #matches_list_table span {
     display: block;
@@ -150,4 +155,9 @@ a:hover {
     background-position: left;
     background-repeat: no-repeat;
     background-image: url(../images/vilius.png);
+}
+
+.mt-30
+{
+    margin-top: 30px;
 }
