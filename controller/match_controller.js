@@ -180,141 +180,14 @@ router.get('/:id', function (req, res) {
 		});
 });
 
-/* Render the match view */
-router.get('/:id/old', function (req, res) {
-	new Match({ id: req.params.id })
-		.fetch({
-			withRelated: [
-				{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
-				'game',
-				'game.game_type',
-				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
-				{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
-			]
-		})
-		.then(function (match) {
-			var players = match.related('players').serialize();
-			var scores = match.related('scores').serialize();
-			var match = match.serialize();
-
-			if (match.is_finished) {
-				// Do not allow to see match board if it is finished, redirect to that match results
-				res.redirect('/match/' + match.id + '/results');
-			} else {
-				var playersMap = players.reduce(function ( map, player ) {
-					map['p' + player.id] = {
-						id: player.id,
-						name: player.name,
-						wins: 0,
-						ppd: 0,
-						first9ppd: 0,
-						first9Score: 0,
-						totalScore: 0,
-						visits: 0,
-						current_score: match.starting_score,
-						current: player.id === match.current_player_id ? true : false
-					}
-					return map;
-				}, {});
-
-				for (var i = 0; i < scores.length; i++) {
-					var score = scores[i];
-					var player = playersMap['p' + score.player_id];
-
-					var visitScore = ((score.first_dart * score.first_dart_multiplier) +
-						(score.second_dart * score.second_dart_multiplier) +
-						(score.third_dart * score.third_dart_multiplier));
-					player.current_score = player.current_score - visitScore;
-					player.totalScore += visitScore;
-					player.visits += 1;
-					if (player.visits <= 3) {
-						player.first9Score += visitScore;
-					}
-				}
-				var lastVisit = scores[scores.length - 1];
-				if (lastVisit !== undefined) {
-					var lastPlayer = playersMap['p' + lastVisit.player_id];
-					lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
-				}
-
-				var lowestScore = undefined;
-				for (var id in playersMap) {
-					if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
-						lowestScore = playersMap[id].current_score;
-					}
-				}
-
-				// Set player ppd and first9ppd
-				for (var id in playersMap) {
-					var player = playersMap[id];
-					var dartsThrown = player.visits === 0 ? 1 : (player.visits * 3);
-
-					if (player.visits <= 3) {
-						player.first9ppd = player.first9Score / dartsThrown;
-					}
-					else {
-						player.first9ppd = player.first9Score / 9;
-					}
-					player.ppd = player.totalScore / dartsThrown;
-
-					if (lowestScore < 171 && player.current_score > 200) {
-						player.isBeerCheckoutSafe = false;
-					}
-					else {
-						player.isBeerCheckoutSafe = true;
-					}
-				}
-				// Set all scores and round number
-				match.scores = scores;
-				match.roundNumber = Math.floor(scores.length / players.length) + 1;
-
-				knex = Bookshelf.knex;
-				knex('match')
-				.select(knex.raw(`
-					match.winner_id,
-					count(match.winner_id) as wins,
-					game_type.matches_required`
-				))
-				.where(knex.raw('match.game_id = ?', [match.game_id]))
-				.join(knex.raw('game on game.id = match.game_id'))
-				.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-				.groupBy('match.winner_id')
-				.orderByRaw('count(match.winner_id) DESC')
-				.then(function(rows) {
-					var playerWins = {};
-					for (var i = 0; i < rows.length; i++) {
-						if (rows[i].winner_id) {
-							var playerId = rows[i].winner_id;
-							var wins = rows[i].wins;
-							playersMap['p' + playerId].wins = wins;
-						}
-					}
-
-					// Set all scores and round number
-					match.scores = scores;
-					match.roundNumber = Math.floor(scores.length / players.length) + 1;
-					res.render('match', {
-						match: match,
-						players: playersMap,
-						game: match.game,
-						game_type: match.game.game_type,
-					});
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
-				});
-			}
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
-});
-
 /* Render the results view */
 router.get('/:id/results', function (req, res) {
 	new Match({id: req.params.id})
 		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type'] } )
 		.then(function (row) {
+			if (row === null) {
+				return helper.renderError(res, 'No match with id ' + req.params.id + ' exists');
+			}
 			var players = row.related('players').serialize();
 			var game = row.related('game').serialize();
 			var statistics = row.related('statistics').serialize();
@@ -464,6 +337,7 @@ router.post('/new', function (req, res) {
 					.insert(playersInMatch)
 					.then(function (rows) {
 						debug('Added players %s', playersArray);
+						setupNamespace(match.id);
 						res.redirect('/match/' + match.id);
 					})
 					.catch(function (err) {
@@ -480,85 +354,8 @@ router.post('/new', function (req, res) {
 	});
 });
 
-/* Method to register three thrown darts */
-router.post('/:id/old/throw', function (req, res) {
-	// Assign those values to vars since they will be used in other places
-	var matchId = req.body.matchId;
-	var currentPlayerId = req.body.playerId;
-	var firstDartScore = req.body.firstDart;
-	firstDartScore = firstDartScore === undefined ? 0 : firstDartScore;
-	var secondDartScore = req.body.secondDart;
-	secondDartScore = secondDartScore === undefined ? 0 : secondDartScore;
-	var thirdDartScore = req.body.thirdDart;
-	thirdDartScore = thirdDartScore === undefined ? 0 : thirdDartScore;
-	var firstDartMultiplier = req.body.firstDartMultiplier;
-	var secondDartMultiplier = req.body.secondDartMultiplier;
-	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	var isBust = req.body.isBust;
-	var isCheckoutFirst = req.body.isCheckoutFirst;
-	var isCheckoutSecond = req.body.isCheckoutSecond;
-	var isCheckoutThird = req.body.isCheckoutThird;
-
-	var playersInMatch = req.body.playersInMatch;
-
-	// We might as well load the player2match model in here for given match id
-	var numPlayers = playersInMatch.length;
-	var currentPlayerOrder = 1;
-	var playersArray = {};
-
-	for (var i = 0; i < playersInMatch.length; i++){
-		var player = playersInMatch[i];
-		if (player.player_id === currentPlayerId) {
-			currentPlayerOrder = player.order;
-		}
-		playersArray[parseInt(player.order)] = {
-			playerId: player.player_id
-		}
-	}
-
-	var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
-	var nextPlayerId = playersArray[nextPlayerOrder].playerId;
-
-	// TODO should we double check if the match is ended here ?
-
-	// Insert new score and change current player in match
-	new Score({
-			match_id: matchId,
-			player_id: currentPlayerId,
-			first_dart: firstDartScore,
-			second_dart: secondDartScore,
-			third_dart: thirdDartScore,
-			first_dart_multiplier: firstDartMultiplier,
-			second_dart_multiplier: secondDartMultiplier,
-			third_dart_multiplier: thirdDartMultiplier,
-			is_bust: isBust,
-			is_checkout_first: isCheckoutFirst,
-			is_checkout_second: isCheckoutSecond,
-			is_checkout_third: isCheckoutThird,
-	})
-	.save(null, {method: 'insert'})
-	.then(function(row) {
-		debug('Added score for player %s (%s-%s, %s-%s, %s-%s)', currentPlayerId,
-			firstDartScore, firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
-
-		// Change current player, maybe check what round is that ?
-		new Match({ id: matchId })
-			.save({ current_player_id: nextPlayerId })
-			.then(function (match) {
-				res.redirect('/match/' + matchId);
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
-	})
-	.catch(function(err) {
-		return helper.renderError(res, err);
-	});
-});
-
-
 /* Modify the score */
-router.post('/:id/old/results', function (req, res) {
+router.post('/:id/results', function (req, res) {
 	// TODO Only allow if match is not finished
 
 	// Assign those values to vars since they will be used in other places
@@ -600,126 +397,6 @@ router.delete('/:id/cancel', function (req, res) {
 			res.status(204)
 				.send()
 				.end();
-		});
-});
-
-/* Method to finalize a match */
-router.post('/:id/old/finish', function (req, res) {
-	// Assign those values to vars since they will be used in other places
-	var matchId = req.body.matchId;
-	var currentPlayerId = req.body.playerId;
-	var firstDartScore = req.body.firstDart;
-	var secondDartScore = req.body.secondDart;
-	var thirdDartScore = req.body.thirdDart;
-	var firstDartMultiplier = req.body.firstDartMultiplier;
-	var secondDartMultiplier = req.body.secondDartMultiplier;
-	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	var isCheckoutFirst = req.body.isCheckoutFirst;
-	var isCheckoutSecond = req.body.isCheckoutSecond;
-	var isCheckoutThird = req.body.isCheckoutThird;
-	debug('Match %s finished', matchId);
-
-	// Load the match object since we need certain values from the table
-	Match.where('id', '=', matchId)
-		.fetch()
-		.then(function(row) {
-			var match = row.serialize();
-
-			// Insert new score and change current player in match,
-			new Score({
-					match_id: matchId,
-					player_id: currentPlayerId,
-					first_dart: firstDartScore,
-					second_dart: secondDartScore,
-					third_dart: thirdDartScore,
-					first_dart_multiplier: firstDartMultiplier,
-					second_dart_multiplier: secondDartMultiplier,
-					third_dart_multiplier: thirdDartMultiplier,
-					is_checkout_first: isCheckoutFirst,
-					is_checkout_second: isCheckoutSecond,
-					is_checkout_third: isCheckoutThird,
-				})
-				.save(null, {method: 'insert'})
-				.then(function(row) {
-					debug('Set final score for player %s', currentPlayerId);
-
-					// Update match with winner
-					new Match({ id: matchId })
-					.save({
-						current_player_id: currentPlayerId,
-						is_finished: true,
-						winner_id: currentPlayerId,
-						end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
-					})
-					.then(function (row) {
-						writeStatistics(match, function(err) {
-							if(err) {
-								debug('ERROR Unable to insert statistics match %s, player %s: %s', matchId, player.id, err);
-								debug(err);
-								return helper.renderError(res, err);
-							}
-
-							// Check how many matches are required in this game to win
-							new Game({ id: match.game_id})
-								.fetch({
-									withRelated: [
-										'game_type',
-									]
-								})
-								.then(function (rows) {
-
-									var game = rows.serialize();
-									var matchesRequired = game.game_type.matches_required;
-
-									// How many games has current player won ?
-									var currentWinner = currentPlayerId;
-									var gameId = game.id;
-
-									knex = Bookshelf.knex;
-									knex('match')
-									.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
-									.where(knex.raw('match.game_id = ?', [gameId]))
-									.where(knex.raw('match.winner_id = ?', [currentWinner]))
-									.then(function(rows) {
-										if (rows[0].wins == matchesRequired) {
-											new Game({ id: game.id})
-											.save({
-												is_finished: true,
-												winner_id: currentPlayerId,
-											})
-											.then(function (row) {
-												res.status(200).end();
-											});
-										} else {
-											res.status(200).end();
-										}
-									})
-									.catch(function (err) {
-										helper.renderError(res, err);
-									});
-								})
-								.catch(function (err) {
-									helper.renderError(res, err);
-								});
-						});
-					})
-					.catch(function (err) {
-						helper.renderError(res, err);
-					});
-				})
-				.catch(function(err) {
-					helper.renderError(res, err);
-				});
-				Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
-					if (err) {
-						debug('Unable to finalize match: %s', err);
-						return;
-					}
-					// Send match finished message to all clients, and remove namespace
-					var nsp = this.io.of('/match/' + matchId);
-					nsp.emit('match_finished', 'Match is finished!');
-					removeNamespace(matchId);
-				});
 		});
 });
 
@@ -774,8 +451,7 @@ router.post('/:id/finish', function (req, res) {
 					.then(function (row) {
 						writeStatistics(match, function(err) {
 							if(err) {
-								debug('ERROR Unable to insert statistics match %s, player %s: %s', matchId, player.id, err);
-								debug(err);
+								debug('ERROR Unable to insert statistics match %s: %s', matchId, err);
 								return helper.renderError(res, err);
 							}
 
@@ -972,8 +648,8 @@ function getPlayerStatistics(players, scores, startingScore) {
 		var accuracyStats = player.accuracyStats;
 		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
-		accuracyStats.accuracy20 = accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
-		accuracyStats.accuracy19 = accuracyStats.accuracy19 / (accuracyStats.attempts19 + accuracyStats.misses);
+		accuracyStats.accuracy20 = accuracyStats.accuracy20 == 0 ? 0 : accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
+		accuracyStats.accuracy19 = accuracyStats.accuracy19 == 0 ? 0 : accuracyStats.accuracy19 / (accuracyStats.attempts19 + accuracyStats.misses);
 	}
 	return playerMap;
 }
@@ -1066,11 +742,13 @@ function setupNamespace(matchId) {
 			new Score().addVisit(body, function(err, rows) {
 				if (err) {
 					debug('ERROR: ' + err);
+					nsp.emit('error', err);
 					return;
 				}
 				new Match().setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
 					if (err) {
 						debug('ERROR: ' + err);
+						nsp.emit('error', err);
 						return;
 					}
 					new Match({ id: matchId })
@@ -1082,6 +760,7 @@ function setupNamespace(matchId) {
 							map['p' + player.player_id] = { id: player.player_id, current_score: match.starting_score }
 							return map;
 						}, {});
+
 						// Calculate score for each player
 						for (var i = 0; i < scores.length; i++) {
 							var score = scores[i];
@@ -1092,12 +771,14 @@ function setupNamespace(matchId) {
 								(score.third_dart * score.third_dart_multiplier));
 								player.current_score = player.current_score - visitScore;
 						}
-						// Set current player
-						// players.current_player = match.current_player_id;
-						nsp.emit('score_update', { players: players, current_player: match.current_player_id });
+						nsp.emit('score_update', {
+							players: players, 
+							current_player: match.current_player_id
+						});
 					})
 					.catch(function (err) {
 						debug('ERROR: ' + err);
+						nsp.emit('error', err);
 					});
 				});
 			});

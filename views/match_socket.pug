@@ -2,11 +2,14 @@ extends layout.pug
 
 block scripts
     script.
+        $(function () {
+            FastClick.attach(document.body);
+        });
         $(document).ready(function(){
             $('[data-toggle="popover"]').popover();
 
             var matchId = $('#submitScoreButton').data('match-id');
-            var socket = io('http://localhost:3000/match/' + matchId);
+            var socket = io('http://10.12.100.66:3000/match/' + matchId);
             socket.on('connect', function(data) {
                 socket.emit('join', 'Client Conneting');
             });
@@ -117,7 +120,6 @@ block scripts
                 window.darts_thrown = 0;
                 $(document).scrollTop(170);
             });
-
             $('#score_selector_table .throw_buttons :button').click(function () {
                 $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 

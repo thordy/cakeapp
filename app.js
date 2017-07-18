@@ -9,8 +9,10 @@ var io = require('socket.io')(server);
 var helper = require('./helpers.js');
 
 // Register all the routes
+//var socketHandler = require('./lib/socketHandler')(io);
+//socketHandler.setupNamespace(123);
 var matchController = require('./controller/match_controller')(io);
-var gameController = require('./controller/game_controller');
+var gameController = require('./controller/game_controller')(io);
 var cakeController = require('./controller/owes_controller');
 var playerController = require('./controller/player_controller');
 app.use('/match', matchController);

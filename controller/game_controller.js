@@ -87,7 +87,8 @@ router.get('/:gameid', function (req, res) {
 			if (isGameFinished) {
 				// TODO redirect to this game results page once it is implemented
 				res.redirect('/game/list');
-			} else {
+			}
+			else {
 				new Match({ id: currentMatchId })
 				.fetch({
 					withRelated: [
@@ -104,7 +105,8 @@ router.get('/:gameid', function (req, res) {
 					if (!matchData.is_finished) {
 						// If not finished, redirect to it
 						res.redirect('/match/' + matchData.id);
-					} else {
+					}
+					else {
 						// If the match is finished, create new one
 						var players = match.related('players').serialize();
 						players.push(players.shift())
@@ -118,7 +120,7 @@ router.get('/:gameid', function (req, res) {
 							game_id: req.params.gameid,
 							created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 						})
-						.save(null, {method: 'insert'})
+						.save(null, { method: 'insert' })
 						.then(function (newmatch) {
 							debug('Created match %s', newmatch.id);
 
@@ -147,6 +149,7 @@ router.get('/:gameid', function (req, res) {
 									.insert(playersInMatch)
 									.then(function (rows) {
 										debug('Added players %s', playersArray);
+										setupNamespace(newmatch.id);
 										res.redirect('/match/' + newmatch.id);
 									})
 									.catch(function (err) {
@@ -227,6 +230,7 @@ router.post('/new', function (req, res) {
 					.insert(playersInMatch)
 					.then(function (rows) {
 						debug('Added players %s', playersArray);
+						setupNamespace(match.id);
 						res.redirect('/match/' + match.id);
 					})
 					.catch(function (err) {
@@ -243,6 +247,65 @@ router.post('/new', function (req, res) {
 	});
 });
 
+function setupNamespace(matchId) {
+	var namespace = '/match/' + matchId;
+	var nsp = this.io.of(namespace);
+	nsp.on('connection', function(client){
+		debug('Client connected: ' + client.handshake.address);
 
+		client.on('join', function(data) {
+			client.emit('connected', 'Connected to server');
+		});
 
-module.exports = router
+		client.on('throw', function(data) {
+			debug('Revieced throw from ' + client.handshake.address);
+			var body = JSON.parse(data);
+			var matchId = body.matchId;
+
+			new Score().addVisit(body, function(err, rows) {
+				if (err) {
+					debug('ERROR: ' + err);
+					return;
+				}
+				new Match().setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
+					if (err) {
+						debug('ERROR: ' + err);
+						return;
+					}
+					new Match({ id: matchId })
+					.fetch( { withRelated: [ { 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } } ] })
+					.then(function (match) {
+						var scores = match.related('scores').serialize();
+						var match = match.serialize();
+						var players = body.playersInMatch.reduce(function ( map, player ) {
+							map['p' + player.player_id] = { id: player.player_id, current_score: match.starting_score }
+							return map;
+						}, {});
+						// Calculate score for each player
+						for (var i = 0; i < scores.length; i++) {
+							var score = scores[i];
+							var key = 'p' + score.player_id;
+							var player = players[key];
+							var visitScore = ((score.first_dart * score.first_dart_multiplier) +
+								(score.second_dart * score.second_dart_multiplier) +
+								(score.third_dart * score.third_dart_multiplier));
+								player.current_score = player.current_score - visitScore;
+						}
+						// Set current player
+						// players.current_player = match.current_player_id;
+						nsp.emit('score_update', { players: players, current_player: match.current_player_id });
+					})
+					.catch(function (err) {
+						debug('ERROR: ' + err);
+					});
+				});
+			});
+		});
+	});
+	debug("Created socket.io namespace '%s'", namespace);
+}
+
+module.exports = function (io) {
+	this.io = io;
+	return router;
+};

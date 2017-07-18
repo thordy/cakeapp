@@ -6,6 +6,7 @@ block scripts
 			$('#hits_table').DataTable({
 				searching: false,
 		    	bInfo : false,
+				iDisplayLength: 50,
 		    	order: [[ 2,  'desc' ]],
 		        columnDefs: [ { targets: [ 1 ], visible: true } ]
 			});
@@ -47,19 +48,6 @@ block scripts
 					var secondMultiplierChanged = newSecondDart[0];
 					var thirdMultiplierChanged = newThirdDart[0];
 
-					// We have correct values, let's change the summary and ppd displayed
-					/*var total = firstScoreChanged * firstMultiplierChanged +
-							secondScoreChanged * secondMultiplierChanged +
-							thirdScoreChanged * thirdMultiplierChanged;
-					$('.total-visit-score-' + visitNumber).text(total);
-
-					var ppd = (total / 3).toFixed(2);
-					$('.visit-ppd-' + visitNumber).text(ppd);
-
-					$('.first-dart-visit-total-' + visitNumber).text(firstScoreChanged * firstMultiplierChanged);
-					$('.second-dart-visit-total-' + visitNumber).text(secondScoreChanged * secondMultiplierChanged);
-					$('.third-dart-visit-total-' + visitNumber).text(thirdScoreChanged * thirdMultiplierChanged);*/
-
 					firstDartField.data('score', firstScoreChanged);
 					firstDartField.data('multiplier', firstMultiplierChanged);
 					secondDartField.data('score', secondScoreChanged);
@@ -96,14 +84,6 @@ block scripts
 							console.log("Unable to proceed: " + error.responseText);
 						}
 					)
-
-					/*selector1.hide();
-					selector2.hide();
-					selector3.hide();
-
-					firstDartLabel.show();
-					secondDartLabel.show();
-					thirdDartLabel.show();*/
 				}
 				else {
 					selector1.show();
@@ -159,7 +139,7 @@ block content
 		ID: #{match.id} <br>
 		Game type: #{match.game.game_type.name} <br>
 		Started: #{match.created_at.toISOString()} <br>
-		Finished: #{match.end_time === undefined ? '' : match.end_time.toISOString()} <br>
+		Finished: #{match.end_time === null ? '' : match.end_time.toISOString()} <br>
 		Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
 		Stakes: #{match.stake === undefined ? "None" : match.stake}
 
@@ -180,17 +160,17 @@ block content
 						td
 							p= player.name
 						td
-							//p= statistics.darts_thrown
+							p= statistics.darts_thrown
 						td
-							//p= statistics.first_nine_ppd.toFixed(2)
+							p= statistics.first_nine_ppd.toFixed(2)
 						td
-							//p= statistics.ppd.toFixed(2)
+							p= statistics.ppd.toFixed(2)
 						td
-							//p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
-							//p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
-							//p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
-							//p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
-						if match.winner_id !== undefined && player.id === match.winner_id
+							p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
+							p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
+							p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
+							p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
+						if player.id === match.winner_id
 							td
 								span(class='glyphicon glyphicon-ok' aria-hidden='true')
 						else

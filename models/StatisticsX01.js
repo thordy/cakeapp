@@ -30,6 +30,7 @@ var StatisticsX01 = bookshelf.Model.extend({
 			JOIN \`match\` m ON m.id = s.match_id
 			WHERE m.winner_id = s.player_id
 			AND s.player_id IN (` + placeHolders + `)
+			AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
 			GROUP BY match_id`, playerIds
 		)
 		.then(function(rows) {
@@ -91,13 +92,13 @@ var StatisticsX01 = bookshelf.Model.extend({
 			SELECT
 				SUM(s.ppd) / p.games_played AS 'ppd',
 				SUM(s.first_nine_ppd) / p.games_played AS 'first9ppd',
-				SUM(s.'60s_plus') AS '60+',
-				SUM(s.'100s_plus') AS '100+',
-				SUM(s.'140s_plus') AS '140+',
-				SUM(s.'180s') AS '180s',
-				SUM(accuracy_20) / COUNT(s.id) AS 'accuracy_20',
-				SUM(accuracy_19) / COUNT(s.id) AS 'accuracy_19',
-				SUM(overall_accuracy) / COUNT(s.id) AS 'overall_accuracy',
+				SUM(s.60s_plus) AS '60+',
+				SUM(s.100s_plus) AS '100+',
+				SUM(s.140s_plus) AS '140+',
+				SUM(s.180s) AS '180s',
+				SUM(accuracy_20) / COUNT(accuracy_20) AS 'accuracy_20',
+				SUM(accuracy_19) / COUNT(accuracy_19) AS 'accuracy_19',
+				SUM(overall_accuracy) / COUNT(overall_accuracy) AS 'overall_accuracy',
 				p.name,
 				p.games_played AS 'gamesPlayed',
 				p.games_won AS 'gamesWon',
