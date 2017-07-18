@@ -51,10 +51,16 @@ block scripts
                 window.darts_thrown = 0;
                 $('#first').text('');
                 $('#first').removeAttr('data-score');
+                $('#first').attr('data-multiplier', 1);
+                $('#first').attr('data-checkout', 0);
                 $('#second').text('');
                 $('#second').removeAttr('data-score');
+                $('#second').attr('data-multiplier', 1);
+                $('#second').attr('data-checkout', 0);
                 $('#third').text('');
                 $('#third').removeAttr('data-score');
+                $('#third').attr('data-multiplier', 1);
+                $('#third').attr('data-checkout', 0);
                 $('#submitScoreButton').data('busted', 0);
                 $('#submitScoreButton').data('finished', 0);
             });
@@ -178,15 +184,18 @@ block scripts
                         if (confirm('Game will be finished.')) {
                             // End game, 'click' submit
                             submitButton.data('finished', 1).trigger('click');
-                        } else {
+                        }
+                        else {
                             // Clear the score for thrown dart
                             dart.text('');
                         }
                         return;
-                    } else {
+                    }
+                    else {
                         isBust = true;
                     }
-                } else if (scoreAfterThrow <= 1) {
+                }
+                else if (scoreAfterThrow <= 1) {
                     isBust = true;
                 }
 
@@ -195,11 +204,13 @@ block scripts
                         // Bust, 'click' submit
                         submitButton.data('busted', 1).trigger('click');
                         return;
-                    } else {
+                    }
+                    else {
                         // Clear the score for thrown dart
                         dart.text('');
                     }
-                } else {
+                }
+                else {
                     currentPlayer.text(scoreAfterThrow);
                     scores[window.darts_thrown] = dartScore;
                     window.darts_thrown++;
@@ -268,7 +279,7 @@ block content
                     td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2')
-                        button(id='submitScoreButton' type='button' style='line-height:1.5' class='btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
+                        button(id='submitScoreButton' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
                     td(colspan='2')
                         button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
                             span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
