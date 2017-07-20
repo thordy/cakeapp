@@ -146,7 +146,7 @@ block scripts
 					routeRedirect = window.location.pathname;
 				} else {
 					route = window.location.pathname + '/finish';
-					routeRedirect = window.location.pathname + '/results';
+					routeRedirect = window.location.pathname + '/leg';
 				}
 
 				executePost(route, data, 'application/json',
@@ -190,7 +190,7 @@ block scripts
 				$('#scoresModal').modal('show');
 			});
 			$('#editScoresButton').click(function () {
-				location.href = window.location.pathname + '/results';
+				location.href = window.location.pathname + '/leg';
 			});
 			$('#cancelMatchButton').click(function () {
 				if (!confirm('Game will be cancelled.')) {

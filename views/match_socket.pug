@@ -20,7 +20,7 @@ block scripts
 
             socket.on('match_finished', function(data) {
                 // Forward all clients to results page when match is finished
-                location.href = window.location.pathname + '/results';
+                location.href = window.location.pathname + '/leg';
             });
 
             socket.on('score_update', function(data) {
@@ -65,7 +65,7 @@ block scripts
                 $('#submitScoreButton').data('finished', 0);
             });
 
-            $('#submitScoreButton').click(function () {
+            $('#submitScoreButton').click(function (event) {
                 $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
                 // Scores
                 var firstScoreNumeric = $('#first').attr('data-score');
@@ -106,7 +106,7 @@ block scripts
                 if (isFinished) {
                     executePost(window.location.pathname + '/finish', data, 'application/json',
                         function (response) {
-                            location.href = window.location.pathname + '/results';
+                            location.href = window.location.pathname + '/leg';
                         },
                         function (error) {
                             // TODO Error handling
@@ -117,6 +117,7 @@ block scripts
                 else {
                     socket.emit('throw', data);
                 }
+                event.preventDefault();
             });
         });
     script.
@@ -242,11 +243,8 @@ block scripts
                 dart.removeAttr('data-score');
             });
 
-            $('#seeScoresButton').click(function () {
-                $('#scoresModal').modal('show');
-            });
             $('#editScoresButton').click(function () {
-                location.href = window.location.pathname + '/results';
+                location.href = window.location.pathname + '/leg';
             });
             $('#cancelMatchButton').click(function () {
                 if (!confirm('Game will be cancelled.')) {
@@ -291,14 +289,12 @@ block content
                         if  player.current
                             td(id='player_score_' + player.id + '' colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer' style='padding-right: 10px;')
                                 label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
-                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name
-                                div(class='btn btn-info pull-right' style='margin-top: -40px; mergin-right: 10px !important;')= player.wins
+                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
                         else
                             - var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
                             td(id='player_score_' + player.id + '' colspan=length + '' class=css style='padding-right: 10px;')
                                 label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
-                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name
-                                div(class='btn btn-info pull-right' style='margin-top: -40px; mergin-right: 10px !important;')= player.wins
+                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
                 tr(class='throw_buttons row')
                     td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0' data-multiplier='1') Miss<br/>&nbsp;
                     td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20' data-multiplier='1') 20<br/>.
@@ -374,37 +370,5 @@ block content
         button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced
             span(class='caret')
         ul(class='dropdown-menu')
-            li: a(id='seeScoresButton') See scores
             li: a(id='editScoresButton') Edit scores
             li: a(id='cancelMatchButton') Cancel Match
-
-    div(class='modal fade' id='scoresModal' tabindex='-1' role='dialog' aria-labelledby='scoresModalLabel')
-        div(class='modal-dialog' role='document')
-            div(class='modal-content')
-                div(class='modal-header')
-                    button(type='button' class='close' data-dismiss='modal' aria-label='Close')
-                        span(aria-hidden='true') &times;
-                    h4(class='modal-title' id='scoresModalLabel') Scores
-                div(class='modal-body')
-                    form
-                        div(class='table-responsive')
-                            table(class='table')
-                                thead
-                                    tr(class='row')
-                                        th #
-                                        th Player
-                                        th When
-                                        th First
-                                        th Second
-                                        th Third
-                                tbody
-                                    each score in match.scores
-                                        tr(class='row')
-                                            td= score.id
-                                            td= players['p' + score.player_id].name
-                                            td= score.created_at
-                                            td= score.first_dart * score.first_dart_multiplier
-                                            td= score.second_dart * score.second_dart_multiplier
-                                            td= score.third_dart * score.third_dart_multiplier
-                    div(class='modal-footer')
-                        button(type='button' class='btn btn-default' data-dismiss='modal') Close

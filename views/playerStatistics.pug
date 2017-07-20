@@ -59,7 +59,7 @@ block content
 						td
 							p= player.ppd.toFixed(2)
 						td
-							p= (player.gamesWon * 100 / player.checkoutAttempts === undefined ? 0 : player.checkoutAttempts).toFixed(2) + '%'
+							p= (player.gamesWon * 100 / (player.checkoutAttempts === undefined ? 0 : player.checkoutAttempts)).toFixed(2) + '%'
 						td
 							p= player['60+'] == 0 ? "" : "60+: " + player['60+']
 							p= player['100+'] == 0 ? "" : "100+: " + player['100+']

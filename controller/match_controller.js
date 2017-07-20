@@ -76,6 +76,7 @@ router.get('/:id', function (req, res) {
 						id: player.id,
 						name: player.name,
 						wins: 0,
+						wins_string: ' ',
 						ppd: 0,
 						first9ppd: 0,
 						first9Score: 0,
@@ -156,7 +157,11 @@ router.get('/:id', function (req, res) {
 						if (rows[i].winner_id) {
 							var playerId = rows[i].winner_id;
 							var wins = rows[i].wins;
-							playersMap['p' + playerId].wins = wins;
+							var player = playersMap['p' + playerId];
+							player.wins = wins;
+							for (var j = 0; j < wins; j++) {
+								player.wins_string += '*';
+							}
 						}
 					}
 
@@ -180,13 +185,13 @@ router.get('/:id', function (req, res) {
 		});
 });
 
-/* Render the results view */
-router.get('/:id/results', function (req, res) {
-	new Match({id: req.params.id})
+/* Method for getting results for a given leg */
+router.get('/:legid/leg', function (req, res) {
+	new Match( { id: req.params.legid } )
 		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type'] } )
 		.then(function (row) {
 			if (row === null) {
-				return helper.renderError(res, 'No match with id ' + req.params.id + ' exists');
+				return helper.renderError(res, 'No match with id ' + req.params.legid + ' exists');
 			}
 			var players = row.related('players').serialize();
 			var game = row.related('game').serialize();
@@ -263,7 +268,7 @@ router.get('/:id/results', function (req, res) {
 			.groupBy('match.winner_id')
 			.orderByRaw('count(match.winner_id) DESC')
 			.then(function(rows) {
-				res.render('results', {
+				res.render('leg_result', {
 					match: match,
 					scores: scores,
 					players: playersMap,
@@ -545,8 +550,8 @@ function writeStatistics(match, callback) {
 							first_nine_ppd: player.first9ppd,
 							checkout_percentage: player.checkoutPercentage,
 							darts_thrown: player.dartsThrown,
-							accuracy_20: player.accuracyStats.accuracy20,
-							accuracy_19: player.accuracyStats.accuracy19,
+							accuracy_20: player.accuracyStats.accuracy20 == 0 ? null : player.accuracyStats.accuracy20,
+							accuracy_19: player.accuracyStats.accuracy19 === 0 ? null : player.accuracyStats.accuracy19,
 							overall_accuracy: player.accuracyStats.overallAccuracy
 						});
 						stats.attributes['60s_plus'] = player.highScores['60+'];
