@@ -15,9 +15,13 @@ a:hover {
     display: block;
 }
 
-/* CSS Related to matches page */
+/* CSS Related to games page */
 #matches_list_table span {
     display: block;
+}
+.match_information {
+    font-weight: normal !important;
+    display: inline-block !important;
 }
 
 /* CSS Related to player comparison page */

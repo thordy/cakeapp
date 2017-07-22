@@ -13,12 +13,12 @@ block scripts
 		});
 	script.
 		$(function() {
-			$('.btn-continue-game').click(function () {
+			$('#games_list_table').on('click', '#continueGameButton', function () {
 				location.href = '/game/' + $(this).data('game');
-			});
-			$('.btn-view-results').click(function() {
-				location.href = '/game/' + $(this).closest('tr').find('th').text() + '/results';
-			});
+			});				
+			$('#games_list_table').on('click', '#viewGameButton', function () {
+				location.href = '/game/' + $(this).data('game') + '/results';
+			});			
 		});
 
 block content
@@ -55,6 +55,6 @@ block content
 							td(class='col-sm-2')
 						td(class='col-sm-2')
 							if !game.is_finished
-								button(type='button' id='continueGameButton' data-game=game.id class='btn btn-primary btn-block btn-continue-game') Continue
+								button(type='button' id='continueGameButton' data-game=game.id class='btn btn-primary btn-block') Continue
 							else
-								button(type='button' class='btn btn-primary btn-block btn-view-results') View								
+								button(type='button' id='viewGameButton' data-game=game.id class='btn btn-primary btn-block') View								

@@ -52,137 +52,63 @@ router.get('/list', function (req, res) {
 
 /* Render the match view */
 router.get('/:id', function (req, res) {
-	new Match({ id: req.params.id })
-		.fetch({
-			withRelated: [
-				{ 'players': function (qb) { qb.orderBy('order', 'asc') } },
-				'game',
-				'game.game_type',
-				{ 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
-				{ 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
-			]
-		})
-		.then(function (match) {
-			var players = match.related('players').serialize();
-			var scores = match.related('scores').serialize();
-			var match = match.serialize();
+	new Match().getMatch(req.params.id, function(err, match) {
+		if (err) {
+			return helper.renderError(res, err);
+		}
 
-			if (match.is_finished) {
-				// Do not allow to see match board if it is finished, redirect to that match results
-				res.redirect('/match/' + match.id + '/results');
-			} else {
-				var playersMap = players.reduce(function ( map, player ) {
-					map['p' + player.id] = {
-						id: player.id,
-						name: player.name,
-						wins: 0,
-						wins_string: ' ',
-						ppd: 0,
-						first9ppd: 0,
-						first9Score: 0,
-						totalScore: 0,
-						visits: 0,
-						current_score: match.starting_score,
-						current: player.id === match.current_player_id ? true : false
-					}
-					return map;
-				}, {});
+		var players = match.related('players').serialize();
+		var scores = match.related('scores').serialize();
+		var match = match.serialize();
 
-				for (var i = 0; i < scores.length; i++) {
-					var score = scores[i];
-					var player = playersMap['p' + score.player_id];
+		if (match.is_finished) {
+			// Do not allow to see match board if it is finished, redirect to that match results
+			res.redirect('/match/' + match.id + '/results');
+		}
+		else {		
+			// Calculate remaining score and some statistics for each player
+			var playersMap = getPlayersMap(scores, match, players);
 
-					var visitScore = ((score.first_dart * score.first_dart_multiplier) +
-						(score.second_dart * score.second_dart_multiplier) +
-						(score.third_dart * score.third_dart_multiplier));
-					player.current_score = player.current_score - visitScore;
-					player.totalScore += visitScore;
-					player.visits += 1;
-					if (player.visits <= 3) {
-						player.first9Score += visitScore;
-					}
-				}
-				var lastVisit = scores[scores.length - 1];
-				if (lastVisit !== undefined) {
-					var lastPlayer = playersMap['p' + lastVisit.player_id];
-					lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
-				}
-
-				var lowestScore = undefined;
-				for (var id in playersMap) {
-					if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
-						lowestScore = playersMap[id].current_score;
+			knex = Bookshelf.knex;
+			knex('match')
+			.select(knex.raw(`
+				match.winner_id,
+				count(match.winner_id) as wins,
+				game_type.matches_required`
+			))
+			.where(knex.raw('match.game_id = ?', [match.game_id]))
+			.join(knex.raw('game on game.id = match.game_id'))
+			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
+			.groupBy('match.winner_id')
+			.orderByRaw('count(match.winner_id) DESC')
+			.then(function(rows) {
+				for (var i = 0; i < rows.length; i++) {
+					if (rows[i].winner_id) {
+						var playerId = rows[i].winner_id;
+						var wins = rows[i].wins;
+						var player = playersMap['p' + playerId];
+						player.wins = wins;
+						for (var j = 0; j < wins; j++) {
+							player.wins_string += '*';
+						}
 					}
 				}
 
-				// Set player ppd and first9ppd
-				for (var id in playersMap) {
-					var player = playersMap[id];
-					var dartsThrown = player.visits === 0 ? 1 : (player.visits * 3);
-
-					if (player.visits <= 3) {
-						player.first9ppd = player.first9Score / dartsThrown;
-					}
-					else {
-						player.first9ppd = player.first9Score / 9;
-					}
-					player.ppd = player.totalScore / dartsThrown;
-
-					if (lowestScore < 171 && player.current_score > 200) {
-						player.isBeerCheckoutSafe = false;
-					}
-					else {
-						player.isBeerCheckoutSafe = true;
-					}
-				}
 				// Set all scores and round number
 				match.scores = scores;
 				match.roundNumber = Math.floor(scores.length / players.length) + 1;
-
-				knex = Bookshelf.knex;
-				knex('match')
-				.select(knex.raw(`
-					match.winner_id,
-					count(match.winner_id) as wins,
-					game_type.matches_required`
-				))
-				.where(knex.raw('match.game_id = ?', [match.game_id]))
-				.join(knex.raw('game on game.id = match.game_id'))
-				.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-				.groupBy('match.winner_id')
-				.orderByRaw('count(match.winner_id) DESC')
-				.then(function(rows) {
-					var playerWins = {};
-					for (var i = 0; i < rows.length; i++) {
-						if (rows[i].winner_id) {
-							var playerId = rows[i].winner_id;
-							var wins = rows[i].wins;
-							var player = playersMap['p' + playerId];
-							player.wins = wins;
-							for (var j = 0; j < wins; j++) {
-								player.wins_string += '*';
-							}
-						}
-					}
-
-					// Set all scores and round number
-					match.scores = scores;
-					match.roundNumber = Math.floor(scores.length / players.length) + 1;
-					res.render('match_socket', {
-						match: match,
-						players: playersMap,
-						game: match.game,
-						game_type: match.game.game_type,
-					});
-				})
-				.catch(function (err) {
-					helper.renderError(res, err);
+				res.render('match_socket', {
+					match: match,
+					players: playersMap,
+					game: match.game,
+					game_type: match.game.game_type,
 				});
-			}
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
+			});
+		}
+	});
 });
 
 /* Method for getting results for a given leg */
@@ -750,46 +676,107 @@ function setupNamespace(matchId) {
 					nsp.emit('error', err);
 					return;
 				}
-				new Match().setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
+				var match = new Match();
+
+				match.setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
 					if (err) {
 						debug('ERROR: ' + err);
 						nsp.emit('error', err);
 						return;
 					}
-					new Match({ id: matchId })
-					.fetch( { withRelated: [ { 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } } ] })
-					.then(function (match) {
-						var scores = match.related('scores').serialize();
-						var match = match.serialize();
-						var players = body.playersInMatch.reduce(function ( map, player ) {
-							map['p' + player.player_id] = { id: player.player_id, current_score: match.starting_score }
-							return map;
-						}, {});
-
-						// Calculate score for each player
-						for (var i = 0; i < scores.length; i++) {
-							var score = scores[i];
-							var key = 'p' + score.player_id;
-							var player = players[key];
-							var visitScore = ((score.first_dart * score.first_dart_multiplier) +
-								(score.second_dart * score.second_dart_multiplier) +
-								(score.third_dart * score.third_dart_multiplier));
-								player.current_score = player.current_score - visitScore;
+					match.getMatch(matchId, function(err, match) {
+						if (err) {
+							debug('ERROR: ' + err);
+							nsp.emit('error', err);
+							return;
 						}
+						var scores = match.related('scores').serialize();
+						var players = match.related('players').serialize();
+						var match = match.serialize();
+						// Set the round number
+						match.round_number = Math.floor(scores.length / players.length) + 1;
+
+						var playersMap = getPlayersMap(scores, match, players);				
+
 						nsp.emit('score_update', {
-							players: players, 
+							players: playersMap,
+							match: match,
 							current_player: match.current_player_id
 						});
-					})
-					.catch(function (err) {
-						debug('ERROR: ' + err);
-						nsp.emit('error', err);
 					});
 				});
 			});
 		});
 	});
 	debug("Created socket.io namespace '%s'", namespace);
+}
+
+function getPlayersMap(scores, match, players) {
+	var playersMap = players.reduce(function ( map, player ) {
+		map['p' + player.id] = {
+			id: player.id,
+			name: player.name,
+			wins: 0,
+			wins_string: ' ',
+			ppd: 0,
+			first9ppd: 0,
+			first9Score: 0,
+			totalScore: 0,
+			visits: 0,
+			current_score: match.starting_score,
+			current: player.id === match.current_player_id ? true : false
+		}
+		return map;
+	}, {});	
+
+	for (var i = 0; i < scores.length; i++) {
+		var score = scores[i];
+		var player = playersMap['p' + score.player_id];
+
+		var visitScore = ((score.first_dart * score.first_dart_multiplier) +
+			(score.second_dart * score.second_dart_multiplier) +
+			(score.third_dart * score.third_dart_multiplier));
+		player.current_score = player.current_score - visitScore;
+		player.totalScore += visitScore;
+		player.visits += 1;
+		if (player.visits <= 3) {
+			player.first9Score += visitScore;
+		}
+	}
+	var lastVisit = scores[scores.length - 1];
+	if (lastVisit !== undefined) {
+		var lastPlayer = playersMap['p' + lastVisit.player_id];
+		lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
+	}
+	var lowestScore = undefined;
+	for (var id in playersMap) {
+		if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
+			lowestScore = playersMap[id].current_score;
+		}
+	}
+
+	// Set player ppd and first9ppd
+	for (var id in playersMap) {
+		var player = playersMap[id];
+		var dartsThrown = player.visits === 0 ? 1 : (player.visits * 3);
+
+		if (player.visits <= 3) {
+			player.first9ppd = player.first9Score / dartsThrown;
+		}
+		else {
+			player.first9ppd = player.first9Score / 9;
+		}
+		player.ppd = player.totalScore / dartsThrown;
+
+		if (lowestScore < 171 && player.current_score > 200) {
+			player.isBeerCheckoutSafe = false;
+		}
+		else {
+			player.isBeerCheckoutSafe = true;
+		}
+	}
+
+	return playersMap;
 }
 
 module.exports = function (io) {

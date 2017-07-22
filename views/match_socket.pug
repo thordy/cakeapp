@@ -24,6 +24,11 @@ block scripts
             });
 
             socket.on('score_update', function(data) {
+                console.log(data);
+
+                var match = data.match;
+                $('#rowNumber').text('R' + match.round_number);
+
                 // Set updated score per player
                 var currentPlayerId = data.current_player;
                 var players = data.players;
@@ -45,6 +50,17 @@ block scripts
                         label.attr('id', 'label_' + player.id);
                         label.removeAttr('data-current-player-id');
                     }
+                    
+                    if (!player.isBeerCheckoutSafe) {
+                        label.addClass('beer');
+                    }
+                    else {
+                        label.removeClass('beer');
+                    }
+
+                    // Update the popover with First 9 and PPD
+                    var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2);
+                    label.attr('data-content', popoverContent).data('bs.popover').setContent();
                 }
 
                 // Reset UI elements
@@ -263,6 +279,7 @@ block scripts
             });
         });
 
+
 block content
     div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
         Unable to cancel match
@@ -283,7 +300,9 @@ block content
                             span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
                 - var length = 12 / Object.keys(players).length
                 tr(class='row')
-                    td(class='txt-center')= 'R' + match.roundNumber + '/' + game_type.short_name
+                    td(class='txt-center')
+                        label(id='rowNumber' class='match_information')= 'R' + match.roundNumber
+                        label(class='match_information')= '/' +game_type.short_name
                     each player in players
                         - var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
                         if  player.current
