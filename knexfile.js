@@ -1,5 +1,5 @@
 'use strict';
-var sqliteConfig = {
+var dbConfig = {
 	development: {
         client: 'mysql',
         connection: {
@@ -19,4 +19,4 @@ var sqliteConfig = {
         }
 	}
 };
-module.exports = sqliteConfig;
+module.exports = dbConfig;
