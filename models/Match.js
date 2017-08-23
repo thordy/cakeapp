@@ -1,14 +1,16 @@
 'use strict';
+const debug = require('debug')('dartapp:match-model');
 
-var bookshelf = require('../bookshelf');
+const bookshelf = require('../bookshelf');
 bookshelf.plugin('registry');
+const moment = require('moment');
 
-var Player = require('./Player');
-var Player2Match = require('./Player2match');
-var Score = require('./Score');
-var Game = require('./Game');
-var GameType = require('./GameType');
-var StatisticsX01 = require('./StatisticsX01');
+const Player = require('./Player');
+const Player2Match = require('./Player2match');
+const Score = require('./Score');
+const Game = require('./Game');
+const GameType = require('./GameType');
+const StatisticsX01 = require('./StatisticsX01');
 
 var Match = bookshelf.Model.extend({
     tableName: 'match',
@@ -94,6 +96,47 @@ var Match = bookshelf.Model.extend({
             .catch(function (err) {
                 callback(err)
             });
+    },
+    createMatch: function(gameId, startingScore, startingPlayerId, players, callback) {
+        new Match({
+            starting_score: startingScore,
+            current_player_id: startingPlayerId,
+            game_id: gameId,
+            created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+        })
+        .save(null, {method: 'insert'})
+        .then(function (match) {
+            debug('Created match %s', match.id);
+
+            // Update game and set current match id
+            new Game({ id: gameId, current_match_id: match.id })
+            .save()
+            .then(function (game) {
+                var playersArray = players;
+                var playerOrder = 1;
+                var playersInMatch = [];
+                for (var i in playersArray) {
+                    playersInMatch.push({
+                        player_id: playersArray[i],
+                        match_id: match.id,
+                        order: playerOrder,
+                        game_id: gameId,
+                    });
+                    playerOrder++;
+                }
+                bookshelf.knex('player2match')
+                    .insert(playersInMatch)
+                    .then(function (rows) {
+                        callback(null, match);
+                    })
+                    .catch(function (err) {
+                        callback(err);
+                    });
+            });
+        })
+        .catch(function (err) {
+            callback(err);
+        })
     }
 },
 {

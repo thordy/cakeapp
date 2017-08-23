@@ -34,6 +34,7 @@ block scripts
                 var players = data.players;
                 for (key in players) {
                     var player = players[key];
+                    console.log(player)
                     var td = $('#player_score_' + player.id);
                     var label = td.find('.label-player-score');
                     label.text(player.current_score);
@@ -56,6 +57,12 @@ block scripts
                     }
                     else {
                         label.removeClass('beer');
+                    }
+                    if (player.isViliusVisit) {
+                        label.addClass('vilius');
+                    }
+                    else {
+                        label.removeClass('vilius');
                     }
 
                     // Update the popover with First 9 and PPD
@@ -301,7 +308,7 @@ block content
                 - var length = 12 / Object.keys(players).length
                 tr(class='row')
                     td(class='txt-center')
-                        label(id='rowNumber' class='match_information')= 'R' + match.roundNumber
+                        label(id='rowNumber' class='match_information')= 'R' + match.round_number
                         label(class='match_information')= '/' +game_type.short_name
                     each player in players
                         - var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)

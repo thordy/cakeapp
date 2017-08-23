@@ -229,7 +229,7 @@ block content
 							span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
 				- var length = 12 / Object.keys(players).length
 				tr(class='row')
-					td(class='txt-center')= 'R' + match.roundNumber + '/' + game_type.short_name
+					td(class='txt-center')= 'R' + match.round_number + '/' + game_type.short_name
 					each player in players
 						- var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
 						if player.id = player.current

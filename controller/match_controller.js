@@ -67,7 +67,7 @@ router.get('/:id', function (req, res) {
 		}
 		else {		
 			// Calculate remaining score and some statistics for each player
-			var playersMap = getPlayersMap(scores, match, players);
+			var playersMap = new Player().getPlayersMap(scores, match, players);
 
 			knex = Bookshelf.knex;
 			knex('match')
@@ -96,7 +96,7 @@ router.get('/:id', function (req, res) {
 
 				// Set all scores and round number
 				match.scores = scores;
-				match.roundNumber = Math.floor(scores.length / players.length) + 1;
+				match.round_number = Math.floor(scores.length / players.length) + 1;
 				res.render('match_socket', {
 					match: match,
 					players: playersMap,
@@ -233,51 +233,14 @@ router.post('/new', function (req, res) {
 	})
 	.save(null, {method: 'insert'})
 	.then(function (game) {
-		new Match({
-			starting_score: req.body.matchType,
-			current_player_id: currentPlayerId,
-			game_id: game.id,
-			created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-		})
-		.save(null, {method: 'insert'})
-		.then(function (match) {
-			debug('Created match %s', match.id);
-
-			// Update game and set current match id
-			new Game({
-				id: game.id,
-				current_match_id: match.id
-			})
-			.save()
-			.then(function (game) {
-				var playersArray = req.body.players;
-				var playerOrder = 1;
-				var playersInMatch = [];
-				for (var i in playersArray) {
-					playersInMatch.push({
-						player_id: playersArray[i],
-						match_id: match.id,
-						order: playerOrder,
-						game_id: game.id,
-					});
-					playerOrder++;
-				}
-
-				Bookshelf
-					.knex('player2match')
-					.insert(playersInMatch)
-					.then(function (rows) {
-						debug('Added players %s', playersArray);
-						setupNamespace(match.id);
-						res.redirect('/match/' + match.id);
-					})
-					.catch(function (err) {
-						helper.renderError(res, err);
-					});
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+		var players = req.body.players;
+		new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
+			if (err) {
+				return helper.renderError(res, err);
+			}
+			debug('Added players %s', players);
+			socketHandler.setupNamespace(match.id);
+			res.redirect('/match/' + match.id);
 		});
 	})
 	.catch(function (err) {
@@ -286,7 +249,7 @@ router.post('/new', function (req, res) {
 });
 
 /* Modify the score */
-router.post('/:id/results', function (req, res) {
+router.post('/:id/leg', function (req, res) {
 	// TODO Only allow if match is not finished
 
 	// Assign those values to vars since they will be used in other places
@@ -321,13 +284,23 @@ router.post('/:id/results', function (req, res) {
 
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
-	Match.forge({ id: req.params.id })
+	var matchId = req.params.id;
+	Match.forge({ id: matchId })
 		.destroy()
 		.then(function (match) {
-			debug('Cancelled match %s', req.params.id);
-			res.status(204)
+			debug('Cancelled match %s', matchId);
+			/*bookshelf.knex.raw(`UPDATE game SET current_match_id = NULL WHERE current_match_id = ?`, matchId)
+			.then(function(rows) {
+				res.status(204)
 				.send()
 				.end();
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
+			});*/
+			res.status(204)
+				.send()
+				.end();			
 		});
 });
 
@@ -443,9 +416,8 @@ router.post('/:id/finish', function (req, res) {
 						return;
 					}
 					// Send match finished message to all clients, and remove namespace
-					var nsp = this.io.of('/match/' + matchId);
-					nsp.emit('match_finished', 'Match is finished!');
-					removeNamespace(matchId);
+					socketHandler.emitMessage(matchId, 'match_finished', 'Match is finished!');
+					socketHandler.removeNamespace(matchId);
 				});
 		});
 });
@@ -637,156 +609,14 @@ function getAccuracyStats(score, multiplier, stats, remainingScore) {
 	}
 }
 
-function isViliusVisit(visit) {
-	if (visit.first_dart_multiplier != 1 || visit.second_dart_multiplier != 1 || visit.third_dart_multiplier != 1) {
-		return false;
-	}
-	if ((visit.first_dart == 20 && visit.second_dart == 0 && visit.third_dart == 20) ||
-		(visit.first_dart == 0 && visit.second_dart == 20 && visit.third_dart == 20) ||
-		(visit.first_dart == 20 && visit.second_dart == 20 && visit.third_dart == 0)) {
-		return true;
-	}
-	return false;
-}
-
-function removeNamespace(matchId) {
-	var namespace = '/match/' + matchId;
-	delete io.nsps[namespace];
-	debug("Removed socket.io namespace '%s'", namespace)
-}
-
-function setupNamespace(matchId) {
-	var namespace = '/match/' + matchId;
-	var nsp = this.io.of(namespace);
-	nsp.on('connection', function(client){
-		debug('Client connected: ' + client.handshake.address);
-
-		client.on('join', function(data) {
-			client.emit('connected', 'Connected to server');
-		});
-
-		client.on('throw', function(data) {
-			debug('Revieced throw from ' + client.handshake.address);
-			var body = JSON.parse(data);
-			var matchId = body.matchId;
-
-			new Score().addVisit(body, function(err, rows) {
-				if (err) {
-					debug('ERROR: ' + err);
-					nsp.emit('error', err);
-					return;
-				}
-				var match = new Match();
-
-				match.setCurrentPlayer(matchId, body.playerId, body.playersInMatch, function(err, match) {
-					if (err) {
-						debug('ERROR: ' + err);
-						nsp.emit('error', err);
-						return;
-					}
-					match.getMatch(matchId, function(err, match) {
-						if (err) {
-							debug('ERROR: ' + err);
-							nsp.emit('error', err);
-							return;
-						}
-						var scores = match.related('scores').serialize();
-						var players = match.related('players').serialize();
-						var match = match.serialize();
-						// Set the round number
-						match.round_number = Math.floor(scores.length / players.length) + 1;
-
-						var playersMap = getPlayersMap(scores, match, players);				
-
-						nsp.emit('score_update', {
-							players: playersMap,
-							match: match,
-							current_player: match.current_player_id
-						});
-					});
-				});
-			});
-		});
-	});
-	debug("Created socket.io namespace '%s'", namespace);
-}
-
-function getPlayersMap(scores, match, players) {
-	var playersMap = players.reduce(function ( map, player ) {
-		map['p' + player.id] = {
-			id: player.id,
-			name: player.name,
-			wins: 0,
-			wins_string: ' ',
-			ppd: 0,
-			first9ppd: 0,
-			first9Score: 0,
-			totalScore: 0,
-			visits: 0,
-			current_score: match.starting_score,
-			current: player.id === match.current_player_id ? true : false
-		}
-		return map;
-	}, {});	
-
-	for (var i = 0; i < scores.length; i++) {
-		var score = scores[i];
-		var player = playersMap['p' + score.player_id];
-
-		var visitScore = ((score.first_dart * score.first_dart_multiplier) +
-			(score.second_dart * score.second_dart_multiplier) +
-			(score.third_dart * score.third_dart_multiplier));
-		player.current_score = player.current_score - visitScore;
-		player.totalScore += visitScore;
-		player.visits += 1;
-		if (player.visits <= 3) {
-			player.first9Score += visitScore;
-		}
-	}
-	var lastVisit = scores[scores.length - 1];
-	if (lastVisit !== undefined) {
-		var lastPlayer = playersMap['p' + lastVisit.player_id];
-		lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
-	}
-	var lowestScore = undefined;
-	for (var id in playersMap) {
-		if (lowestScore === undefined || lowestScore > playersMap[id].current_score) {
-			lowestScore = playersMap[id].current_score;
-		}
-	}
-
-	// Set player ppd and first9ppd
-	for (var id in playersMap) {
-		var player = playersMap[id];
-		var dartsThrown = player.visits === 0 ? 1 : (player.visits * 3);
-
-		if (player.visits <= 3) {
-			player.first9ppd = player.first9Score / dartsThrown;
-		}
-		else {
-			player.first9ppd = player.first9Score / 9;
-		}
-		player.ppd = player.totalScore / dartsThrown;
-
-		if (lowestScore < 171 && player.current_score > 200) {
-			player.isBeerCheckoutSafe = false;
-		}
-		else {
-			player.isBeerCheckoutSafe = true;
-		}
-	}
-
-	return playersMap;
-}
-
-module.exports = function (io) {
-	this.io = io;
+module.exports = function (socketHandler) {
+	this.socketHandler = socketHandler;
 
 	// Create socket.io namespaces for all matches which are currently active
 	Match.forge().where('is_finished', '<>', 1).fetchAll().then(function (rows) {
 		var matches = rows.serialize();
 		for (var i = 0; i < matches.length; i++) {
-			setupNamespace(matches[i].id);
+			socketHandler.setupNamespace(matches[i].id);
 		}
 	})
 	.catch(function (err) {

@@ -9,16 +9,18 @@ var io = require('socket.io')(server);
 var helper = require('./helpers.js');
 
 // Register all the routes
-//var socketHandler = require('./lib/socketHandler')(io);
-//socketHandler.setupNamespace(123);
-var matchController = require('./controller/match_controller')(io);
-var gameController = require('./controller/game_controller')(io);
-var cakeController = require('./controller/owes_controller');
-var playerController = require('./controller/player_controller');
+const socketHandler = require('./lib/socketHandler')(io);
+
+const matchController = require('./controller/match_controller')(socketHandler);
+const gameController = require('./controller/game_controller')(socketHandler);
+const cakeController = require('./controller/owes_controller');
+const playerController = require('./controller/player_controller');
+const statisticsController = require('./controller/statistics_controller');
 app.use('/match', matchController);
 app.use('/game', gameController);
 app.use('/cake', cakeController);
-app.use('/player', playerController)
+app.use('/player', playerController);
+app.use('/statistics', statisticsController);
 
 app.use(bodyParser.json()); // Accept incoming JSON entities
 app.set('view engine', 'pug');
