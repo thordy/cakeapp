@@ -56,6 +56,7 @@ function getStatistics(from, to, callback) {
         WHERE s.match_id IN (SELECT id FROM \`match\` WHERE end_time >= :from AND end_time < :to)
         GROUP BY p.id`, {from: from, to: to})
     .then(function(rows) {
+        var weeklyStatistics = _.indexBy(rows[0], 'player_id');
         bookshelf.knex.raw(`
             SELECT
                 p.id AS 'player_id',
@@ -65,9 +66,8 @@ function getStatistics(from, to, callback) {
                 JOIN player p ON p.id = g.winner_id
             WHERE g.updated_at >= :from AND g.updated_at < :to
             GROUP BY g.winner_id`, {from: from, to: to})
-        .then(function(rows2) {
-            var matchesWon = _.indexBy(rows2[0], 'player_id');
-            var weeklyStatistics = _.indexBy(rows[0], 'player_id');
+        .then(function(rows) {
+            var matchesWon = _.indexBy(rows[0], 'player_id');
             _.each(matchesWon, function(stats) {
                 var weekly = weeklyStatistics[stats.player_id];
                 weekly.matches_won = stats.matches_won;
