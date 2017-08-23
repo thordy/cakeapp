@@ -1,0 +1,78 @@
+extends layout.pug
+
+block scripts
+    script.
+        $(function () {
+            $(document).ready(function(){
+                var matchId = 3; // TODO Get real Match ID
+                var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
+                socket.on('connect', function(data) {
+                    socket.emit('join', 'Client Conneting');
+                });
+
+                socket.on('connected', function(data) {
+                    console.log(data);
+                });
+                socket.on('possible_throw', function(data) {
+                    console.log(data);
+                    var dart;
+                    if (data.darts_thrown === 1) {
+                        dart = $('#first');
+                    }
+                    else if (data.darts_thrown === 2) {
+                        dart = $('#second');
+                    }
+                    else if (data.darts_thrown === 3) {
+                        dart = $('#third');
+                    }
+                    dart.text(data.dart_text);
+
+                    if (data.multiplier == 3) {
+                        dart.css('background-color', '#d9534f');
+                    }
+                    else if (data.multiplier == 2) {
+                        dart.css('background-color', 'orange');
+                    }
+                    else {
+                        dart.css('background-color', 'black');
+                    }
+                    $('#total').text(data.score + parseInt($('#total').text()))
+                });
+
+                socket.on('score_update', function(data) {
+                    console.log(data);
+                });
+            });
+        });
+
+block content
+    h2 Match Spectate
+
+    h3 Players
+    div(class='table-responsive')
+        table(class='table table-striped table-bordered')
+            thead
+                tr
+                    th Player
+                    th Score
+            tbody
+                each player in players
+                    tr
+                        td= player.name
+                        td= player.current_score
+
+    h3 Throws
+    div(class='table-responsive')
+        table(class='table table-striped table-bordered' id='spectate_table')
+            thead
+                tr
+                    th(colspan='2') First
+                    th(colspan='2') Second
+                    th(colspan='2') Third
+                    th Total
+            tbody
+                tr
+                    td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1' data-checkout='0')
+                    td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
+                    td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
+                    td: label(id='total' text='0') 0

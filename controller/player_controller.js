@@ -159,7 +159,7 @@ router.get('/compare', function (req, res) {
 			}
 
 			var statistics = Object.keys(playersMap).map(function(v) { return playersMap[v].statistics; });
-			res.render('playerComparison', { players: statistics });
+			res.render('player_comparison', { players: statistics });
 		});
 	});
 });
