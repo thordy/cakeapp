@@ -4,7 +4,7 @@ block content
     h2 Weekly Statistics
 
     h3 Current
-    if weekly.this_week !== undefined
+    if weekly.this_week === undefined
         p No matches played yet this week...
     else
         div(class='table-responsive')
@@ -32,7 +32,7 @@ block content
                             td
                             td= stats.player_name
                             td= stats.matches_played
-                            td= stats.matches_won === undefined ? 0 : stats.matches_won
+                            td= stats.games_won === undefined ? 0 : stats.games_won
                             td= stats.ppd.toFixed(2)
                             td= stats.first_nine_ppd.toFixed(2)
                             td= stats['60s_plus']
@@ -44,7 +44,7 @@ block content
                             td= stats.accuracy_19 === null ? '-' : stats.accuracy_19.toFixed(2)
 
     h3 Last Week
-    if weekly.last_week !== undefined
+    if weekly.last_week === undefined
         p No matches were played last week
     else
         div(class='table-responsive')
@@ -72,7 +72,7 @@ block content
                             td
                             td= stats.player_name
                             td= stats.matches_played
-                            td= stats.matches_won === undefined ? 0 : stats.matches_won
+                            td= stats.games_won === undefined ? 0 : stats.games_won
                             td= stats.ppd.toFixed(2)
                             td= stats.first_nine_ppd.toFixed(2)
                             td= stats['60s_plus']

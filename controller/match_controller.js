@@ -575,6 +575,8 @@ function getPlayerStatistics(players, scores, startingScore) {
 		else if (totalVisitScore == 180) {
 			player.highScores['180'] += 1;
 		}
+		player.remainingScore -= totalVisitScore;
+
 		if (score.first_dart !== null) {
 			getAccuracyStats(score.first_dart, score.first_dart_multiplier, player.accuracyStats, player.remainingScore);
 			player.dartsThrown++;
@@ -604,8 +606,8 @@ function getPlayerStatistics(players, scores, startingScore) {
 		var accuracyStats = player.accuracyStats;
 		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
-		accuracyStats.accuracy20 = accuracyStats.accuracy20 == 0 ? 0 : accuracyStats.accuracy20 / (accuracyStats.attempts20 + accuracyStats.misses);
-		accuracyStats.accuracy19 = accuracyStats.accuracy19 == 0 ? 0 : accuracyStats.accuracy19 / (accuracyStats.attempts19 + accuracyStats.misses);
+		accuracyStats.accuracy20 = accuracyStats.accuracy20 == 0 ? 0 : accuracyStats.accuracy20 / accuracyStats.attempts20;
+		accuracyStats.accuracy19 = accuracyStats.accuracy19 == 0 ? 0 : accuracyStats.accuracy19 / accuracyStats.attempts19;
 	}
 	return playerMap;
 }
@@ -675,5 +677,6 @@ module.exports = function (socketHandler) {
 	.catch(function (err) {
 		debug('Unable to get active matches from database: %s', err);
 	});
+
 	return router;
 };

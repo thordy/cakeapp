@@ -61,7 +61,7 @@ function getStatistics(from, to, callback) {
             SELECT
                 p.id AS 'player_id',
                 p.name AS 'player',
-                COUNT(g.winner_id) AS 'matches_won'
+                COUNT(g.winner_id) AS 'games_won'
             FROM game g
                 JOIN player p ON p.id = g.winner_id
             WHERE g.updated_at >= :from AND g.updated_at < :to
@@ -70,7 +70,7 @@ function getStatistics(from, to, callback) {
             var matchesWon = _.indexBy(rows[0], 'player_id');
             _.each(matchesWon, function(stats) {
                 var weekly = weeklyStatistics[stats.player_id];
-                weekly.matches_won = stats.matches_won;
+                weekly.games_won = stats.games_won;
             });
             callback(null, weeklyStatistics);
         })
