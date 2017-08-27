@@ -2,9 +2,10 @@ extends layout.pug
 
 block scripts
     script.
+        var match =!{JSON.stringify(match)}
         $(function () {
             $(document).ready(function(){
-                var matchId = 3; // TODO Get real Match ID
+                var matchId = match.id;
                 var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
                 socket.on('connect', function(data) {
                     socket.emit('join', 'Client Conneting');
@@ -36,11 +37,20 @@ block scripts
                     else {
                         dart.css('background-color', 'black');
                     }
-                    $('#total').text(data.score + parseInt($('#total').text()))
+                    $('#total').text(data.score + parseInt($('#total').text()));
                 });
 
                 socket.on('score_update', function(data) {
-                    console.log(data);
+                    var players = data.players;
+                    for (key in players) {
+                        var player = players[key];
+                        $('#player_id_' + player.id).text(player.current_score);
+                    }
+                    // Reset UI elements
+                    $('#first').text('');
+                    $('#second').text('');
+                    $('#third').text('');
+                    $('#total').text(0);
                 });
             });
         });
@@ -59,7 +69,7 @@ block content
                 each player in players
                     tr
                         td= player.name
-                        td= player.current_score
+                        td(id='player_id_' + player.id)= player.current_score
 
     h3 Throws
     div(class='table-responsive')

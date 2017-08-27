@@ -111,6 +111,7 @@ router.get('/:id', function (req, res) {
 	});
 });
 
+/* Render the match spectate view */
 router.get('/:id/spectate', function (req, res) {
 	new Match().getMatch(req.params.id, function(err, match) {
 		if (err) {
