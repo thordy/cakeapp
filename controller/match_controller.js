@@ -406,7 +406,7 @@ router.post('/:id/finish', function (req, res) {
 						end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 					})
 					.then(function (row) {
-						writeStatistics(match, function(err) {
+						writeStatistics(match, currentPlayerId, function(err) {
 							if(err) {
 								debug('ERROR Unable to insert statistics match %s: %s', matchId, err);
 								return helper.renderError(res, err);
@@ -475,7 +475,7 @@ router.post('/:id/finish', function (req, res) {
 		});
 });
 
-function writeStatistics(match, callback) {
+function writeStatistics(match, winnerPlayerId, callback) {
 	// Get all players in the match and set their statistics
 	var matchId = match.id;
 	Player2match
@@ -494,6 +494,12 @@ function writeStatistics(match, callback) {
 					var playerMap = getPlayerStatistics(players, scoreRows.serialize(), match.starting_score);
 					for (id in playerMap) {
 						var player = playerMap[id];
+
+						if (player.id == winnerPlayerId) {
+							// Set checkout percentage fo winning player
+							player.checkoutPercentage = 100 / player.checkoutAttempts;
+						}
+
 						var stats = new StatisticsX01({
 							match_id: matchId,
 							player_id: player.id,
@@ -501,7 +507,7 @@ function writeStatistics(match, callback) {
 							first_nine_ppd: player.first9ppd,
 							checkout_percentage: player.checkoutPercentage,
 							darts_thrown: player.dartsThrown,
-							accuracy_20: player.accuracyStats.accuracy20 == 0 ? null : player.accuracyStats.accuracy20,
+							accuracy_20: player.accuracyStats.accuracy20 === 0 ? null : player.accuracyStats.accuracy20,
 							accuracy_19: player.accuracyStats.accuracy19 === 0 ? null : player.accuracyStats.accuracy19,
 							overall_accuracy: player.accuracyStats.overallAccuracy
 						});
@@ -537,6 +543,7 @@ function getPlayerStatistics(players, scores, startingScore) {
 			visits: 0,
 			scores: [],
 			dartsThrown: 0,
+			checkoutAttempts: 0,
 			highScores: { '60+': 0, '100+': 0, '140+': 0, '180': 0 },
 			accuracyStats: {
 				accuracy20: 0, attempts20: 0, hits20: 0,
@@ -550,6 +557,19 @@ function getPlayerStatistics(players, scores, startingScore) {
 	for (var i = 0; i < scores.length; i++) {
 		var score = scores[i];
 		var player = playerMap[score.player_id];
+
+		var checkoutAttempts = 0;
+		if (score.is_checkout_first) {
+			checkoutAttempts++;
+		}
+		if (score.is_checkout_second) {
+			checkoutAttempts++;
+		}
+		if (score.is_checkout_third) {
+			checkoutAttempts++;
+		}
+		player.checkoutAttempts += checkoutAttempts;
+
 		if (score.is_bust) {
 			continue;
 		}
