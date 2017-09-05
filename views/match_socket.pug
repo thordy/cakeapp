@@ -186,7 +186,7 @@ block scripts
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     var scoreNumeric = parseInt($(this).attr('title'));
                     var dartScore = scoreNumeric ? scoreNumeric : 0;
-
+                    var currentPlayerId = $('#submitScoreButton').data('current-player-id');
                     var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
 
                     // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
@@ -221,6 +221,7 @@ block scripts
 
                     // Emit a dart throw for spectators
                     socket.emit('possible_throw', {
+                            current_player_id: currentPlayerId,
                             score: scoreNumeric,
                             dart_text: multiplierText,
                             multiplier: multiplier,
@@ -252,6 +253,7 @@ block scripts
                     if (window.darts_thrown < 1) {
                         return;
                     }
+                    var currentPlayerId = $('#submitScoreButton').data('current-player-id');
                     var currentPlayer = $('#current_player');
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     window.darts_thrown--;
@@ -259,6 +261,7 @@ block scripts
 
                     // Emit a undo throw to spectators
                     socket.emit('undo_throw', {
+                            current_player_id: currentPlayerId,
                             score: -scores[window.darts_thrown],
                             dart_text: '',
                             multiplier: 1,

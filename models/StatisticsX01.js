@@ -20,6 +20,19 @@ var StatisticsX01 = bookshelf.Model.extend({
 		var checkoutStatistics = {};
 		bookshelf.knex.raw(`
 			SELECT
+				s.player_id,
+				MAX(IFNULL(s.first_dart * s.first_dart_multiplier, 0) +
+				IFNULL(s.second_dart * s.second_dart_multiplier, 0) +
+				IFNULL(s.third_dart * s.third_dart_multiplier, 0)) AS 'highest_checkout'
+			FROM score s
+				JOIN \`match\` m ON m.id = s.match_id
+			WHERE m.winner_id = s.player_id
+				AND s.player_id IN (` + placeHolders + `)
+				AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
+			GROUP BY player_id
+			ORDER BY highest_checkout DESC`, playerIds
+			/*
+			SELECT
 				MAX(s.id) as 'row_id',
 				s.match_id,
 				s.player_id,
@@ -27,11 +40,11 @@ var StatisticsX01 = bookshelf.Model.extend({
 				IFNULL(s.second_dart * s.second_dart_multiplier, 0) +
 				IFNULL(s.third_dart * s.third_dart_multiplier, 0) as 'checkout'
 			FROM score s
-			JOIN \`match\` m ON m.id = s.match_id
+				JOIN \`match\` m ON m.id = s.match_id
 			WHERE m.winner_id = s.player_id
-			AND s.player_id IN (` + placeHolders + `)
-			AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
-			GROUP BY match_id`, playerIds
+				AND s.player_id IN (` + placeHolders + `)
+				AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
+			GROUP BY match_id`, playerIds*/
 		)
 		.then(function(rows) {
 			checkoutStatistics.checkouts = rows[0];
@@ -42,8 +55,8 @@ var StatisticsX01 = bookshelf.Model.extend({
 					COUNT(NULLIF(0, is_checkout_second)) +
 					COUNT(NULLIF(0, is_checkout_third)) AS 'checkout_attempts'
 				FROM score s
-				WHERE (is_checkout_first = 1 OR is_checkout_second = 1 OR is_checkout_third = 1)
-				AND player_id IN  (` + placeHolders + `)
+					WHERE (is_checkout_first = 1 OR is_checkout_second = 1 OR is_checkout_third = 1)
+					AND player_id IN  (` + placeHolders + `)
 				GROUP BY player_id`, playerIds
 			)
 			.then(function(rows) {

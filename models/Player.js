@@ -44,6 +44,9 @@ var Player = bookshelf.Model.extend({
 
         for (var i = 0; i < scores.length; i++) {
             var score = scores[i];
+            if (score.is_bust) {
+                continue;
+            }
             var player = playersMap['p' + score.player_id];
 
             var visitScore = ((score.first_dart * score.first_dart_multiplier) +

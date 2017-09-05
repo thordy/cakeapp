@@ -25,13 +25,12 @@ block content
                         th Accuracy (20s)
                         th Accuracy (19s)
                 tbody
-                    // - var rank = 1
+                    - var rank = 1
                     each stats in weekly.this_week
                         tr
-                            // td= rank++
-                            td
+                            td= rank++
                             td= stats.player_name
-                            td= stats.matches_played
+                            td= stats.games_played
                             td= stats.games_won === undefined ? 0 : stats.games_won
                             td= stats.ppd.toFixed(2)
                             td= stats.first_nine_ppd.toFixed(2)
@@ -65,13 +64,12 @@ block content
                         th Accuracy (20s)
                         th Accuracy (19s)
                 tbody
-                    // - var rank = 1
+                    - var rank = 1
                     each stats in weekly.last_week
                         tr
-                            // td= rank++
-                            td
+                            td= rank++
                             td= stats.player_name
-                            td= stats.matches_played
+                            td= stats.games_played
                             td= stats.games_won === undefined ? 0 : stats.games_won
                             td= stats.ppd.toFixed(2)
                             td= stats.first_nine_ppd.toFixed(2)

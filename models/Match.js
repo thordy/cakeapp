@@ -87,7 +87,7 @@ var Match = bookshelf.Model.extend({
                 { 'players': function (qb) { qb.orderBy('order', 'asc') } },
                 'game',
                 'game.game_type',
-                { 'scores': function (qb) { qb.where('is_bust', '0'); qb.orderBy('id', 'asc') } },
+                { 'scores': function (qb) { /*qb.where('is_bust', '0');*/ qb.orderBy('id', 'asc') } },
                 { 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
             ] } )				
             .then(function (row) {

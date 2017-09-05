@@ -12,6 +12,7 @@ var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
+var _ = require('underscore');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
@@ -95,6 +96,7 @@ router.get('/:id', function (req, res) {
 				}
 
 				// Set all scores and round number
+				scores = _.filter(scores, (score) => !scores.is_bust);
 				match.scores = scores;
 				match.round_number = Math.floor(scores.length / players.length) + 1;
 				res.render('match_socket', {
@@ -156,6 +158,7 @@ router.get('/:id/spectate', function (req, res) {
 				match: match,
 				players: playersMap,
 				game: match.game,
+				visits: scores,
 				game_type: match.game.game_type,
 			});
 		})

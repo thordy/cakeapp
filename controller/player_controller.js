@@ -143,13 +143,10 @@ router.get('/compare', function (req, res) {
 			var checkouts = rows.checkouts;
 			for (var i = 0; i < checkouts.length; i++) {
 				var row = checkouts[i];
-				var stats = playersMap[row.player_id].statistics;
-				if (stats.highestCheckout === undefined || stats.highestCheckout < row.checkout) {
-					stats.highestCheckout = row.checkout;
-				}
+				playersMap[row.player_id].statistics.highestCheckout = row.highest_checkout;
 			}
 			// Calculate checkout percentage for each player
-			if (row !== undefined) {
+			if (rows !== undefined) {
 				var attempts = rows.attempts;
 				for (var i = 0; i < attempts.length; i++) {
 					var row = attempts[i];
