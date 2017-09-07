@@ -1,6 +1,7 @@
 var debug = require('debug')('dartapp:main');
 
 var express = require('express');
+var compression = require('compression');
 var bodyParser = require('body-parser');
 var app = express();
 var server = require('http').createServer(app);
@@ -23,6 +24,7 @@ app.use('/player', playerController);
 app.use('/statistics', statisticsController);
 
 app.use(bodyParser.json()); // Accept incoming JSON entities
+app.use(compression());  // Enable gzip Compression
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 

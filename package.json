@@ -12,6 +12,7 @@
     "body-parser": "^1.16.1",
     "bookshelf": "^0.10.3",
     "bookshelf-cascade-delete": "^2.0.1",
+    "compression": "^1.7.0",
     "debug": "^2.6.3",
     "express": "^4.15.3",
     "knex": "^0.12.9",
