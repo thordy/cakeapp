@@ -46,10 +46,12 @@ block scripts
                 });
 
                 socket.on('score_update', function(data) {
+                    console.log(data);
                     var players = data.players;
                     for (key in players) {
                         var player = players[key];
                         $('#player_id_' + player.id).text(player.current_score);
+                        $('#player_id_' + player.id + '_ppd').text(player.ppd.toFixed(2));
                         if (player.current) {
                             $('#current_player').text(player.name);
                         }
@@ -73,9 +75,9 @@ block scripts
                     var html = 
                         "<tr>" +
                             "<td>" + playerName + "</td>" +
-                            "<td class='dart-score-container no-border'><label class='btn-score " + firstDartCSS + "'>" + firstDartScore + "</label></td>" + 
-                            "<td class='dart-score-container no-border'><label class='btn-score " + secondDartCSS + "'>" + secondDartScore + "</label></td>" +
-                            "<td class='dart-score-container no-border'><label class='btn-score " + thirdDartCSS + "'>" + thirdDartScore + "</label></td>" +
+                            "<td class='dart-score-container no-border'><label class='" + firstDartCSS + "'>" + firstDartScore + "</label></td>" + 
+                            "<td class='dart-score-container no-border'><label class='" + secondDartCSS + "'>" + secondDartScore + "</label></td>" +
+                            "<td class='dart-score-container no-border'><label class='" + thirdDartCSS + "'>" + thirdDartScore + "</label></td>" +
                             "<td><label>" + total + "</label></td>" + 
                         "</tr>";
                     $('#visits_table > tbody > tr:first').after(html);
@@ -88,10 +90,10 @@ block scripts
                 // Add a row to the top of the table which contains the current throw for a given player
                 var html = 
                     "<tr>" +
-                        "<td id='current_player'>" + playersMap['p' + match.current_player_id].name + "</td>" +
-                        "<td class='dart-score-container no-border'><label id='first' class='btn-score' text='0' data-multiplier='1' data-checkout='0'></label></td>" + 
-                        "<td class='dart-score-container no-border'><label id='second' class='btn-score' text='0' data-multiplier='1' data-checkout='0'></label></td>" +
-                        "<td class='dart-score-container no-border'><label id='third' class='btn-score' text='0' data-multiplier='1' data-checkout='0'></label></td>" +
+                        "<td id='current_player' style='height: 50px;'>" + playersMap['p' + match.current_player_id].name + "</td>" +
+                        "<td class='dart-score-container no-border'><label id='first' text='0' data-multiplier='1' data-checkout='0'></label></td>" + 
+                        "<td class='dart-score-container no-border'><label id='second' text='0' data-multiplier='1' data-checkout='0'></label></td>" +
+                        "<td class='dart-score-container no-border'><label id='third' text='0' data-multiplier='1' data-checkout='0'></label></td>" +
                         "<td><label id='total' text='0'>0</label></td>" + 
                     "</tr>";
                 $('#visits_table').prepend(html);  
@@ -125,7 +127,8 @@ block scripts
         });
 
 block content
-    h2 Match Spectate
+    h2= 'Spectate (' + match.id + ')'
+    h4= match.game.game_type.name + ' / ' + match.starting_score 
 
     h3 Players
     div(class='table-responsive')
@@ -134,11 +137,13 @@ block content
                 tr
                     th Player
                     th Score
+                    th PPD
             tbody
                 each player in players
                     tr
-                        td: label(style='text-align: center;font-size: 1.5em;')= player.name + player.wins_string
-                        td(align='center'): label(id='player_id_' + player.id style='text-align: center;font-size: 1.5em;')= player.current_score
+                        td: label(style='text-align: center;font-size: 1em;')= player.name + player.wins_string
+                        td(align='center'): label(id='player_id_' + player.id style='text-align: center;font-size: 1em;')= player.current_score
+                        td(align='center'): label(id='player_id_' + player.id + '_ppd' style='font-weight: 500;')= player.ppd.toFixed(2)
 
     h3 Visits
     div(class='table-responsive')
@@ -199,4 +204,8 @@ block content
                                     label(class='btn-score') Bull
                                 else
                                     label(class='btn-score')= visit.third_dart                        
-                        td: label= (visit.first_dart_multiplier * visit.first_dart ) + (visit.second_dart_multiplier * visit.second_dart) + (visit.third_dart_multiplier * visit.third_dart)
+                        td
+                            if visit.is_bust === 1
+                                label BUST
+                            else
+                                label= (visit.first_dart_multiplier * visit.first_dart ) + (visit.second_dart_multiplier * visit.second_dart) + (visit.third_dart_multiplier * visit.third_dart)

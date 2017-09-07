@@ -27,6 +27,7 @@ block scripts
 
                 socket.on('score_update', function(data) {
                     console.log(data);
+                    $('#submitScoreButton').prop('disabled', false);
 
                     var match = data.match;
                     $('#rowNumber').text('R' + match.round_number);
@@ -91,6 +92,8 @@ block scripts
                 });
 
                 $('#submitScoreButton').click(function (event) {
+                    $('#submitScoreButton').prop('disabled', true);
+
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
                     // Scores
                     var firstScoreNumeric = $('#first').attr('data-score');
