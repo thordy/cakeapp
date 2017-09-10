@@ -41,10 +41,10 @@ block content
 								option(value=gameType.matches_required)=gameType.name
 
 					div(class='form-group')
-						label(for='matchStakeSelect') Match Stake
-						select(class='form-control' name='matchStake' id='matchStakeSelect')
+						label(for='matchStakeSelect') Game Stake
+						select(class='form-control' name='gameStake' id='gameStakeSelect')
 							option(value=undefined) -
-							option Cake
-							option Beer
+							each gameStake in gameStakes
+								option(value=gameStake.id)=gameStake.item							
 
 					button(type='submit' name='submit' form='newMatchForm' id='startMatchButton' class='btn btn-primary') Start

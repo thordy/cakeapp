@@ -279,6 +279,7 @@ router.post('/new', function (req, res) {
 	// Get first player in the list, order should be handled in frontend
 	var currentPlayerId = req.body.players[0];
 	var gameType = req.body.gameType;
+	var gameStake = req.body.gameStake;
 
 	 // Check the game type and add new one
 	 // This is only for starting new match,
@@ -286,6 +287,7 @@ router.post('/new', function (req, res) {
 	debug('New game added', gameType);
 	new Game({
 		game_type_id: gameType,
+		owe_type_id: gameStake,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
 	.save(null, {method: 'insert'})
@@ -421,11 +423,14 @@ router.post('/:id/finish', function (req, res) {
 								.fetch({
 									withRelated: [
 										'game_type',
+										'game_stake',
+										'players',
 									]
 								})
 								.then(function (rows) {
 
 									var game = rows.serialize();
+									var players = game.players;
 									var matchesRequired = game.game_type.matches_required;
 
 									// How many games has current player won ?
@@ -439,12 +444,13 @@ router.post('/:id/finish', function (req, res) {
 									.where(knex.raw('match.winner_id = ?', [currentWinner]))
 									.then(function(rows) {
 										if (rows[0].wins == matchesRequired) {
-											new Game({ id: game.id})
+											new Game({ id: game.id })
 											.save({
 												is_finished: true,
 												winner_id: currentPlayerId,
 											})
 											.then(function (row) {
+												
 												res.status(200).end();
 											});
 										} else {
