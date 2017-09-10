@@ -508,6 +508,8 @@ function writeStatistics(match, winnerPlayerId, callback) {
 						if (player.id == winnerPlayerId) {
 							// Set checkout percentage fo winning player
 							player.checkoutPercentage = 100 / player.checkoutAttempts;
+						} else {
+							player.checkoutPercentage = 0;
 						}
 
 						var stats = new StatisticsX01({
@@ -634,8 +636,12 @@ function getPlayerStatistics(players, scores, startingScore) {
 
 		// Set accuracy stats for each players
 		var accuracyStats = player.accuracyStats;
-		accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
+		if ((accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses) == 0) {
+			accuracyStats.overallAccuracy = 0;
+		} else {
+			accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
+		}
 		accuracyStats.accuracy20 = accuracyStats.accuracy20 == 0 ? 0 : accuracyStats.accuracy20 / accuracyStats.attempts20;
 		accuracyStats.accuracy19 = accuracyStats.accuracy19 == 0 ? 0 : accuracyStats.accuracy19 / accuracyStats.attempts19;
 	}
