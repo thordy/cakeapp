@@ -287,7 +287,7 @@ router.post('/new', function (req, res) {
 	debug('New game added', gameType);
 	new Game({
 		game_type_id: gameType,
-		owe_type_id: gameStake,
+		owe_type_id: gameStake == "0" ? undefined : gameStake,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
 	.save(null, {method: 'insert'})
@@ -450,7 +450,9 @@ router.post('/:id/finish', function (req, res) {
 												winner_id: currentPlayerId,
 											})
 											.then(function (row) {
-												
+												if (game.owe_type_id !== null) {
+													// TODO - for each player, check if it is a winner and add owe 
+												}
 												res.status(200).end();
 											});
 										} else {

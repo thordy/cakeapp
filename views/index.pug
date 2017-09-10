@@ -43,7 +43,7 @@ block content
 					div(class='form-group')
 						label(for='matchStakeSelect') Game Stake
 						select(class='form-control' name='gameStake' id='gameStakeSelect')
-							option(value=undefined) -
+							option(value=0) -
 							each gameStake in gameStakes
 								option(value=gameStake.id)=gameStake.item							
 
