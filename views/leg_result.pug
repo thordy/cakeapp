@@ -105,7 +105,7 @@ block scripts
 
             $('.delete-visit').click(function () {
                 var visitNumber = $(this).data('visit');
-                executeDelete(window.location.pathname + '/' + visitNumber, 'application/json',
+                executeDelete(window.location.pathname + '/' + visitNumber,
                     function (response) {
                         location.reload();
                     },

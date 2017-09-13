@@ -56,7 +56,6 @@ function executePut(url, data, contentType, success, error) {
  * Execute a jQuery Ajax DELETE
  * @param {String} url - URL to execute against
  * @param {Object} data - Data to send
- * @param {String} contentType - Content type string
  * @param {function} success - Function callback on success
  * @param {function} error - Function callback on error
  */

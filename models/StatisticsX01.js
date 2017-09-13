@@ -31,20 +31,6 @@ var StatisticsX01 = bookshelf.Model.extend({
 				AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
 			GROUP BY player_id
 			ORDER BY highest_checkout DESC`, playerIds
-			/*
-			SELECT
-				MAX(s.id) as 'row_id',
-				s.match_id,
-				s.player_id,
-				IFNULL(s.first_dart * s.first_dart_multiplier, 0) +
-				IFNULL(s.second_dart * s.second_dart_multiplier, 0) +
-				IFNULL(s.third_dart * s.third_dart_multiplier, 0) as 'checkout'
-			FROM score s
-				JOIN \`match\` m ON m.id = s.match_id
-			WHERE m.winner_id = s.player_id
-				AND s.player_id IN (` + placeHolders + `)
-				AND s.id IN (SELECT MAX(s.id) FROM score s JOIN \`match\` m ON m.id = s.match_id WHERE m.winner_id = s.player_id GROUP BY match_id)
-			GROUP BY match_id`, playerIds*/
 		)
 		.then(function(rows) {
 			checkoutStatistics.checkouts = rows[0];

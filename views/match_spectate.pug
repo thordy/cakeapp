@@ -83,6 +83,11 @@ block scripts
                     $('#visits_table > tbody > tr:first').after(html);
                 });
 
+                socket.on('match_finished', function(data) {
+                    console.log(data);
+                    location.href = '/match/' + data.new_match_id + '/spectate';
+                });
+
                 // Reverse the rows in the table to show newest throws first
                 var tbody = $('#visits_table tbody');
                 tbody.html($('tr',tbody).get().reverse());

@@ -484,9 +484,6 @@ router.post('/:id/finish', function (req, res) {
 						debug('Unable to finalize match: %s', err);
 						return;
 					}
-					// Send match finished message to all clients, and remove namespace
-					socketHandler.emitMessage(matchId, 'match_finished', 'Match is finished!');
-					socketHandler.removeNamespace(matchId);
 				});
 		});
 });
