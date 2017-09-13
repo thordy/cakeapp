@@ -451,7 +451,7 @@ router.post('/:id/finish', function (req, res) {
 													res.status(200).end();
 												});												
 											}
-											else if (playedMatches === requiredMatches) {
+											else if (requiredMatches !== null && playedMatches === requiredMatches) {
 												// Game fnished, draw
 												new Game({ id: game.id}).save({ is_finished: true })
 												.then(function (row) {

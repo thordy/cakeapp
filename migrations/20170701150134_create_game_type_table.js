@@ -3,7 +3,7 @@ exports.up = function(knex, Promise) {
         .createTable('game_type', function(table) {
             table.increments('id').primary();
             table.integer('wins_required').unsigned().notNullable();
-            table.integer('matches_required').unsigned().notNullable();
+            table.integer('matches_required').unsigned();
             table.string('name').notNullable();
             table.timestamps(true, true);
         });
