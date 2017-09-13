@@ -37,6 +37,10 @@ router.get('/weekly', function (req, res) {
     });
 });
 
+router.get('/league', function (req, res) {
+    res.render('leaguerepublic' );
+});
+
 function getStatistics(from, to, callback) {
     bookshelf.knex.raw(`
         SELECT

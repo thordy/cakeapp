@@ -280,31 +280,36 @@ router.post('/new', function (req, res) {
 	var currentPlayerId = req.body.players[0];
 	var gameType = req.body.gameType;
 
-	 // Check the game type and add new one
-	 // This is only for starting new match,
-	 // for next sets we need to pass game id to /new/gameid route
 	debug('New game added', gameType);
-	new Game({
-		game_type_id: gameType,
-		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-	})
-	.save(null, {method: 'insert'})
-	.then(function (game) {
-		var players = req.body.players;
-		new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
-			if (err) {
-				return helper.renderError(res, err);
-			}
-			debug('Added players %s', players);
-			socketHandler.setupNamespace(match.id);
-			res.redirect('/match/' + match.id);
+	new Game({ game_type_id: gameType, created_at: moment().format("YYYY-MM-DD HH:mm:ss") })
+		.save(null, { method: 'insert' })
+		.then(function (game) {
+			var players = req.body.players;
+			new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
+				if (err) {
+					return helper.renderError(res, err);
+				}
+				debug('Added players %s', players);
+				socketHandler.setupNamespace(match.id);
+				res.redirect('/match/' + match.id);
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
 		});
-	})
-	.catch(function (err) {
-		helper.renderError(res, err);
-	});
 });
 
+router.delete('/:legid/leg/:visitid', function (req, res) {
+	var visitId = req.params.visitid;
+	debug("Deleting visit id %s", visitId);
+	Score.forge({ id: visitId })
+	.destroy()
+	.then(function(score) {
+		res.status(200)
+			.send()
+			.end();
+	});
+});
 /* Modify the score */
 router.post('/:id/leg', function (req, res) {
 	// TODO Only allow if match is not finished
@@ -416,44 +421,51 @@ router.post('/:id/finish', function (req, res) {
 								return helper.renderError(res, err);
 							}
 
-							// Check how many matches are required in this game to win
 							new Game({ id: match.game_id})
-								.fetch({
-									withRelated: [
-										'game_type',
-									]
-								})
+								.fetch({ withRelated: [ 'game_type' ] })
 								.then(function (rows) {
-
 									var game = rows.serialize();
-									var matchesRequired = game.game_type.matches_required;
-
-									// How many games has current player won ?
-									var currentWinner = currentPlayerId;
-									var gameId = game.id;
+									var requiredMatches = game.game_type.matches_required;
+									var requiredWins = game.game_type.wins_required;
 
 									knex = Bookshelf.knex;
 									knex('match')
-									.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
-									.where(knex.raw('match.game_id = ?', [gameId]))
-									.where(knex.raw('match.winner_id = ?', [currentWinner]))
-									.then(function(rows) {
-										if (rows[0].wins == matchesRequired) {
-											new Game({ id: game.id})
-											.save({
-												is_finished: true,
-												winner_id: currentPlayerId,
-											})
-											.then(function (row) {
+										.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
+										.where(knex.raw('match.game_id = ?', [game.id]))
+										.groupBy(knex.raw('match.winner_id'))
+										.then(function(rows) {
+											var playedMatches = 0;
+											var currentPlayerWins = 0;
+											for (var i = 0; i < rows.length; i++) {
+												var row = rows[i];
+												playedMatches += row.wins;
+												if (row.winner_id === currentPlayerId) {
+													currentPlayerWins = row.wins;
+												}
+											}
+
+											if (currentPlayerWins === requiredWins) {
+												// Game finished, current player won
+												new Game({ id: game.id}).save({ is_finished: true, winner_id: currentPlayerId })
+												.then(function (row) {
+													res.status(200).end();
+												});												
+											}
+											else if (playedMatches === requiredMatches) {
+												// Game fnished, draw
+												new Game({ id: game.id}).save({ is_finished: true })
+												.then(function (row) {
+													res.status(200).end();
+												});												
+											}
+											else {
+												// Game is not finished, continue to next leg
 												res.status(200).end();
-											});
-										} else {
-											res.status(200).end();
-										}
-									})
-									.catch(function (err) {
-										helper.renderError(res, err);
-									});
+											}
+										})
+										.catch(function (err) {
+											helper.renderError(res, err);
+										});
 								})
 								.catch(function (err) {
 									helper.renderError(res, err);

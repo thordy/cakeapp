@@ -50,7 +50,10 @@ block content
 									span(class='label label-primary' style='line-height: inherit;')=player.name + ' (' + player.legs_won + ')'
 						if game.is_finished
 							td(class='col-sm-1')
-								div: span(class='label label-success' style='line-height: inherit;')=game.players[game.winner_id].name
+								if game.winner_id === null
+									div: span(class='label label-info' style='line-height: inherit;') Draw
+								else
+									div: span(class='label label-success' style='line-height: inherit;')= game.players[game.winner_id].name
 						else
 							td(class='col-sm-2')
 						td(class='col-sm-2')
