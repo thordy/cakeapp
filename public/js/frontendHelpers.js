@@ -53,6 +53,38 @@ function executePut(url, data, contentType, success, error) {
 }
 
 /**
+ * Show confirm dialog
+ * @param {String} dialogText - Text to display in dialog
+ * @param {function} okFnc  - Function to execute on ok
+ * @param {function} cancelFnc - Function to execute on cancel
+ */
+function showConfirm(dialogText, okFnc, cancelFnc) {
+	alertify.confirm(dialogText, okFnc, cancelFnc)
+	.setting({
+		'title': 'Darts Scorer',
+		'defaultFocus': 'cancel',
+		'labels': { ok:'Submit', cancel:'Cancel' },
+		'closable': false
+	})
+	.set({ transition:'zoom' })
+	.show();
+}
+
+/**
+ * Show alet dialog
+ * @param {String} dialogText - Text to display in dialog
+ * @param {function} okFnc  - Function to execute on ok
+ */
+function showAlert(dialogText, okFnc) {
+	alertify.alert(dialogText, okFnc)
+	.setting({
+		'title': 'Darts Scorer'
+	})
+	.set({ transition:'zoom' })
+	.show();
+}
+
+/**
  * Execute a jQuery Ajax DELETE
  * @param {String} url - URL to execute against
  * @param {Object} data - Data to send
