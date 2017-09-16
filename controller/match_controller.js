@@ -299,6 +299,7 @@ router.post('/new', function (req, res) {
 		});
 });
 
+/* Delete the given visit */
 router.delete('/:legid/leg/:visitid', function (req, res) {
 	var visitId = req.params.visitid;
 	debug("Deleting visit id %s", visitId);
@@ -347,23 +348,56 @@ router.post('/:id/leg', function (req, res) {
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
 	var matchId = req.params.id;
-	Match.forge({ id: matchId })
-		.destroy()
-		.then(function (match) {
-			debug('Cancelled match %s', matchId);
-			/*bookshelf.knex.raw(`UPDATE game SET current_match_id = NULL WHERE current_match_id = ?`, matchId)
-			.then(function(rows) {
-				res.status(204)
-				.send()
-				.end();
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});*/
-			res.status(204)
-				.send()
-				.end();
-		});
+	new Game({ current_match_id: matchId })
+		.fetch()
+		.then(function (row) {
+			const game = row.serialize();
+			const gameId = game.id;
+			Match.forge({ id: matchId })
+				.destroy()
+				.then(function (match) {
+					debug('Cancelled match %s', matchId);
+
+					new Match()
+						.where('game_id', '=', gameId)
+						.fetchAll()
+						.then(function (rows) {
+							const matches = rows.serialize()
+							if (matches.length === 0) {
+								// No matches left, delete game
+								Game.forge({ id: gameId })
+									.destroy()
+									.then(function (row) {
+										debug('Cancelled game %s', gameId);
+										res.status(204)
+											.send()
+											.end();
+									})
+									.catch(function (err) {
+										helper.renderError(res, err);
+								});
+							}
+							else {
+								Bookshelf.knex.raw(`
+									UPDATE game SET current_match_id = (SELECT MAX(id) FROM \`match\` WHERE game_id = :game_id AND is_finished = 1) WHERE id = :game_id`, { game_id: gameId })
+								.then(function(rows) {
+									res.status(204)
+										.send()
+										.end();
+								})
+								.catch(function (err) {
+									helper.renderError(res, err);
+								});
+							}
+						})
+						.catch(function (err) {
+							helper.renderError(res, err);
+					});
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+	});
 });
 
 /* Method to finalize a match */
@@ -449,14 +483,14 @@ router.post('/:id/finish', function (req, res) {
 												new Game({ id: game.id}).save({ is_finished: true, winner_id: currentPlayerId })
 												.then(function (row) {
 													res.status(200).end();
-												});												
+												});
 											}
 											else if (requiredMatches !== null && playedMatches === requiredMatches) {
 												// Game fnished, draw
 												new Game({ id: game.id}).save({ is_finished: true })
 												.then(function (row) {
 													res.status(200).end();
-												});												
+												});
 											}
 											else {
 												// Game is not finished, continue to next leg
