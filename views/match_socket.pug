@@ -16,6 +16,13 @@ block scripts
                     socket.emit('join', 'Client Conneting');
                 });
 
+                socket.on('spectator_connected', function(data) {
+                    alertify.success('Spectator connected');
+                });
+                socket.on('spectator_disconnected', function(data) {
+                    alertify.warning('Spectator disconnected');
+                });
+
                 socket.on('connected', function(data) {
                     console.log(data);
                 });
@@ -203,15 +210,24 @@ block scripts
                     // Is the game over
                     if (scoreAfterThrow == 0) {
                         if (multiplier == 2) {
-                            if (confirm('Game will be finished.')) {
-                                // End game, 'click' submit
+                            showConfirm('Game will be finished.', function() {
                                 isFinished = true;
+                                socket.emit('possible_throw', {
+                                        current_player_id: currentPlayerId,
+                                        score: scoreNumeric,
+                                        dart_text: multiplierText,
+                                        multiplier: multiplier,
+                                        is_bust: isBust,
+                                        is_finished: isFinished,
+                                        darts_thrown: window.darts_thrown + 1
+                                });
+
+                                // End game, 'click' submit
                                 submitButton.data('finished', 1).trigger('click');
-                            }
-                            else {
+                            }, function(){
                                 // Clear the score for thrown dart
                                 dart.text('');
-                            }
+                            });
                             return;
                         }
                         else {
@@ -222,29 +238,36 @@ block scripts
                         isBust = true;
                     }
 
-                    // Emit a dart throw for spectators
-                    socket.emit('possible_throw', {
-                            current_player_id: currentPlayerId,
-                            score: scoreNumeric,
-                            dart_text: multiplierText,
-                            multiplier: multiplier,
-                            is_bust: isBust,
-                            is_finished: isFinished,
-                            darts_thrown: window.darts_thrown + 1
-                    });
-
                     if (isBust) {
-                        if (confirm('Bust')) {
-                            // Bust, 'click' submit
+                        showConfirm('Player busted', function() {
+                            // Emit a dart throw for spectators
+                            socket.emit('possible_throw', {
+                                    current_player_id: currentPlayerId,
+                                    score: scoreNumeric,
+                                    dart_text: multiplierText,
+                                    multiplier: multiplier,
+                                    is_bust: isBust,
+                                    is_finished: isFinished,
+                                    darts_thrown: window.darts_thrown + 1
+                            });
+                            alertify.success('Player busted');
                             submitButton.data('busted', 1).trigger('click');
-                            return;
-                        }
-                        else {
+                        }, function(){
                             // Clear the score for thrown dart
                             dart.text('');
-                        }
+                        });
                     }
                     else {
+                        // Emit a dart throw for spectators
+                        socket.emit('possible_throw', {
+                                current_player_id: currentPlayerId,
+                                score: scoreNumeric,
+                                dart_text: multiplierText,
+                                multiplier: multiplier,
+                                is_bust: isBust,
+                                is_finished: isFinished,
+                                darts_thrown: window.darts_thrown + 1
+                        });
                         currentPlayer.text(scoreAfterThrow);
                         scores[window.darts_thrown] = dartScore;
                         window.darts_thrown++;
@@ -271,7 +294,7 @@ block scripts
                             is_bust: false,
                             is_finished: false,
                             darts_thrown: window.darts_thrown + 1
-                    });  
+                    });
 
                     var dart;
                     if (window.darts_thrown === 0) {
@@ -284,7 +307,7 @@ block scripts
                         dart = $('#third');
                     }
                     dart.text('');
-                    dart.removeAttr('data-score');                  
+                    dart.removeAttr('data-score');
                 });
             });
         });
@@ -298,19 +321,18 @@ block scripts
                 location.href = window.location.pathname + '/leg';
             });
             $('#cancelMatchButton').click(function () {
-                if (!confirm('Game will be cancelled.')) {
-                    return;
-                }
-                executeDelete(window.location.pathname + '/cancel',
-                    function (response) {
-                        location.href = '/game/list';
-                    },
-                    function (error) {
-                        var alert = $('#cancelMatchFailedAlert');
-                        alert.show();
-                        alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
-                    }
-                );
+                showConfirm('Game will be cancelled.', function() {
+                    executeDelete(window.location.pathname + '/cancel',
+                        function (response) {
+                            location.href = '/game/list';
+                        },
+                        function (error) {
+                            var alert = $('#cancelMatchFailedAlert');
+                            alert.show();
+                            alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
+                        }
+                    );
+                }, function(){ /* NOOP */ });
             });
         });
 
