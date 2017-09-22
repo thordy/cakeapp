@@ -59,12 +59,24 @@ block scripts
                     var players = data.players;
                     for (key in players) {
                         var player = players[key];
-                        $('#player_id_' + player.id).text(player.current_score);
+                        var playerLabel = $('#player_id_' + player.id);
+                        var playerTD = $('#player_score_' + player.id);
+                        playerLabel.text(player.current_score);
                         $('#player_id_' + player.id + '_ppd').text(player.ppd.toFixed(2));
+
                         if (player.current) {
+                            playerTD.addClass('label-active-player')
+                            playerTD.removeClass('label-inactive-player');
                             $('#current_player').text(player.name);
                         }
+                        else {
+                            playerTD.addClass('label-inactive-player');
+                            playerTD.removeClass('label-active-player');
+                        }
                     }
+                    // Set round number
+                    $('#round_number').text('R' + data.match.round_number);
+
                     // Reset UI elements
                     $('#first').text('');
                     $('#second').text('');
@@ -146,11 +158,10 @@ block scripts
         });
 
 block content
-    h2= 'Spectate (' + match.id + ')'
-    h4= match.game.game_type.name + ' / ' + match.starting_score
+    h2 Spectate
 
     h3 Players
-    div(class='table-responsive')
+    // div(class='table-responsive')
         table(class='table table-striped table-bordered' id='player_spectate_table')
             thead
                 tr
@@ -160,10 +171,33 @@ block content
             tbody
                 each player in players
                     tr
-                        td: label(style='text-align: center;font-size: 1em;')= player.name + player.wins_string
-                        td(align='center'): label(id='player_id_' + player.id style='text-align: center;font-size: 1em;')= player.current_score
+                        td(class='')
+                            label(style='text-align: center;font-size: 1em;')= player.name + player.wins_string
+                        td(align='center' class='label-inactive-player')
+                            label(id='player_id_' + player.id class='label label-block label-player-score')= player.current_score
                         td(align='center'): label(id='player_id_' + player.id + '_ppd' style='font-weight: 500;')= player.ppd.toFixed(2)
 
+    div(class='table-responsive')
+        table(class='table table-striped table-bordered' id='player_spectate_table')
+            tbody
+                tr
+                    td(colspan='1' class='txt-center' style='width: 10%;')
+                        label(id='round_number' class='match_information')= 'R' + match.round_number
+                        label(class='match_information')= '/' +game_type.short_name
+                    each player in players
+                        if  player.current
+                            td(id='player_score_' + player.id colspan='3' class='label-active-player' style='padding-right: 10px;')
+                                label(id='player_id_' + player.id class='label label-block label-player-score')= player.current_score
+                                label(id='player_name_' + player.name class='label-player-name')= player.name + player.wins_string
+                        else
+                            td(id='player_score_' + player.id colspan='3' class='label-inactive-player' style='padding-right: 10px;')
+                                label(id='player_id_' + player.id class='label label-block label-player-score')= player.current_score
+                                label(id='player_name_' + player.name class='label-player-name')= player.name + player.wins_string
+                tr
+                    td(colspan='1' class='txt-center' style='width: 10%;') PPD
+                    each player in players
+                        td(id='player_ppd_' + player.id colspan='3' style='padding-right: 10px;')
+                            label(id='player_id_' + player.id + '_ppd' style='font-weight: 500')= player.ppd.toFixed(2)
     h3 Visits
     div(class='table-responsive')
         table(class='table table-striped table-bordered' id='visits_table')

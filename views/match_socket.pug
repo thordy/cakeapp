@@ -37,7 +37,7 @@ block scripts
                     $('#submitScoreButton').prop('disabled', false);
 
                     var match = data.match;
-                    $('#rowNumber').text('R' + match.round_number);
+                    $('#round_number').text('R' + match.round_number);
 
                     // Set updated score per player
                     var currentPlayerId = data.current_player;
@@ -357,7 +357,7 @@ block content
                 - var length = 12 / Object.keys(players).length
                 tr(class='row')
                     td(class='txt-center')
-                        label(id='rowNumber' class='match_information')= 'R' + match.round_number
+                        label(id='round_number' class='match_information')= 'R' + match.round_number
                         label(class='match_information')= '/' +game_type.short_name
                     each player in players
                         - var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)

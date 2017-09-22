@@ -129,17 +129,16 @@ block scripts
         var spread = 20;
         var intensity = 50;
         var scoresMap = !{JSON.stringify(scoresMap)};
-        window.onload = function(){
+        window.onload = (function(){
             var canvas = $('#dartboard-heatmap')[0];
             drawHeatmap(canvas, scoresMap, 0, size, spread, intensity);
-        }
+        });
         $(function () {
             $("#heatmap_value_selector").change(function () {
                 var canvas = $('#dartboard-heatmap')[0];
-                var display = this.value;
-                drawHeatmap(canvas, scoresMap, display, size, spread, intensity);
+                drawHeatmap(canvas, scoresMap, this.value, size, spread, intensity);
             });
-        });
+        });       
 
 block content
     div(class='clearfix')
@@ -445,13 +444,13 @@ block content
                             td(class="txt-center")
                                 button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
                                     span(class="glyphicon glyphicon-edit" aria-hidden="true")
-                                button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
+                                // button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
                                     span(class="glyphicon glyphicon-trash" aria-hidden="true")
 
     br
     if match.winner_id !== null
         button(class='btn btn-primary btn-block' data-toggle='collapse' data-target='#heatmap_div') Show Heatmap
-    div(id='heatmap_div' class=match.winner_id === null ? 'collapse in' : 'collapse')
+    div(id='heatmap_div' class=match.winner_id === null ? 'collapse' : 'collapse in')
         h3 Match Heatmap
         select(id='heatmap_value_selector' name='dartValues')
             option(value=0 default=true) All
