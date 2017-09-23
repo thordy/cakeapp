@@ -103,42 +103,52 @@ block scripts
                 }
             });
 
-            $('#continue-match').click(function () {
-                location.href = '/match/' + $(this).data('match');
+            $('.delete-visit').click(function () {
+                var visitNumber = $(this).data('visit');
+                executeDelete(window.location.pathname + '/' + visitNumber,
+                    function (response) {
+                        location.reload();
+                    },
+                    function (error) {
+                        alert('Error deleting score. Please reload');
+                        console.err("Unable to proceed: " + error.responseText);
+                        location.reload();
+                    }
+                );
             });
+
             $('#continue-game').click(function () {
                 location.href = '/game/' + $(this).data('game');
             });
             $('#back-to-game').click(function () {
                 location.href = '/game/' + $(this).data('game') + '/results';
-            });            
+            });
         });
     script.
         var size = 20;
         var spread = 20;
         var intensity = 50;
         var scoresMap = !{JSON.stringify(scoresMap)};
-        window.onload = function(){
+        window.onload = (function(){
             var canvas = $('#dartboard-heatmap')[0];
             drawHeatmap(canvas, scoresMap, 0, size, spread, intensity);
-        }
+        });
         $(function () {
             $("#heatmap_value_selector").change(function () {
                 var canvas = $('#dartboard-heatmap')[0];
-                var display = this.value;
-                drawHeatmap(canvas, scoresMap, display, size, spread, intensity);
+                drawHeatmap(canvas, scoresMap, this.value, size, spread, intensity);
             });
-        });
+        });       
 
 block content
     div(class='clearfix')
         h2(class='pull-left') Leg Result (#{match.id})
-        if match.winner_id === null
-            button(type='button' class='btn btn-primary pull-right mt-30' id='continue-match' data-match=match.id) Next Leg
-        else if game.is_finished === 0
-            button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id) Continue Game
-        else
+
+        if game.is_finished
             button(type='button' class='btn btn-primary pull-right mt-30' id='back-to-game' data-game=game.id) Back to Game
+        else
+            button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id) Continue Game
+
     p.
         Started: #{match.created_at.toISOString()} <br>
         Finished: #{match.end_time === null ? '' : match.end_time.toISOString()} <br>
@@ -178,9 +188,6 @@ block content
                         else
                             td
                                 p= player.remaining_score + ' left'
-    div(style='margin-bottom: 20px;')
-        if match.winner_id === null
-            button(type='button' class='btn btn-primary' id='continue-match' data-match=match.id) Continue match
 
     h3 Match Results
     p.
@@ -437,11 +444,13 @@ block content
                             td(class="txt-center")
                                 button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
                                     span(class="glyphicon glyphicon-edit" aria-hidden="true")
+                                // button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
+                                    span(class="glyphicon glyphicon-trash" aria-hidden="true")
 
     br
     if match.winner_id !== null
         button(class='btn btn-primary btn-block' data-toggle='collapse' data-target='#heatmap_div') Show Heatmap
-    div(id='heatmap_div' class=match.winner_id === null ? 'collapse in' : 'collapse')
+    div(id='heatmap_div' class=match.winner_id === null ? 'collapse' : 'collapse in')
         h3 Match Heatmap
         select(id='heatmap_value_selector' name='dartValues')
             option(value=0 default=true) All

@@ -104,7 +104,7 @@ a:hover {
     line-height: 0.8;
     padding: 10px;
 }
-#score_selector_table label, #visits_table label {
+#score_selector_table label, #visits_table label, #player_spectate_table label {
     display: block;
     text-align: center;
     border-radius: 0;
@@ -119,6 +119,7 @@ a:hover {
     padding: 0px;
     margin: 0px;
     color: #ffffff;
+    font-weight: 500;
     text-transform: uppercase;
 }
 .label-inactive-player {

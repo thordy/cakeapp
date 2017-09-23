@@ -53,10 +53,41 @@ function executePut(url, data, contentType, success, error) {
 }
 
 /**
+ * Show confirm dialog
+ * @param {String} dialogText - Text to display in dialog
+ * @param {function} okFnc  - Function to execute on ok
+ * @param {function} cancelFnc - Function to execute on cancel
+ */
+function showConfirm(dialogText, okFnc, cancelFnc) {
+	alertify.confirm(dialogText, okFnc, cancelFnc)
+	.setting({
+		'title': 'Darts Scorer',
+		'defaultFocus': 'cancel',
+		'labels': { ok:'Submit', cancel:'Cancel' },
+		'closable': false
+	})
+	.set({ transition:'zoom' })
+	.show();
+}
+
+/**
+ * Show alet dialog
+ * @param {String} dialogText - Text to display in dialog
+ * @param {function} okFnc  - Function to execute on ok
+ */
+function showAlert(dialogText, okFnc) {
+	alertify.alert(dialogText, okFnc)
+	.setting({
+		'title': 'Darts Scorer'
+	})
+	.set({ transition:'zoom' })
+	.show();
+}
+
+/**
  * Execute a jQuery Ajax DELETE
  * @param {String} url - URL to execute against
  * @param {Object} data - Data to send
- * @param {String} contentType - Content type string
  * @param {function} success - Function callback on success
  * @param {function} error - Function callback on error
  */
@@ -110,7 +141,7 @@ function drawHeatmap(canvas, scoresMap, display, size, spread, intensity) {
 		var dartScores = scoresMap[dart];
 		for (var multiplier in dartScores) {
 			var count = dartScores[multiplier];
-			if (count !== 0 && display == 0 || multiplier == display) {
+			if (count !== 0 && display === 0 || multiplier === display) {
 				var coordinatesX = heatmapDataPoints[dart][multiplier]['x'];
 				var coordinatesY = heatmapDataPoints[dart][multiplier]['y'];
 				for (var i = 0; i < count; i++) {

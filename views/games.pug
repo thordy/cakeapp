@@ -15,10 +15,13 @@ block scripts
 		$(function() {
 			$('#games_list_table').on('click', '#continueGameButton', function () {
 				location.href = '/game/' + $(this).data('game');
-			});				
+			});
+			$('#games_list_table').on('click', '#spectateGameButton', function() {
+				location.href = '/game/' + $(this).data('game') + '/spectate';
+			});
 			$('#games_list_table').on('click', '#viewGameButton', function () {
 				location.href = '/game/' + $(this).data('game') + '/results';
-			});			
+			});
 		});
 
 block content
@@ -33,28 +36,30 @@ block content
 					th(hidden=true)
 					th Start Time
 					th Game type
-					th Players	
-					th Winner				
-					th Results	
+					th Players
+					th Winner
+					th Results
 			tbody
 				each game in games
 					tr
 						th(hidden='true' scope='row')= game.id
 						td(class='col-sm-2')= game.created_at.toISOString()
-						td(class='col-sm-2')= game.game_type.name						
+						td(class='col-sm-2')= game.game_type.name
 						td(class='col-sm-1')
 							each player in game.players
-								// span(class='label label-primary' style='margin-bottom: 5px;')=player.name + ' (' + player.legs_won + ')'
-									span(class='badge pull-right' style='margin-top: 2px;')=player.wins
 								div(style='margin-bottom: 5px;')
 									span(class='label label-primary' style='line-height: inherit;')=player.name + ' (' + player.legs_won + ')'
 						if game.is_finished
 							td(class='col-sm-1')
-								div: span(class='label label-success' style='line-height: inherit;')=game.players[game.winner_id].name
+								if game.winner_id === null
+									div: span(class='label label-info' style='line-height: inherit;') Draw
+								else
+									div: span(class='label label-success' style='line-height: inherit;')= game.players[game.winner_id].name
 						else
 							td(class='col-sm-2')
 						td(class='col-sm-2')
 							if !game.is_finished
 								button(type='button' id='continueGameButton' data-game=game.id class='btn btn-primary btn-block') Continue
+								button(type='button' id='spectateGameButton' data-game=game.id class='btn btn-primary btn-block') Spectate
 							else
-								button(type='button' id='viewGameButton' data-game=game.id class='btn btn-primary btn-block') View								
+								button(type='button' id='viewGameButton' data-game=game.id class='btn btn-primary btn-block') View

@@ -2,7 +2,8 @@ exports.up = function(knex, Promise) {
     return knex.schema
         .createTable('game_type', function(table) {
             table.increments('id').primary();
-            table.integer('matches_required').unsigned().notNullable();
+            table.integer('wins_required').unsigned().notNullable();
+            table.integer('matches_required').unsigned();
             table.string('name').notNullable();
             table.timestamps(true, true);
         });

@@ -38,7 +38,7 @@ block content
 						label(for='matchTypeSelect') Game Mode
 						select(class='form-control' name='gameType' id='gameTypeSelect')
 							each gameType in gameTypes
-								option(value=gameType.matches_required)=gameType.name
+								option(value=gameType.id)=gameType.name
 
 					div(class='form-group')
 						label(for='matchStakeSelect') Game Stake

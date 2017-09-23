@@ -85,8 +85,7 @@ router.get('/:gameid', function (req, res) {
             var currentMatchId = gameData.current_match_id;
             var isGameFinished = gameData.is_finished;
             if (isGameFinished) {
-                // TODO redirect to this game results page once it is implemented
-                res.redirect('/game/list');
+                res.redirect('/game/' + req.params.gameid + '/results');
             }
             else {
                 new Match({ id: currentMatchId })
@@ -107,7 +106,7 @@ router.get('/:gameid', function (req, res) {
                         res.redirect('/match/' + matchData.id);
                     }
                     else {
-                        // If the match is finished, create new one
+                        // If the match is not finished, create new one
                         var players = match.related('players').serialize();
                         players.push(players.shift())
 
@@ -125,10 +124,7 @@ router.get('/:gameid', function (req, res) {
                             debug('Created match %s', newmatch.id);
 
                             // Update game and set current match id
-                            new Game({
-                                id: req.params.gameid,
-                                current_match_id: newmatch.id
-                            })
+                            new Game({ id: req.params.gameid, current_match_id: newmatch.id })
                             .save()
                             .then(function (game) {
                                 var playersArray = players;
@@ -149,7 +145,14 @@ router.get('/:gameid', function (req, res) {
                                     .insert(playersInMatch)
                                     .then(function (rows) {
                                         debug('Added players %s', playersArray);
-                                        this.socketHandler.setupNamespace(newmatch.id);
+                                        
+                                        socketHandler.setupNamespace(newmatch.id);
+
+                                        // Forward all spectating clients to next match
+                                        socketHandler.emitMessage(currentMatchId, 'match_finished', {
+                                            old_match_id: currentMatchId,
+                                            new_match_id: newmatch.id
+                                        }); 
                                         res.redirect('/match/' + newmatch.id);
                                     })
                                     .catch(function (err) {
@@ -166,6 +169,20 @@ router.get('/:gameid', function (req, res) {
                     helper.renderError(res, err);
                 });
             }
+        })
+        .catch(function (err) {
+            helper.renderError(res, err);
+        });
+});
+
+/* Spectate a given game */
+router.get('/:gameid/spectate', function (req, res) {
+    new Game({ id: req.params.gameid })
+        .fetch()
+        .then(function (game) {
+            var gameData = game.serialize();
+            var currentMatchId = gameData.current_match_id;
+            res.redirect('/match/' + currentMatchId + '/spectate');
         })
         .catch(function (err) {
             helper.renderError(res, err);

@@ -281,10 +281,8 @@ router.post('/new', function (req, res) {
 	var gameType = req.body.gameType;
 	var gameStake = req.body.gameStake;
 
-	 // Check the game type and add new one
-	 // This is only for starting new match,
-	 // for next sets we need to pass game id to /new/gameid route
 	debug('New game added', gameType);
+<<<<<<< HEAD
 	new Game({
 		game_type_id: gameType,
 		owe_type_id: gameStake == "0" ? undefined : gameStake,
@@ -300,13 +298,38 @@ router.post('/new', function (req, res) {
 			debug('Added players %s', players);
 			socketHandler.setupNamespace(match.id);
 			res.redirect('/match/' + match.id);
+=======
+	new Game({ game_type_id: gameType, created_at: moment().format("YYYY-MM-DD HH:mm:ss") })
+		.save(null, { method: 'insert' })
+		.then(function (game) {
+			var players = req.body.players;
+			new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
+				if (err) {
+					return helper.renderError(res, err);
+				}
+				debug('Added players %s', players);
+				socketHandler.setupNamespace(match.id);
+				res.redirect('/match/' + match.id);
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+>>>>>>> master
 		});
-	})
-	.catch(function (err) {
-		helper.renderError(res, err);
-	});
 });
 
+/* Delete the given visit */
+router.delete('/:legid/leg/:visitid', function (req, res) {
+	var visitId = req.params.visitid;
+	debug("Deleting visit id %s", visitId);
+	Score.forge({ id: visitId })
+	.destroy()
+	.then(function(score) {
+		res.status(200)
+			.send()
+			.end();
+	});
+});
 /* Modify the score */
 router.post('/:id/leg', function (req, res) {
 	// TODO Only allow if match is not finished
@@ -344,23 +367,56 @@ router.post('/:id/leg', function (req, res) {
 /* Method to cancel a match in progress */
 router.delete('/:id/cancel', function (req, res) {
 	var matchId = req.params.id;
-	Match.forge({ id: matchId })
-		.destroy()
-		.then(function (match) {
-			debug('Cancelled match %s', matchId);
-			/*bookshelf.knex.raw(`UPDATE game SET current_match_id = NULL WHERE current_match_id = ?`, matchId)
-			.then(function(rows) {
-				res.status(204)
-				.send()
-				.end();
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});*/
-			res.status(204)
-				.send()
-				.end();
-		});
+	new Game({ current_match_id: matchId })
+		.fetch()
+		.then(function (row) {
+			const game = row.serialize();
+			const gameId = game.id;
+			Match.forge({ id: matchId })
+				.destroy()
+				.then(function (match) {
+					debug('Cancelled match %s', matchId);
+
+					new Match()
+						.where('game_id', '=', gameId)
+						.fetchAll()
+						.then(function (rows) {
+							const matches = rows.serialize()
+							if (matches.length === 0) {
+								// No matches left, delete game
+								Game.forge({ id: gameId })
+									.destroy()
+									.then(function (row) {
+										debug('Cancelled game %s', gameId);
+										res.status(204)
+											.send()
+											.end();
+									})
+									.catch(function (err) {
+										helper.renderError(res, err);
+								});
+							}
+							else {
+								Bookshelf.knex.raw(`
+									UPDATE game SET current_match_id = (SELECT MAX(id) FROM \`match\` WHERE game_id = :game_id AND is_finished = 1) WHERE id = :game_id`, { game_id: gameId })
+								.then(function(rows) {
+									res.status(204)
+										.send()
+										.end();
+								})
+								.catch(function (err) {
+									helper.renderError(res, err);
+								});
+							}
+						})
+						.catch(function (err) {
+							helper.renderError(res, err);
+					});
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+	});
 });
 
 /* Method to finalize a match */
@@ -418,8 +474,8 @@ router.post('/:id/finish', function (req, res) {
 								return helper.renderError(res, err);
 							}
 
-							// Check how many matches are required in this game to win
 							new Game({ id: match.game_id})
+<<<<<<< HEAD
 								.fetch({
 									withRelated: [
 										'game_type',
@@ -427,9 +483,12 @@ router.post('/:id/finish', function (req, res) {
 										'players',
 									]
 								})
+=======
+								.fetch({ withRelated: [ 'game_type' ] })
+>>>>>>> master
 								.then(function (rows) {
-
 									var game = rows.serialize();
+<<<<<<< HEAD
 									var players = game.players;
 									var matchesRequired = game.game_type.matches_required;
 
@@ -453,15 +512,49 @@ router.post('/:id/finish', function (req, res) {
 												if (game.owe_type_id !== null) {
 													// TODO - for each player, check if it is a winner and add owe 
 												}
+=======
+									var requiredMatches = game.game_type.matches_required;
+									var requiredWins = game.game_type.wins_required;
+
+									knex = Bookshelf.knex;
+									knex('match')
+										.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
+										.where(knex.raw('match.game_id = ?', [game.id]))
+										.groupBy(knex.raw('match.winner_id'))
+										.then(function(rows) {
+											var playedMatches = 0;
+											var currentPlayerWins = 0;
+											for (var i = 0; i < rows.length; i++) {
+												var row = rows[i];
+												playedMatches += row.wins;
+												if (row.winner_id === currentPlayerId) {
+													currentPlayerWins = row.wins;
+												}
+											}
+
+											if (currentPlayerWins === requiredWins) {
+												// Game finished, current player won
+												new Game({ id: game.id}).save({ is_finished: true, winner_id: currentPlayerId })
+												.then(function (row) {
+													res.status(200).end();
+												});
+											}
+											else if (requiredMatches !== null && playedMatches === requiredMatches) {
+												// Game fnished, draw
+												new Game({ id: game.id}).save({ is_finished: true })
+												.then(function (row) {
+													res.status(200).end();
+												});
+											}
+											else {
+												// Game is not finished, continue to next leg
+>>>>>>> master
 												res.status(200).end();
-											});
-										} else {
-											res.status(200).end();
-										}
-									})
-									.catch(function (err) {
-										helper.renderError(res, err);
-									});
+											}
+										})
+										.catch(function (err) {
+											helper.renderError(res, err);
+										});
 								})
 								.catch(function (err) {
 									helper.renderError(res, err);
@@ -480,9 +573,6 @@ router.post('/:id/finish', function (req, res) {
 						debug('Unable to finalize match: %s', err);
 						return;
 					}
-					// Send match finished message to all clients, and remove namespace
-					socketHandler.emitMessage(matchId, 'match_finished', 'Match is finished!');
-					socketHandler.removeNamespace(matchId);
 				});
 		});
 });
