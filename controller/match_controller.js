@@ -674,7 +674,7 @@ function getPlayerStatistics(players, scores, startingScore) {
 		// Set accuracy stats for each players
 		var accuracyStats = player.accuracyStats;
 		if ((accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses) == 0) {
-			accuracyStats.overallAccuracy = 0;
+			accuracyStats.overallAccuracy = null; // No stats available
 		} else {
 			accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);

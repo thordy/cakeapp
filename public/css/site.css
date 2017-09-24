@@ -32,13 +32,7 @@ a:hover {
 }
 
 /* CSS Related to player statistics page */
-#player_statistics_table td {
-    text-align: center;
-}
-#player_accuracy_table td {
-    text-align: center;
-}
-#player_scores_table td {
+#player_statistics_table td, #player_accuracy_table td, #player_scores_table td, #player_highscores_table td {
     text-align: center;
 }
 #player_scores_table label {

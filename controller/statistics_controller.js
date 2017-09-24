@@ -47,6 +47,7 @@ function getStatistics(from, to, callback) {
             p.id as 'player_id',
             p.name AS 'player_name',
             COUNT(DISTINCT g.id) AS 'games_played',
+            0 as 'games_won', -- This will be updated in the next query
             SUM(s.ppd) / COUNT(p.id) AS 'ppd',
             SUM(s.first_nine_ppd) / COUNT(p.id) AS 'first_nine_ppd',
             SUM(60s_plus) AS '60s_plus',
