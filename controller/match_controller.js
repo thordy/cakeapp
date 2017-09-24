@@ -282,24 +282,11 @@ router.post('/new', function (req, res) {
 	var gameStake = req.body.gameStake;
 
 	debug('New game added', gameType);
-<<<<<<< HEAD
 	new Game({
 		game_type_id: gameType,
 		owe_type_id: gameStake == "0" ? undefined : gameStake,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
-	.save(null, {method: 'insert'})
-	.then(function (game) {
-		var players = req.body.players;
-		new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
-			if (err) {
-				return helper.renderError(res, err);
-			}
-			debug('Added players %s', players);
-			socketHandler.setupNamespace(match.id);
-			res.redirect('/match/' + match.id);
-=======
-	new Game({ game_type_id: gameType, created_at: moment().format("YYYY-MM-DD HH:mm:ss") })
 		.save(null, { method: 'insert' })
 		.then(function (game) {
 			var players = req.body.players;
@@ -314,7 +301,6 @@ router.post('/new', function (req, res) {
 		})
 		.catch(function (err) {
 			helper.renderError(res, err);
->>>>>>> master
 		});
 });
 
@@ -475,7 +461,6 @@ router.post('/:id/finish', function (req, res) {
 							}
 
 							new Game({ id: match.game_id})
-<<<<<<< HEAD
 								.fetch({
 									withRelated: [
 										'game_type',
@@ -483,36 +468,8 @@ router.post('/:id/finish', function (req, res) {
 										'players',
 									]
 								})
-=======
-								.fetch({ withRelated: [ 'game_type' ] })
->>>>>>> master
 								.then(function (rows) {
 									var game = rows.serialize();
-<<<<<<< HEAD
-									var players = game.players;
-									var matchesRequired = game.game_type.matches_required;
-
-									// How many games has current player won ?
-									var currentWinner = currentPlayerId;
-									var gameId = game.id;
-
-									knex = Bookshelf.knex;
-									knex('match')
-									.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
-									.where(knex.raw('match.game_id = ?', [gameId]))
-									.where(knex.raw('match.winner_id = ?', [currentWinner]))
-									.then(function(rows) {
-										if (rows[0].wins == matchesRequired) {
-											new Game({ id: game.id })
-											.save({
-												is_finished: true,
-												winner_id: currentPlayerId,
-											})
-											.then(function (row) {
-												if (game.owe_type_id !== null) {
-													// TODO - for each player, check if it is a winner and add owe 
-												}
-=======
 									var requiredMatches = game.game_type.matches_required;
 									var requiredWins = game.game_type.wins_required;
 
@@ -534,8 +491,31 @@ router.post('/:id/finish', function (req, res) {
 
 											if (currentPlayerWins === requiredWins) {
 												// Game finished, current player won
-												new Game({ id: game.id}).save({ is_finished: true, winner_id: currentPlayerId })
+												new Game({ id: game.id })
+												.save({ 
+													is_finished: true, 
+													winner_id: currentPlayerId 
+												})
 												.then(function (row) {
+													var playersInGame = game.players;
+													for (var gamePlayerIndex in playersInGame) {
+														var gamePlayerId = playersInGame[gamePlayerIndex].id;
+														if (gamePlayerId != currentPlayerId) {
+															knex = Bookshelf.knex;
+															knex.raw(`
+																INSERT INTO owes (player_ower_id, player_owee_id, owe_type_id, amount)
+																VALUES (:game_player_id, :game_winner_id, :owe_type_id, 1)
+																ON DUPLICATE KEY UPDATE amount = amount + 1`,
+																{ game_player_id: gamePlayerId, game_winner_id: currentPlayerId, owe_type_id: game.owe_type_id }
+															)
+															.then(function (rows) {
+																console.log(gamePlayerId);
+															})
+															.catch(function (err) {
+																helper.renderError(res, err);
+															});
+														}
+													}
 													res.status(200).end();
 												});
 											}
@@ -548,7 +528,6 @@ router.post('/:id/finish', function (req, res) {
 											}
 											else {
 												// Game is not finished, continue to next leg
->>>>>>> master
 												res.status(200).end();
 											}
 										})
