@@ -497,6 +497,7 @@ router.post('/:id/finish', function (req, res) {
 													winner_id: currentPlayerId 
 												})
 												.then(function (row) {
+													// Automatically update owes
 													var playersInGame = game.players;
 													for (var gamePlayerIndex in playersInGame) {
 														var gamePlayerId = playersInGame[gamePlayerIndex].id;
@@ -599,13 +600,13 @@ function writeStatistics(match, winnerPlayerId, callback) {
 						stats.attributes['140s_plus'] = player.highScores['140+'];
 						stats.attributes['180s'] = player.highScores['180'];
 						debug('Inserting match statistics for player %s', id);
-						stats.save(null, { method: 'insert' }).then(function(row) {
-								callback();
-							})
+						stats.save(null, { method: 'insert' }).then(function(row) {})
 							.catch(function(err) {
 								callback(err);
 							});
 					}
+					// Not in the loop
+					callback();
 				});
 		});
 }
