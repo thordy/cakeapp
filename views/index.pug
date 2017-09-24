@@ -5,6 +5,15 @@ block scripts
 		$(function () {
 			$('#sortable-player-list').sortable();
 			$('#sortable-player-list').disableSelection();
+
+			$('#all-players-list').on('click', '.player_name_label', function() {
+				var sortablePlayerList = $('#sortable-player-list');
+				$(this).parent().appendTo(sortablePlayerList).removeClass('float-left');
+			});
+			$('#sortable-player-list').on('click', '.player_name_label', function() {
+				var allPlayersList = $('#all-players-list');
+				$(this).parent().appendTo(allPlayersList).addClass('float-left');
+			});
 		});
 
 block content
@@ -20,14 +29,16 @@ block content
 					Players must be added before you can start a new game
 			else
 				form(action='/match/new' method='POST' id='newMatchForm')
-					legend Players
-					div(class='form-group form-check' id='sortable-player-list')
+					legend Players 
+					div(class='form-group form-check float-left' id='sortable-player-list')
+					legend Choose players
+					div(class='form-group form-check' id='all-players-list')
 						each player in players
-							div(class='form-check' style='padding-bottom: 10px; width: 230px;')
-								input(type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
-								label(style='margin-left: 10px; width: 200px; text-transform: uppercase;' class='form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
+							div(class='form-check float-left' style='padding-bottom: 10px;')
+								input(style='display: none;' type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
+								label(style='margin-left: 10px; width: 160px; text-transform: uppercase;' class='player_name_label form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
 
-					div(class='form-group')
+					div(class='form-group' style='clear: both')
 						label(for='matchTypeSelect') Starting Score
 						select(class='form-control' name='startingScore' id='matchTypeSelect')
 							option 301

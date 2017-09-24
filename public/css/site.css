@@ -173,3 +173,7 @@ a:hover {
 .dart-triple {
     background-color: #d9534f !important;
 }
+
+.float-left {
+    float: left;
+}
