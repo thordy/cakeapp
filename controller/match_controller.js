@@ -236,6 +236,10 @@ router.get('/:legid/leg', function (req, res) {
 					var player = playersMap[score.player_id];
 					player.remaining_score = player.remaining_score -
 						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
+					score.remaining_score = player.remaining_score;
+				}
+				else {
+					score.remaining_score = 'BUST';
 				}
 			}
 			knex = Bookshelf.knex;

@@ -204,6 +204,7 @@ block content
                     th Second Dart
                     th Third Dart
                     th Total
+                    th Remaining
                     th PPD
                     if match.winner_id === null
                         th(class="txt-center") Options
@@ -439,9 +440,10 @@ block content
 
                         td(class='total-visit-score-' + throws.id)
                             label= (throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)
+                        td: label= throws.remaining_score
                         td(class='visit-ppd-' + throws.id)= (((throws.first_dart * throws.first_dart_multiplier) + (throws.second_dart * throws.second_dart_multiplier) + (throws.third_dart * throws.third_dart_multiplier)) / 3).toFixed(2)
                         if match.winner_id === null
-                            td(class="txt-center")
+                            td(class='txt-center')
                                 button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
                                     span(class="glyphicon glyphicon-edit" aria-hidden="true")
                                 // button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
