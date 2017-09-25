@@ -283,9 +283,14 @@ router.post('/new', function (req, res) {
 	// Get first player in the list, order should be handled in frontend
 	var currentPlayerId = req.body.players[0];
 	var gameType = req.body.gameType;
+	var gameStake = req.body.gameStake;
 
 	debug('New game added', gameType);
-	new Game({ game_type_id: gameType, created_at: moment().format("YYYY-MM-DD HH:mm:ss") })
+	new Game({
+		game_type_id: gameType,
+		owe_type_id: gameStake == "0" ? undefined : gameStake,
+		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+	})
 		.save(null, { method: 'insert' })
 		.then(function (game) {
 			var players = req.body.players;
@@ -460,7 +465,13 @@ router.post('/:id/finish', function (req, res) {
 							}
 
 							new Game({ id: match.game_id})
-								.fetch({ withRelated: [ 'game_type' ] })
+								.fetch({
+									withRelated: [
+										'game_type',
+										'game_stake',
+										'players',
+									]
+								})
 								.then(function (rows) {
 									var game = rows.serialize();
 									var requiredMatches = game.game_type.matches_required;
@@ -484,8 +495,31 @@ router.post('/:id/finish', function (req, res) {
 
 											if (currentPlayerWins === requiredWins) {
 												// Game finished, current player won
-												new Game({ id: game.id}).save({ is_finished: true, winner_id: currentPlayerId })
+												new Game({ id: game.id })
+												.save({ 
+													is_finished: true, 
+													winner_id: currentPlayerId 
+												})
 												.then(function (row) {
+													// Automatically update owes
+													var playersInGame = game.players;
+													for (var gamePlayerIndex in playersInGame) {
+														var gamePlayerId = playersInGame[gamePlayerIndex].id;
+														if (gamePlayerId != currentPlayerId) {
+															knex = Bookshelf.knex;
+															knex.raw(`
+																INSERT INTO owes (player_ower_id, player_owee_id, owe_type_id, amount)
+																VALUES (:game_player_id, :game_winner_id, :owe_type_id, 1)
+																ON DUPLICATE KEY UPDATE amount = amount + 1`,
+																{ game_player_id: gamePlayerId, game_winner_id: currentPlayerId, owe_type_id: game.owe_type_id }
+															)
+															.then(function (rows) {
+															})
+															.catch(function (err) {
+																helper.renderError(res, err);
+															});
+														}
+													}
 													res.status(200).end();
 												});
 											}
@@ -569,13 +603,13 @@ function writeStatistics(match, winnerPlayerId, callback) {
 						stats.attributes['140s_plus'] = player.highScores['140+'];
 						stats.attributes['180s'] = player.highScores['180'];
 						debug('Inserting match statistics for player %s', id);
-						stats.save(null, { method: 'insert' }).then(function(row) {
-								callback();
-							})
+						stats.save(null, { method: 'insert' }).then(function(row) {})
 							.catch(function(err) {
 								callback(err);
 							});
 					}
+					// Not in the loop
+					callback();
 				});
 		});
 }

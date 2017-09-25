@@ -32,11 +32,15 @@ app.use(express.static('public'));
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
   var GameType = require('./models/GameType');
+  var OweType = require('./models/OweType');
 	Player.fetchAll().then(function(players) {
       GameType.fetchAll().then(function(gameTypes) {
-        res.render('index', {
-          players: players.serialize(),
-          gameTypes: gameTypes.serialize()
+        OweType.fetchAll().then(function(gameStakes) {
+          res.render('index', {
+            players: players.serialize(),
+            gameTypes: gameTypes.serialize(),
+            gameStakes: gameStakes.serialize(),
+          });
         });
       });
 	})
