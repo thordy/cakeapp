@@ -510,7 +510,6 @@ router.post('/:id/finish', function (req, res) {
 																{ game_player_id: gamePlayerId, game_winner_id: currentPlayerId, owe_type_id: game.owe_type_id }
 															)
 															.then(function (rows) {
-																console.log(gamePlayerId);
 															})
 															.catch(function (err) {
 																helper.renderError(res, err);
