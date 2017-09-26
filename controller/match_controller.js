@@ -236,10 +236,6 @@ router.get('/:legid/leg', function (req, res) {
 					var player = playersMap[score.player_id];
 					player.remaining_score = player.remaining_score -
 						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
-					score.remaining_score = player.remaining_score;
-				}
-				else {
-					score.remaining_score = 'BUST';
 				}
 			}
 			knex = Bookshelf.knex;
@@ -506,18 +502,20 @@ router.post('/:id/finish', function (req, res) {
 													for (var gamePlayerIndex in playersInGame) {
 														var gamePlayerId = playersInGame[gamePlayerIndex].id;
 														if (gamePlayerId != currentPlayerId) {
-															knex = Bookshelf.knex;
-															knex.raw(`
-																INSERT INTO owes (player_ower_id, player_owee_id, owe_type_id, amount)
-																VALUES (:game_player_id, :game_winner_id, :owe_type_id, 1)
-																ON DUPLICATE KEY UPDATE amount = amount + 1`,
-																{ game_player_id: gamePlayerId, game_winner_id: currentPlayerId, owe_type_id: game.owe_type_id }
-															)
-															.then(function (rows) {
-															})
-															.catch(function (err) {
-																helper.renderError(res, err);
-															});
+															if (game.owe_type_id) {
+																knex = Bookshelf.knex;
+																knex.raw(`
+																	INSERT INTO owes (player_ower_id, player_owee_id, owe_type_id, amount)
+																	VALUES (:game_player_id, :game_winner_id, :owe_type_id, 1)
+																	ON DUPLICATE KEY UPDATE amount = amount + 1`,
+																	{ game_player_id: gamePlayerId, game_winner_id: currentPlayerId, owe_type_id: game.owe_type_id }
+																)
+																.then(function (rows) {
+																})
+																.catch(function (err) {
+																	helper.renderError(res, err);
+																});
+															}
 														}
 													}
 													res.status(200).end();
@@ -712,7 +710,7 @@ function getPlayerStatistics(players, scores, startingScore) {
 		// Set accuracy stats for each players
 		var accuracyStats = player.accuracyStats;
 		if ((accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses) == 0) {
-			accuracyStats.overallAccuracy = null; // No stats available
+			accuracyStats.overallAccuracy = 0;
 		} else {
 			accuracyStats.overallAccuracy = (accuracyStats.accuracy20 + accuracyStats.accuracy19) /
 			(accuracyStats.attempts20 + accuracyStats.attempts19 + accuracyStats.misses);
