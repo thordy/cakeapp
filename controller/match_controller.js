@@ -113,6 +113,67 @@ router.get('/:id', function (req, res) {
 	});
 });
 
+router.get('/:id/keyboard', function (req, res) {
+	new Match().getMatch(req.params.id, function(err, match) {
+		if (err) {
+			return helper.renderError(res, err);
+		}
+
+		var players = match.related('players').serialize();
+		var scores = match.related('scores').serialize();
+		var match = match.serialize();
+
+		if (match.is_finished) {
+			// Do not allow to see match board if it is finished, redirect to that match results
+			res.redirect('/match/' + match.id + '/results');
+		}
+		else {
+			// Calculate remaining score and some statistics for each player
+			var playersMap = new Player().getPlayersMap(scores, match, players);
+
+			knex = Bookshelf.knex;
+			knex('match')
+			.select(knex.raw(`
+				match.winner_id,
+				count(match.winner_id) as wins,
+				game_type.matches_required`
+			))
+			.where(knex.raw('match.game_id = ?', [match.game_id]))
+			.join(knex.raw('game on game.id = match.game_id'))
+			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
+			.groupBy('match.winner_id')
+			.orderByRaw('count(match.winner_id) DESC')
+			.then(function(rows) {
+				for (var i = 0; i < rows.length; i++) {
+					if (rows[i].winner_id) {
+						var playerId = rows[i].winner_id;
+						var wins = rows[i].wins;
+						var player = playersMap['p' + playerId];
+						player.wins = wins;
+						for (var j = 0; j < wins; j++) {
+							player.wins_string += '*';
+						}
+					}
+				}
+
+				// Set all scores and round number
+				scores = _.filter(scores, (score) => !scores.is_bust);
+				match.scores = scores;
+				match.round_number = Math.floor(scores.length / players.length) + 1;
+				res.render('match_keyboard', {
+					match: match,
+					players: playersMap,
+					game: match.game,
+					game_type: match.game.game_type,
+				});
+			})
+			.catch(function (err) {
+				helper.renderError(res, err);
+			});
+		}
+	});
+});
+
 /* Render the match spectate view */
 router.get('/:id/spectate', function (req, res) {
 	new Match().getMatch(req.params.id, function(err, match) {
@@ -503,6 +564,7 @@ router.post('/:id/finish', function (req, res) {
 														var gamePlayerId = playersInGame[gamePlayerIndex].id;
 														if (gamePlayerId != currentPlayerId) {
 															if (game.owe_type_id) {
+																debug('Adding owes of "%s" from %s to %s', game.game_stake.item, gamePlayerId, currentPlayerId);
 																knex = Bookshelf.knex;
 																knex.raw(`
 																	INSERT INTO owes (player_ower_id, player_owee_id, owe_type_id, amount)
