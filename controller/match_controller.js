@@ -293,10 +293,14 @@ router.get('/:legid/leg', function (req, res) {
 					scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
 					scoresMap.totalThrows++;
 				}
+				var player = playersMap[score.player_id];
+				var visitScore = (score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier);
 				if (score.is_bust !== 1) {
-					var player = playersMap[score.player_id];
-					player.remaining_score = player.remaining_score -
-						((score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier));
+					player.remaining_score = player.remaining_score - visitScore;
+					score.remaining_score = player.remaining_score;
+				}
+				else {
+					score.remaining_score = player.remaining_score - visitScore + ' (BUST)';
 				}
 			}
 			knex = Bookshelf.knex;
