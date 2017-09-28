@@ -234,20 +234,20 @@ router.post('/new', function (req, res) {
 		owe_type_id: gameStake == "0" ? undefined : gameStake,
 		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
 	})
-		.save(null, { method: 'insert' })
-		.then(function (game) {
-			new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
-				if (err) {
-					return helper.renderError(res, err);
-				}
-				debug('Added players %s', players);
-				socketHandler.setupNamespace(match.id);
-				res.redirect('/match/' + match.id);
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
+    .save(null, { method: 'insert' })
+    .then(function (game) {
+        new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
+            if (err) {
+                return helper.renderError(res, err);
+            }
+            debug('Added players %s', players);
+            socketHandler.setupNamespace(match.id);
+            res.redirect('/match/' + match.id);
+        });
+    })
+    .catch(function (err) {
+        helper.renderError(res, err);
+    });
 });
 
 module.exports = function (socketHandler) {
