@@ -212,79 +212,42 @@ router.get('/:id/results', function (req, res) {
         });	
 });
 
-/* Method for starting a new match */
+/* Method for starting a new game */
 router.post('/new', function (req, res) {
-    if (req.body.players === undefined) {
-        debug('No players specified, unable to start match');
-        return res.redirect('/');
+    var players = req.body.players;
+	if (players === undefined) {
+		debug('No players specified, unable to start match');
+		return res.redirect('/');
+	}
+    if (players.constructor !== Array) {
+        // If this is only a single player players is sent as a String, so make it an
+        // array so that we select from the array instead of a substring below
+        players = [ players ];
     }
+	var currentPlayerId = players[0];
+	var gameType = req.body.gameType;
+	var gameStake = req.body.gameStake;
 
-    // Get first player in the list, order should be handled in frontend
-    var currentPlayerId = req.body.players[0];
-    var gameType = req.body.gameType;
-
-    /**
-     * Check the game type and add new one
-     * This is only for starting new match,
-     * for next sets we need to pass game id to /new/gameid route
-     */
-    debug('New game added', gameType);
-    new Game({
-        game_type_id: gameType,
-        created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-    })
-    .save(null, {method: 'insert'})
-    .then(function (game) {
-        new Match({
-            starting_score: req.body.matchType,
-            current_player_id: currentPlayerId,
-            game_id: game.id,
-            created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-        })
-        .save(null, {method: 'insert'})
-        .then(function (match) {
-            debug('Created match %s', match.id);
-
-            // Update game and set current match id
-            new Game({
-                id: game.id,
-                current_match_id: match.id
-            })
-            .save()
-            .then(function (game) {
-                var playersArray = req.body.players;
-                var playerOrder = 1;
-                var playersInMatch = [];
-                for (var i in playersArray) {
-                    playersInMatch.push({
-                        player_id: playersArray[i],
-                        match_id: match.id,
-                        order: playerOrder,
-                        game_id: game.id,
-                    });
-                    playerOrder++;
-                }
-
-                Bookshelf
-                    .knex('player2match')
-                    .insert(playersInMatch)
-                    .then(function (rows) {
-                        debug('Added players %s', playersArray);
-                        this.socketHandler.setupNamespace(match.id);
-                        res.redirect('/match/' + match.id);
-                    })
-                    .catch(function (err) {
-                        helper.renderError(res, err);
-                    });
-            });
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
-    })
-    .catch(function (err) {
-        helper.renderError(res, err);
-    });
+	debug('New game added', gameType);
+	new Game({
+		game_type_id: gameType,
+		owe_type_id: gameStake == "0" ? undefined : gameStake,
+		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
+	})
+		.save(null, { method: 'insert' })
+		.then(function (game) {
+			new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
+				if (err) {
+					return helper.renderError(res, err);
+				}
+				debug('Added players %s', players);
+				socketHandler.setupNamespace(match.id);
+				res.redirect('/match/' + match.id);
+			});
+		})
+		.catch(function (err) {
+			helper.renderError(res, err);
+		});
 });
 
 module.exports = function (socketHandler) {

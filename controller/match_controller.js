@@ -334,41 +334,6 @@ router.get('/:legid/leg', function (req, res) {
 		});
 });
 
-/* Method for starting a new match */
-router.post('/new', function (req, res) {
-	if (req.body.players === undefined) {
-		debug('No players specified, unable to start match');
-		return res.redirect('/');
-	}
-
-	// Get first player in the list, order should be handled in frontend
-	var currentPlayerId = req.body.players[0];
-	var gameType = req.body.gameType;
-	var gameStake = req.body.gameStake;
-
-	debug('New game added', gameType);
-	new Game({
-		game_type_id: gameType,
-		owe_type_id: gameStake == "0" ? undefined : gameStake,
-		created_at: moment().format("YYYY-MM-DD HH:mm:ss")
-	})
-		.save(null, { method: 'insert' })
-		.then(function (game) {
-			var players = req.body.players;
-			new Match().createMatch(game.id, req.body.startingScore, currentPlayerId, players, (err, match) => {
-				if (err) {
-					return helper.renderError(res, err);
-				}
-				debug('Added players %s', players);
-				socketHandler.setupNamespace(match.id);
-				res.redirect('/match/' + match.id);
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
-});
-
 /* Delete the given visit */
 router.delete('/:legid/leg/:visitid', function (req, res) {
 	var visitId = req.params.visitid;
