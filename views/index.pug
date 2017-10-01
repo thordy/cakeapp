@@ -31,7 +31,7 @@ block content
 				form(action='/game/new' method='POST' id='newMatchForm')
 					legend Players 
 					div(class='form-group form-check float-left' id='sortable-player-list')
-					legend Choose players
+					legend(style='clear: both;') Choose players
 					div(class='form-group form-check' id='all-players-list')
 						each player in players
 							div(class='form-check float-left' style='padding-bottom: 10px;')
