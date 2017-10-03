@@ -26,7 +26,7 @@ var Owe = bookshelf.Model.extend({
                 owe_type_id: itemId
             })
             .update({
-              amount: bookshelf.knex.raw('amount - 1')
+              amount: bookshelf.knex.raw('amount - ' + amount)
             })
             .then(function(updateCount) {
                 callback(null, updateCount);
