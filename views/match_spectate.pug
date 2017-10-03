@@ -155,11 +155,58 @@ block scripts
                 return score;
             }
 
+            function pushScoreToChart(score) {
+
+            }
+
+            var matchScores = match.scores;
+            console.log(matchScores[0]);
+            var ctx = document.getElementById("spectate-canvas").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                    datasets: [
+                        {
+                            label: 'Thord',
+                            data: [301, 256, 240, 187, 120, 87],
+                            backgroundColor: [
+                                'rgba(100, 99, 255, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(100,99,255,1)'
+                            ],
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Lukasz',
+                            data: [301, 268, 266, 200, 150, 50],
+                            backgroundColor: [
+                                'rgba(100, 44, 132, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255,99,132,1)'
+                            ],
+                            borderWidth: 1
+                        },
+                    ]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    }
+                }
+            });
+
         });
 
 block content
     h2 Spectate
-
+    canvas(id='spectate-canvas')
     h3 Players
     // div(class='table-responsive')
         table(class='table table-striped table-bordered' id='player_spectate_table')

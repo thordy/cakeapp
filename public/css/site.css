@@ -177,3 +177,8 @@ a:hover {
 .float-left {
     float: left;
 }
+
+#spectate-canvas
+{
+    width: 100%;
+}
