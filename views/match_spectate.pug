@@ -155,12 +155,48 @@ block scripts
                 return score;
             }
 
-            function pushScoreToChart(score) {
-
+            // Insert data into players' dataset
+            function addData(chart, visitNumber, data, playerName) {
+                if (!chart.data.labels.includes(visitNumber)) {
+                    chart.data.labels.push(visitNumber);
+                }
+                chart.data.datasets.forEach(
+                    (dataset) => {
+                        if (dataset.label == playerName) {
+                            dataset.data.push(data);   
+                        }
+                });
+                chart.update();
+            }
+           
+            var data = {
+                labels: [0],
             }
 
+            // TODO - construct players array
+
+            // TODO - put descending scores into player2score array
+
+            var ctx = $("#spectate-canvas").get(0).getContext("2d");
+                var myBarChart = new Chart(ctx, {
+                    type: "line",
+                    data: data,
+                    options: {
+                        scales: {
+                            yAxes : [{
+                                ticks : {
+                                    min: 0,
+                                    // Show top score on Y axis as 500 / 300 
+                                    // 501/301 does not look good
+                                    max : (match.starting_score - 1) 
+                                }
+                            }]
+                        }
+                    }
+            });
+
             var matchScores = match.scores;
-            console.log(matchScores[0]);
+            /*
             var ctx = document.getElementById("spectate-canvas").getContext('2d');
             var myChart = new Chart(ctx, {
                 type: 'line',
@@ -201,7 +237,7 @@ block scripts
                     }
                 }
             });
-
+            */
         });
 
 block content
