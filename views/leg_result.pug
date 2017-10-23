@@ -163,31 +163,31 @@ block content
                     th Darts Thrown
                     th First 9 PPD
                     th PPD
+                    th Checkout %
                     th Scores
                     th Winner
             tbody
                 each player in players
                     - var statistics = player.statistics;
                     tr
-                        td
-                            p= player.name
-                        td
-                            p= statistics.darts_thrown
-                        td
-                            p= statistics.first_nine_ppd.toFixed(2)
-                        td
-                            p= statistics.ppd.toFixed(2)
+                        td: p= player.name
+                        td: p= statistics.darts_thrown
+                        td: p= statistics.first_nine_ppd.toFixed(2)
+                        td: p= statistics.ppd.toFixed(2)
+                        if player.id === match.winner_id
+                            td -
+                            //: p= statistics.checkout_percentage.toFixed(2)
+                        else
+                            td: p -
                         td
                             p= statistics['60s_plus'] === 0 ? "" : "60+: " + statistics['60s_plus']
                             p= statistics['100s_plus'] === 0 ? "" : "100+: " + statistics['100s_plus']
                             p= statistics['140s_plus'] === 0 ? "" : "140+: " + statistics['140s_plus']
                             p= statistics['180s'] === 0 ? "" : "180:  " + statistics['180s']
                         if player.id === match.winner_id
-                            td
-                                span(class='glyphicon glyphicon-ok' aria-hidden='true')
+                            td: span(class='glyphicon glyphicon-ok' aria-hidden='true')
                         else
-                            td
-                                p= player.remaining_score + ' left'
+                            td: p= player.remaining_score + ' left'
 
     h3 Match Results
     p.

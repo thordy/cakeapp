@@ -4,11 +4,6 @@ block scripts
     script.
         $(function () {
             FastClick.attach(document.body);
-            $(document).ready(function(){
-                var scores = {};
-                window.darts_thrown = 0;
-
-                $('[data-toggle="popover"]').popover();
 
                 var matchId = $('#submitScoreButton').data('match-id');
                 var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
@@ -29,7 +24,7 @@ block scripts
 
                 socket.on('match_finished', function(data) {
                     // Forward all clients to results page when match is finished
-                    location.href = window.location.pathname + '/leg';
+                    location.href = 'match/' + matchId + '/leg';
                 });
 
                 socket.on('score_update', function(data) {
@@ -98,6 +93,247 @@ block scripts
                     $('#submitScoreButton').data('finished', 0);
                 });
 
+            var dartText = '';
+            var currentMultiplier = 1;
+            var scores = {};
+            var disableEnter = false;
+
+            $(document).keydown(function(e) {
+                if (e.key === 'Backspace') {
+                    if (dartText !== '') {
+                        dartText = dartText.substring(0, dartText.length - 1);
+                        updateScore(getCurrentDart(), dartText);
+                    }
+                    else {
+                        $('#undoButton').trigger('click');
+                    }
+                    e.preventDefault();
+                }
+                return;
+            });
+
+            $(document).keypress(function(e) {
+                var dart = getCurrentDart();
+                switch(e.key) {
+                    case 'Enter':
+                        if (disableEnter) {
+                            disableEnter = false;
+                            return;
+                        }
+                        console.log('Enter Pressed');
+                        if (window.darts_thrown === 3) {
+                            $('#submitScoreButton').trigger('click');
+                        }
+                        else {
+                            var scoreNumeric = 0;
+                            if (dartText === '') {
+                                updateScore(dart, 'Miss');
+                            }
+                            else {
+                                var currentPlayer = $('#current_player');
+                                scoreNumeric = parseInt(dartText) * dart.attr('data-multiplier');
+                                var currentPlayerScore = parseInt(currentPlayer.text());
+                                var currentPlayerId = $('#submitScoreButton').data('current-player-id');
+
+                                checkVisitFinished(dart, currentPlayerScore, currentPlayerId, scoreNumeric);
+                                currentPlayer.text(currentPlayerScore - scoreNumeric);
+                            }
+                            scores[window.darts_thrown] = scoreNumeric;
+                            window.darts_thrown++;
+                        }
+                        dartText = '';
+                        currentMultiplier = 1;
+                        return;
+                    case '/': // Single
+                        currentMultiplier = 1;
+                        break;
+                    case '*': // Double
+                        currentMultiplier = 2;
+                        break;
+                    case '-': // Triple
+                        currentMultiplier = 3;
+                        break;
+                    case ',': // Delete, same as backspace
+                        if (dartText !== '') {
+                            dartText = dartText.substring(0, dartText.length - 1);
+                            updateScore(dart, dartText);
+                        }
+                        else {
+                            $('#undoButton').trigger('click');
+                        }
+                        return;
+                    case '+': // Cycle through multipliers
+                        var value = parseInt(dartText);
+                        if (dartText === '' || value === 0) {
+                            return;
+                        }
+                        currentMultiplier++;
+                        updateScore(dart, dartText);
+                        currentMultiplier = currentMultiplier > 3 ? 1 : currentMultiplier;
+                        return;
+                    case '1':
+                        dartText += '1';
+                        break;
+                    case '2':
+                        dartText += '2';
+                        break;
+                    case '3':
+                        dartText += '3';
+                        break;
+                    case '4':
+                        dartText += '4';
+                        break;
+                    case '5':
+                        dartText += '5';
+                        break;
+                    case '6':
+                        dartText += '6';
+                        break;
+                    case '7':
+                        dartText += '7';
+                        break;
+                    case '8':
+                        dartText += '8';
+                        break;
+                    case '9':
+                        dartText += '9';
+                        break;
+                    case '0':
+                        dartText += '0';
+                        break;
+                    default:
+                        console.log(e);
+                        break;
+                }
+                var value = parseInt(dartText);
+                if (value > 20 && value !== 25) {
+                    dartText = dartText.substring(0, dartText.length - 1);
+                    disableEnter = true;
+                    showAlert('Invalid value', function() { });
+                }
+                updateScore(dart, dartText);
+            });
+
+            function getCurrentDart() {
+                var dart;
+                if (window.darts_thrown === 0) {
+                    dart = $('#first');
+                }
+                else if (window.darts_thrown === 1) {
+                    dart = $('#second');
+                }
+                else if (window.darts_thrown === 2) {
+                    dart = $('#third');
+                }
+                return dart;
+            }
+
+            function updateScore(dart, score) {
+                var scoreInt = parseInt(score);
+                var multiplierText = score
+
+                if (scoreInt === 0 || score.indexOf('Miss') !== -1) {
+                    currentMultiplier = 1;
+                    score = 0;
+                }
+                dart.css('background-color', 'black');
+                if (multiplierText !== '') {
+                    if (currentMultiplier == 3) {
+                        multiplierText = 'T-' + dartText;
+                        dart.css('background-color', '#d9534f');
+                    }
+                    else if (currentMultiplier == 2) {
+                        multiplierText = 'D-' + dartText;
+                        dart.css('background-color', 'orange');
+                    }
+                    else if (score === 0) {
+                        multiplierText = 'Miss';
+                    }
+                }
+                dart.text(multiplierText);
+                dart.attr('data-score', score);
+                dart.attr('data-multiplier', currentMultiplier);
+            }
+
+            function checkVisitFinished(dart, currentPlayerScore, currentPlayerId, scoreNumeric) {
+                // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
+                if (currentPlayerScore == 50 || (currentPlayerScore <= 40 && currentPlayerScore % 2 == 0)) {
+                    dart.attr('data-checkout', 1);
+                }
+
+                var isBust = false;
+                var isFinished = false;
+
+                // Is the game over
+                var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
+                if (scoreAfterThrow == 0) {
+                    if (dart.attr('data-multiplier') == 2) {
+                        disableEnter = true;
+                        showConfirm('Game will be finished.', function() {
+                            isFinished = true;
+                            socket.emit('possible_throw', {
+                                    current_player_id: currentPlayerId,
+                                    score: scoreNumeric,
+                                    dart_text: dart.text(),
+                                    multiplier: dart.attr('data-multiplier'),
+                                    is_bust: isBust,
+                                    is_finished: isFinished,
+                                    darts_thrown: window.darts_thrown + 1
+                            });
+
+                            // End game, 'click' submit
+                            $('#submitScoreButton').data('finished', 1).trigger('click');
+                        }, function(){
+                            $('#undoButton').trigger('click');
+                        });
+                        return;
+                    }                   
+                    else {
+                        isBust = true;
+                    }
+                }
+                else if (scoreAfterThrow <= 1) {
+                    isBust = true;
+                }
+                
+                if (isBust) {
+                    disableEnter = true;
+                    showConfirm('Player busted', function() {
+                        // Emit a dart throw for spectators
+                        socket.emit('possible_throw', {
+                                current_player_id: currentPlayerId,
+                                score: scoreNumeric,
+                                dart_text: dart.text(),
+                                multiplier: dart.attr('data-multiplier'),
+                                is_bust: isBust,
+                                is_finished: isFinished,
+                                darts_thrown: window.darts_thrown + 1
+                        });
+                        alertify.success('Player busted');
+                        $('#submitScoreButton').data('busted', 1).trigger('click');
+                    }, function(){
+                        // Clear the score for thrown dart
+                        $('#undoButton').trigger('click');
+                    });
+                }
+                else {
+                    // Emit a dart throw for spectators
+                    socket.emit('possible_throw', {
+                            current_player_id: currentPlayerId,
+                            score: scoreNumeric,
+                            dart_text: dart.text(),
+                            multiplier: dart.attr('data-multiplier'),
+                            is_bust: isBust,
+                            is_finished: isFinished,
+                            darts_thrown: window.darts_thrown + 1
+                    });
+                }
+            }
+
+            $(document).ready(function(){
+                window.darts_thrown = 0;
+                $('[data-toggle="popover"]').popover();
+
                 $('#submitScoreButton').click(function (event) {
                     $('#submitScoreButton').prop('disabled', true);
 
@@ -112,7 +348,6 @@ block scripts
                     var secondScoreMultiplier = $('#second').attr('data-multiplier');
                     var thirdScoreMultiplier =  $('#third').attr('data-multiplier');
                     // Checkouts
-                    // FIXME: If you press "submit" without selecting 'Miss' these will not be populated, need to fix this!
                     var isCheckoutFirst = $('#first').attr('data-checkout');
                     var isCheckoutSecond = $('#second').attr('data-checkout');
                     var isCheckoutThird = $('#third').attr('data-checkout');
@@ -140,9 +375,9 @@ block scripts
                     });
 
                     if (isFinished) {
-                        executePost(window.location.pathname + '/finish', data, 'application/json',
+                        executePost(window.location.origin + '/match/' + matchId + '/finish', data, 'application/json',
                             function (response) {
-                                location.href = window.location.pathname + '/leg';
+                                location.href = window.location.origin + '/match/' + matchId + '/leg';
                             },
                             function (error) {
                                 // TODO Error handling
@@ -341,7 +576,7 @@ block content
     div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
         Unable to cancel match
 
-    h2 Match
+    h2 Match (Keyboard Entry)
     div(class='table-responsive')
         table(id='score_selector_table' class='table')
             tbody

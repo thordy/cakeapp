@@ -241,17 +241,16 @@ router.get('/:legid/leg', function (req, res) {
 			var game = row.related('game').serialize();
 			var statistics = row.related('statistics').serialize();
 			var scores = row.related('scores').serialize();
+			var match = row.serialize();
 			var playersMap = players.reduce(function ( map, player ) {
 				map[player.id] = player;
+				player.remaining_score = match.starting_score;
 				return map;
 			}, {});
-			var match = row.serialize();
 
 			for (var i = 0; i < statistics.length; i++) {
 				var stats = statistics[i];
-				var player = playersMap[stats.player_id];
-				player.remaining_score = match.starting_score;
-				player.statistics = stats;
+				playersMap[stats.player_id].statistics = stats;
 			}
 			// Create a map of scores used to visualize throws in a heatmap
 			var scoresMap = {
@@ -346,6 +345,7 @@ router.delete('/:legid/leg/:visitid', function (req, res) {
 			.end();
 	});
 });
+
 /* Modify the score */
 router.post('/:id/leg', function (req, res) {
 	// TODO Only allow if match is not finished
