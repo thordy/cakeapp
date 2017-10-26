@@ -5,93 +5,93 @@ block scripts
         $(function () {
             FastClick.attach(document.body);
 
-                var matchId = $('#submitScoreButton').data('match-id');
-                var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
-                socket.on('connect', function(data) {
-                    socket.emit('join', 'Client Conneting');
-                });
+            var matchId = $('#submitScoreButton').data('match-id');
+            var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
+            socket.on('connect', function(data) {
+                socket.emit('join', 'Client Conneting');
+            });
 
-                socket.on('spectator_connected', function(data) {
-                    alertify.success('Spectator connected');
-                });
-                socket.on('spectator_disconnected', function(data) {
-                    alertify.warning('Spectator disconnected');
-                });
+            socket.on('spectator_connected', function(data) {
+                alertify.success('Spectator connected');
+            });
+            socket.on('spectator_disconnected', function(data) {
+                alertify.warning('Spectator disconnected');
+            });
 
-                socket.on('connected', function(data) {
-                    console.log(data);
-                });
+            socket.on('connected', function(data) {
+                console.log(data);
+            });
 
-                socket.on('match_finished', function(data) {
-                    // Forward all clients to results page when match is finished
-                    location.href = 'match/' + matchId + '/leg';
-                });
+            socket.on('match_finished', function(data) {
+                // Forward all clients to results page when match is finished
+                location.href = 'match/' + matchId + '/leg';
+            });
 
-                socket.on('score_update', function(data) {
-                    console.log(data);
-                    $('#submitScoreButton').prop('disabled', false);
+            socket.on('score_update', function(data) {
+                console.log(data);
+                $('#submitScoreButton').prop('disabled', false);
 
-                    var match = data.match;
-                    $('#round_number').text('R' + match.round_number);
+                var match = data.match;
+                $('#round_number').text('R' + match.round_number);
 
-                    // Set updated score per player
-                    var currentPlayerId = data.current_player;
-                    var players = data.players;
-                    for (key in players) {
-                        var player = players[key];
-                        console.log(player)
-                        var td = $('#player_score_' + player.id);
-                        var label = td.find('.label-player-score');
-                        label.text(player.current_score);
+                // Set updated score per player
+                var currentPlayerId = data.current_player;
+                var players = data.players;
+                for (key in players) {
+                    var player = players[key];
+                    console.log(player)
+                    var td = $('#player_score_' + player.id);
+                    var label = td.find('.label-player-score');
+                    label.text(player.current_score);
 
-                        if (player.id === currentPlayerId) {
-                            td.addClass('label-active-player')
-                            td.removeClass('label-inactive-player');
-                            label.attr('id', 'current_player');
-                            $('#submitScoreButton').data('current-player-id', player.id);
-                        }
-                        else {
-                            td.addClass('label-inactive-player');
-                            td.removeClass('label-active-player');
-                            label.attr('id', 'label_' + player.id);
-                            label.removeAttr('data-current-player-id');
-                        }
-
-                        if (!player.isBeerCheckoutSafe) {
-                            td.addClass('beer');
-                        }
-                        else {
-                            td.removeClass('beer');
-                        }
-                        if (player.isViliusVisit) {
-                            td.addClass('vilius');
-                        }
-                        else {
-                            td.removeClass('vilius');
-                        }
-
-                        // Update the popover with First 9 and PPD
-                        var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2);
-                        label.attr('data-content', popoverContent).data('bs.popover').setContent();
+                    if (player.id === currentPlayerId) {
+                        td.addClass('label-active-player')
+                        td.removeClass('label-inactive-player');
+                        label.attr('id', 'current_player');
+                        $('#submitScoreButton').data('current-player-id', player.id);
+                    }
+                    else {
+                        td.addClass('label-inactive-player');
+                        td.removeClass('label-active-player');
+                        label.attr('id', 'label_' + player.id);
+                        label.removeAttr('data-current-player-id');
                     }
 
-                    // Reset UI elements
-                    window.darts_thrown = 0;
-                    $('#first').text('');
-                    $('#first').removeAttr('data-score');
-                    $('#first').attr('data-multiplier', 1);
-                    $('#first').attr('data-checkout', 0);
-                    $('#second').text('');
-                    $('#second').removeAttr('data-score');
-                    $('#second').attr('data-multiplier', 1);
-                    $('#second').attr('data-checkout', 0);
-                    $('#third').text('');
-                    $('#third').removeAttr('data-score');
-                    $('#third').attr('data-multiplier', 1);
-                    $('#third').attr('data-checkout', 0);
-                    $('#submitScoreButton').data('busted', 0);
-                    $('#submitScoreButton').data('finished', 0);
-                });
+                    if (!player.isBeerCheckoutSafe) {
+                        td.addClass('beer');
+                    }
+                    else {
+                        td.removeClass('beer');
+                    }
+                    if (player.isViliusVisit) {
+                        td.addClass('vilius');
+                    }
+                    else {
+                        td.removeClass('vilius');
+                    }
+
+                    // Update the popover with First 9 and PPD
+                    var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2);
+                    label.attr('data-content', popoverContent).data('bs.popover').setContent();
+                }
+
+                // Reset UI elements
+                window.darts_thrown = 0;
+                $('#first').text('');
+                $('#first').removeAttr('data-score');
+                $('#first').attr('data-multiplier', 1);
+                $('#first').attr('data-checkout', 0);
+                $('#second').text('');
+                $('#second').removeAttr('data-score');
+                $('#second').attr('data-multiplier', 1);
+                $('#second').attr('data-checkout', 0);
+                $('#third').text('');
+                $('#third').removeAttr('data-score');
+                $('#third').attr('data-multiplier', 1);
+                $('#third').attr('data-checkout', 0);
+                $('#submitScoreButton').data('busted', 0);
+                $('#submitScoreButton').data('finished', 0);
+            });
 
             var dartText = '';
             var currentMultiplier = 1;

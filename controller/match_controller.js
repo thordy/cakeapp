@@ -252,6 +252,9 @@ router.get('/:legid/leg', function (req, res) {
 				var stats = statistics[i];
 				playersMap[stats.player_id].statistics = stats;
 			}
+			// Calculate round number
+			match.round_number = Math.floor(scores.length / players.length) + 1;
+
 			// Create a map of scores used to visualize throws in a heatmap
 			var scoresMap = {
 					'25': { '1': 0, '2': 0 },
