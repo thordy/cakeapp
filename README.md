@@ -12,6 +12,9 @@ Application uses bookshelf.js library as ORM for node.js and Knex query builder.
 `node app.js`
 
 ## Database migration
+To set up database in docker, run:
+`docker-compose up -d`
+
 DB migration is handled by knex. Scripts are stored in migrations subdirectory.
 You may want to set up knex to run globally first
 
@@ -24,4 +27,6 @@ To migrate database simply run
 `knex seed:run --env=development`
 
 http://perkframework.com/v1/guides/database-migrations-knex.html
+
+
 

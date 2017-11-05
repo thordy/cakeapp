@@ -43,3 +43,6 @@ data/
 .idea
 /database.sqlite3
 database*.sqlite3
+
+# MYSQL DATABASE
+mysql/
