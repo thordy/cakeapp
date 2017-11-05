@@ -310,6 +310,12 @@ block scripts
                     dart.text('');
                     dart.removeAttr('data-score');
                 });
+
+                $('#toggleKeyboardButton').click(function () {
+                  var matchId = $('#toggleKeyboardButton').data('match-id')
+                  window.location.href = '/match/' + matchId + '/keyboard';
+                });
+
             });
         });
     script.
@@ -342,6 +348,8 @@ block content
         Unable to cancel match
 
     h2 Match
+    div(class='keyboardButton')
+      button(id='toggleKeyboardButton' type='button' data-match-id=match.id) Enable keyboard mode
     div(class='table-responsive')
         table(id='score_selector_table' class='table')
             tbody
