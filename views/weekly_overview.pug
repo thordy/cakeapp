@@ -32,7 +32,7 @@ block content
                     each stats in weekly.this_week
                         tr
                             td= rank++
-                            td(style='width: 12%')= stats.player_name
+                            td(style='width: 12%'): a(href='/player/' + stats.player_id + '/stats')= stats.player_name
                             td= stats.games_played
                             td= stats.games_won === undefined ? 0 : stats.games_won
                             td= stats.ppd.toFixed(2)

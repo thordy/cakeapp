@@ -98,6 +98,7 @@ block scripts
                     $('#submitScoreButton').data('finished', 0);
                 });
 
+
                 $('#submitScoreButton').click(function (event) {
                     $('#submitScoreButton').prop('disabled', true);
 
@@ -323,6 +324,20 @@ block scripts
             $(document).ready(function () {
                 $(document).scrollTop(170);
             });
+
+            var enterPress = 0;
+            $(document).keypress(function(e) {
+                switch(e.key) {
+                    case 'Enter':
+                        enterPress++;
+                    default:
+                        break;
+                }
+                if (enterPress >= 2) {
+                    var matchId = $('#toggleKeyboardButton').data('match-id')
+                    window.location.href = '/match/' + matchId + '/keyboard';                    
+                }
+            });                        
 
             $('#editScoresButton').click(function () {
                 location.href = window.location.pathname + '/leg';

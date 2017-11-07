@@ -62,7 +62,7 @@ function showConfirm(dialogText, okFnc, cancelFnc) {
 	alertify.confirm(dialogText, okFnc, cancelFnc)
 	.setting({
 		'title': 'Darts Scorer',
-		'defaultFocus': 'cancel',
+		'defaultFocus': 'ok',
 		'labels': { ok:'Submit', cancel:'Cancel' },
 		'closable': false
 	})
