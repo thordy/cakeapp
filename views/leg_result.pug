@@ -174,7 +174,8 @@ block content
                         td: p= player.name
                         td: p= statistics.ppd.toFixed(2) + ' / ' + statistics.first_nine_ppd.toFixed(2)
                         if player.id === match.winner_id
-                            td: p= statistics.checkout_percentage === null ? '-' : statistics.checkout_percentage.toFixed(2)
+                            // td: p= statistics.checkout_percentage === null ? '-' : statistics.checkout_percentage.toFixed(2)
+                            td: p -
                         else
                             td: p -
                         td

@@ -29,8 +29,8 @@ router.get('/weekly', function (req, res) {
                 return helper.renderError(res, err);
             }
             var stats = {
-                last_week: _.sortBy(lastWeek, (player) => -player.games_won ),
-                this_week: _.sortBy(thisWeek, (player) => -player.games_won )
+                last_week: _.sortBy(lastWeek, (player) => -(player.games_won / player.games_played) ),
+                this_week: _.sortBy(thisWeek, (player) => -(player.games_won / player.games_played) )
             }
             res.render('weekly_overview', { weekly: stats });
         });
