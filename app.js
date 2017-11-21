@@ -33,7 +33,7 @@ app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
   var GameType = require('./models/GameType');
   var OweType = require('./models/OweType');
-	Player.fetchAll().then(function(players) {
+	Player.forge().orderBy('name', 'ASC').fetchAll().then(function(players) {
       GameType.fetchAll().then(function(gameTypes) {
         OweType.fetchAll().then(function(gameStakes) {
           res.render('index', {

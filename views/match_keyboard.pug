@@ -154,14 +154,8 @@ block scripts
                         currentMultiplier = 3;
                         break;
                     case ',': // Delete, same as backspace
-                        if (dartText !== '') {
-                            dartText = dartText.substring(0, dartText.length - 1);
-                            updateScore(dart, dartText);
-                        }
-                        else {
-                            $('#undoButton').trigger('click');
-                        }
-                        return;
+                        currentMultiplier = 3;
+                        break;
                     case '+': // Cycle through multipliers
                         var value = parseInt(dartText);
                         if (dartText === '' || value === 0) {
@@ -546,19 +540,17 @@ block scripts
                     dart.removeAttr('data-score');
                 });
             });
-        });
-    script.
-        $(function () {
+            
             $(document).ready(function () {
                 $(document).scrollTop(170);
             });
 
             $('#editScoresButton').click(function () {
-                location.href = window.location.pathname + '/leg';
+                location.href = '/match/' + matchId + '/leg';
             });
             $('#cancelMatchButton').click(function () {
                 showConfirm('Game will be cancelled.', function() {
-                    executeDelete(window.location.pathname + '/cancel',
+                    executeDelete('http://' + window.location.hostname + ':3000/match/' + matchId + '/cancel',
                         function (response) {
                             location.href = '/game/list';
                         },

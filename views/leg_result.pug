@@ -7,12 +7,12 @@ block scripts
                 searching: false,
                 bInfo : false,
                 iDisplayLength: 50,
-                order: [[ 2,  'desc' ]],
+                order: [[ 1,  'desc' ]],
                 columnDefs: [ { targets: [ 1 ], visible: true } ]
             });
             $('#continue-game').focus();
         });
-    script.
+
         $(function () {
             $('.edit-visit').click(function () {
                 var visitNumber = $(this).data('visit');
@@ -105,18 +105,23 @@ block scripts
             });
 
             $('.delete-visit').click(function () {
-                var visitNumber = $(this).data('visit');
-                executeDelete(window.location.pathname + '/' + visitNumber,
-                    function (response) {
-                        location.reload();
-                    },
-                    function (error) {
-                        alert('Error deleting score. Please reload');
-                        console.err("Unable to proceed: " + error.responseText);
-                        location.reload();
-                    }
-                );
+                showConfirm('Visit will be deleted.', function() {
+                    var visitNumber = $(this).data('visit');
+                    executeDelete(window.location.pathname + '/' + visitNumber,
+                        function (response) {
+                            location.reload();
+                        },
+                        function (error) {
+                            alert('Error deleting score. Please reload');
+                            console.err("Unable to proceed: " + error.responseText);
+                            location.reload();
+                        }
+                    );                    
+                }, function(){ /* NOOP */ });
             });
+
+            $('#player_order_list').sortable();
+            $('#player_order_list').disableSelection();
 
             $('#continue-game').click(function () {
                 location.href = '/game/' + $(this).data('game');
@@ -446,7 +451,7 @@ block content
                             td(class='txt-center')
                                 button(type="button" class="btn btn-default edit-visit" data-visit=throws.id data-issave='0')
                                     span(class="glyphicon glyphicon-edit" aria-hidden="true")
-                                // button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
+                                button(type="button" class="btn btn-default delete-visit" data-visit=throws.id)
                                     span(class="glyphicon glyphicon-trash" aria-hidden="true")
 
     br
@@ -496,3 +501,14 @@ block content
                                                 label= key
                                     td= value
                                     td= (value * 100 / scoresMap.totalThrows).toFixed(2) + '%'
+
+    if !game.is_finished
+        h2 Player Order      
+        form(action='/match/' + match.id + '/order' method='POST' id='playerOrderForm')
+            legend Players
+            div(class='form-group form-check' id='player_order_list')
+                each player in players
+                    div(class='form-check float-left' style='padding-bottom: 10px;')
+                        input(style='display: none;' type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
+                        label(style='margin-left: 10px; width: 160px; text-transform: uppercase;' class='player_name_label form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
+            button(type='submit' name='submit' form='playerOrderForm' id='changeOrderButton' class='btn btn-primary') Change Order            

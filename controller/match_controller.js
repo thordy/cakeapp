@@ -232,7 +232,7 @@ router.get('/:id/spectate', function (req, res) {
 /* Method for getting results for a given leg */
 router.get('/:legid/leg', function (req, res) {
 	new Match( { id: req.params.legid } )
-		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type'] } )
+		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type' ] } )
 		.then(function (row) {
 			if (row === null) {
 				return helper.renderError(res, 'No match with id ' + req.params.legid + ' exists');
@@ -337,16 +337,25 @@ router.get('/:legid/leg', function (req, res) {
 });
 
 /* Delete the given visit */
-router.delete('/:legid/leg/:visitid', function (req, res) {
+router.delete('/:id/leg/:visitid', function (req, res) {
 	var visitId = req.params.visitid;
+	var matchId = req.params.id;
 	debug("Deleting visit id %s", visitId);
 	Score.forge({ id: visitId })
-	.destroy()
-	.then(function(score) {
-		res.status(200)
-			.send()
-			.end();
-	});
+		.destroy()
+		.then(function(score) {
+			// select player_id from score where match_id = 679 order by id limit 1
+			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = (SELECT player_id FROM score WHERE match_id = :match_id ORDER BY id LIMIT 1)`, 
+				{ match_id: matchId })
+			.then(function(rows) {	
+				res.status(200)
+					.send()
+					.end();				
+			})
+			.catch(function (err) {
+				debug('Unable to set current player: %s', err);
+			});	
+		});
 });
 
 /* Modify the score */
@@ -589,6 +598,40 @@ router.post('/:id/finish', function (req, res) {
 						return;
 					}
 				});
+		});
+});
+
+router.post('/:id/order', function(req, res) {
+	var matchId = req.params.id;
+	Player2match
+		.where('match_id', '=', matchId)
+		.fetchAll()
+		.then(function(rows) {
+			var players = rows.serialize();
+			var playerOrder = req.body.players;
+			var currentPlayerId = _.findKey(playerOrder, (order) => order === 1);
+			debug('Chaning order of players to %s', JSON.stringify(playerOrder));
+			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = :player_id WHERE id = :match_id`, { player_id: currentPlayerId, match_id: matchId })
+			.then(function(rows) {	
+				for (var i = 0; i < players.length; i++) {
+					var player = players[i];
+					var order = playerOrder[player.player_id];
+					Bookshelf.knex.raw(`UPDATE player2match SET \`order\` = :order WHERE player_id = :player_id AND match_id = :match_id`, 
+						{ order: order, player_id: player.player_id, match_id: matchId })
+					.then(function(rows) {
+						debug('Set order!');
+					})
+					.catch(function (err) {
+						debug('Unable to change order: %s', err);
+					});	
+				}
+				res.status(200)
+					.send()
+					.end();				
+			})
+			.catch(function (err) {
+				debug('Unable to change order: %s', err);
+			});		
 		});
 });
 
