@@ -105,8 +105,8 @@ block scripts
             });
 
             $('.delete-visit').click(function () {
+                var visitNumber = $(this).data('visit');
                 showConfirm('Visit will be deleted.', function() {
-                    var visitNumber = $(this).data('visit');
                     executeDelete(window.location.pathname + '/' + visitNumber,
                         function (response) {
                             location.reload();
