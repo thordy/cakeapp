@@ -2,6 +2,8 @@ extends layout.pug
 
 block scripts
     script.
+        var match = !{JSON.stringify(match)}
+
         $(document).ready(function(){
             $('#hits_table').DataTable({
                 searching: false,
@@ -113,11 +115,30 @@ block scripts
                         },
                         function (error) {
                             alert('Error deleting score. Please reload');
-                            console.err("Unable to proceed: " + error.responseText);
+                            console.log("Unable to proceed: " + error.responseText);
                             location.reload();
                         }
                     );                    
                 }, function(){ /* NOOP */ });
+            });
+
+            $('#changeOrderButton').click(function (e) {
+                var players = $('.form-check-input');
+                var order = {}
+                order.players = {};
+                for (var i = 0; i < players.length; i++) {
+                    order.players[players[i].value] = i + 1;
+                }
+                executePut(window.origin + '/match/' + match.id + '/order', JSON.stringify(order), 'application/json', function() {
+                    showAlert('Order successfully changed!', function() {
+                        location.reload();
+                    })
+                },
+                function(error) {
+                    alert('Error changing player order. Please reload');
+                    console.log(error);
+                    location.reload();
+                })
             });
 
             $('#player_order_list').sortable();
@@ -158,7 +179,7 @@ block content
     p.
         Started: #{match.created_at.toISOString()} <br>
         Finished: #{match.end_time === null ? '' : match.end_time.toISOString()} <br>
-        Duration: #{((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed()} minutes <br>
+        Duration: #{match.end_time === null ? '-' : ((Date.parse(match.end_time)/1000 - Date.parse(match.created_at)/1000) / (60)).toFixed() + 'minutes'} <br>
         Stakes: #{match.stake === undefined ? "None" : match.stake} <br>
         Rounds: #{match.round_number}
 
@@ -502,13 +523,12 @@ block content
                                     td= value
                                     td= (value * 100 / scoresMap.totalThrows).toFixed(2) + '%'
 
-    if !game.is_finished
+    if !match.winner_id
         h2 Player Order      
-        form(action='/match/' + match.id + '/order' method='POST' id='playerOrderForm')
-            legend Players
-            div(class='form-group form-check' id='player_order_list')
+        div
+            div(id='player_order_list')
                 each player in players
-                    div(class='form-check float-left' style='padding-bottom: 10px;')
-                        input(style='display: none;' type='checkbox' name='players' class='form-check-input' id='checkbox_player' + player.id value=player.id)
-                        label(style='margin-left: 10px; width: 160px; text-transform: uppercase;' class='player_name_label form-check-label btn btn-warning' for='checkbox_player' + player.id)= player.name
-            button(type='submit' name='submit' form='playerOrderForm' id='changeOrderButton' class='btn btn-primary') Change Order            
+                    div(class='float-left')
+                        input(style='display: none;' type='checkbox' class='form-check-input' id='checkbox_player_' + player.id value=player.id)
+                        label(style='margin-left: 10px; width: 160px; text-transform: uppercase;' class='player_name_label form-check-label btn btn-warning' for='checkbox_player_' + player.id)= player.name
+            button(type='submit' name='submit' style='margin-left: 10px' id='changeOrderButton' class='btn btn-primary') Change Order

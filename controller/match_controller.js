@@ -601,7 +601,7 @@ router.post('/:id/finish', function (req, res) {
 		});
 });
 
-router.post('/:id/order', function(req, res) {
+router.put('/:id/order', function(req, res) {
 	var matchId = req.params.id;
 	Player2match
 		.where('match_id', '=', matchId)
