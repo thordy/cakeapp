@@ -302,7 +302,7 @@ router.get('/:legid/leg', function (req, res) {
 					score.remaining_score = player.remaining_score;
 				}
 				else {
-					score.remaining_score = player.remaining_score - visitScore + ' (BUST)';
+					score.remaining_score = 'BUST';
 				}
 			}
 			knex = Bookshelf.knex;
@@ -340,17 +340,18 @@ router.get('/:legid/leg', function (req, res) {
 router.delete('/:id/leg/:visitid', function (req, res) {
 	var visitId = req.params.visitid;
 	var matchId = req.params.id;
-	debug("Deleting visit id %s", visitId);
 	Score.forge({ id: visitId })
 		.destroy()
 		.then(function(score) {
-			// select player_id from score where match_id = 679 order by id limit 1
+			// TODO Only change current player if num_players > 2
+
 			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = (SELECT player_id FROM score WHERE match_id = :match_id ORDER BY id LIMIT 1)`, 
 				{ match_id: matchId })
 			.then(function(rows) {	
+				debug("Deleted visit id %s", visitId);
 				res.status(200)
-					.send()
-					.end();				
+						.send()
+						.end();				
 			})
 			.catch(function (err) {
 				debug('Unable to set current player: %s', err);

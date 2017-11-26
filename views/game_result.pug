@@ -13,9 +13,9 @@ block content
         h2(class='pull-left') Game Result (#{game.id})
     p.
         Type: #{game.game_type.name} <br>
-        Started: #{game.created_at.toISOString()} <br>
-        Finished: #{game.end_time === null ? '' : game.end_time.toISOString()} <br>
-        Duration: #{((Date.parse(game.end_time)/1000 - Date.parse(game.created_at)/1000) / (60)).toFixed()} minutes <br>
+        Started: #{moment(game.created_at).format('YYYY-MM-DD HH:mm:ss')} <br>
+        Finished: #{game.end_time === null ? '' : moment(game.end_time).format('YYYY-MM-DD HH:mm:ss')} <br>
+        Duration: #{game.end_time === null ? '' : moment.duration(moment(game.end_time).diff(game.created_at)).asMinutes().toFixed() + ' minutes'} <br>
     each player in players
         if (game.winner_id === player.id) 
             p= 'Winner: ' + player.name

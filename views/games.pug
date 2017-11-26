@@ -43,12 +43,12 @@ block content
 				each game in games
 					tr
 						th(hidden='true' scope='row')= game.id
-						td(class='col-sm-2')= game.created_at.toISOString()
+						td(class='col-sm-2')= moment(game.created_at).format('YYYY-MM-DD HH:mm:ss')
 						td(class='col-sm-2')= game.game_type.name
 						td(class='col-sm-1')
 							each player in game.players
 								div(style='margin-bottom: 5px;')
-									span(class='label label-primary' style='line-height: inherit;')=player.name + ' (' + player.legs_won + ')'
+									span(class='label label-primary' style='line-height: inherit;')= player.name + ' (' + player.legs_won + ')'
 						if game.is_finished
 							td(class='col-sm-1')
 								if game.winner_id === null

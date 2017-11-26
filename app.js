@@ -28,6 +28,8 @@ app.use(compression());  // Enable gzip Compression
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 
+app.locals.moment = require('moment');
+
 /** Entry point for application, main route */
 app.get('/', function (req, res, next) {
   var Player = require('./models/Player');
