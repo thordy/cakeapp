@@ -440,18 +440,8 @@ router.delete('/:id/cancel', function (req, res) {
 
 /* Method to finalize a match */
 router.post('/:id/finish', function (req, res) {
-	// Assign those values to vars since they will be used in other places
-	var matchId = req.body.matchId;
-	var currentPlayerId = req.body.playerId;
-	var firstDartScore = req.body.firstDart;
-	var secondDartScore = req.body.secondDart;
-	var thirdDartScore = req.body.thirdDart;
-	var firstDartMultiplier = req.body.firstDartMultiplier;
-	var secondDartMultiplier = req.body.secondDartMultiplier;
-	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	var isCheckoutFirst = req.body.isCheckoutFirst;
-	var isCheckoutSecond = req.body.isCheckoutSecond;
-	var isCheckoutThird = req.body.isCheckoutThird;
+	var matchId = req.body.match_id;
+	var currentPlayerId = req.body.current_player_id;
 	debug('Match %s finished', matchId);
 
 	// Load the match object since we need certain values from the table
@@ -461,74 +451,54 @@ router.post('/:id/finish', function (req, res) {
 			var match = row.serialize();
 
 			// Insert new score and change current player in match,
-			new Score({
-					match_id: matchId,
-					player_id: currentPlayerId,
-					first_dart: firstDartScore,
-					second_dart: secondDartScore,
-					third_dart: thirdDartScore,
-					first_dart_multiplier: firstDartMultiplier,
-					second_dart_multiplier: secondDartMultiplier,
-					third_dart_multiplier: thirdDartMultiplier,
-					is_checkout_first: isCheckoutFirst,
-					is_checkout_second: isCheckoutSecond,
-					is_checkout_third: isCheckoutThird,
+			Score.forge().addVisit(req.body, match, function(err, rows) {
+				if (err) {
+					return helper.renderError(res, err);
+				}
+				debug('Set final score for player %s', currentPlayerId);
+				
+				// Update match with winner
+				Match.forge({ id: matchId })
+				.save({
+					current_player_id: currentPlayerId,
+					is_finished: true,
+					winner_id: currentPlayerId,
+					end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
 				})
-				.save(null, {method: 'insert'})
-				.then(function(row) {
-					debug('Set final score for player %s', currentPlayerId);
+				.then(function (row) {
+					writeStatistics(match, currentPlayerId, function(err) {
+						if(err) {
+							debug('ERROR Unable to insert statistics match %s: %s', matchId, err);
+							return helper.renderError(res, err);
+						}
 
-					// Update match with winner
-					new Match({ id: matchId })
-					.save({
-						current_player_id: currentPlayerId,
-						is_finished: true,
-						winner_id: currentPlayerId,
-						end_time: moment().format("YYYY-MM-DD HH:mm:ss"),
-					})
-					.then(function (row) {
-						writeStatistics(match, currentPlayerId, function(err) {
-							if(err) {
-								debug('ERROR Unable to insert statistics match %s: %s', matchId, err);
-								return helper.renderError(res, err);
-							}
+						Game.forge({ id: match.game_id})
+							.fetch({ withRelated: [ 'game_type', 'game_stake', 'players' ] })
+							.then(function (rows) {
+								var game = rows.serialize();
+								var requiredMatches = game.game_type.matches_required;
+								var requiredWins = game.game_type.wins_required;
 
-							new Game({ id: match.game_id})
-								.fetch({
-									withRelated: [
-										'game_type',
-										'game_stake',
-										'players',
-									]
-								})
-								.then(function (rows) {
-									var game = rows.serialize();
-									var requiredMatches = game.game_type.matches_required;
-									var requiredWins = game.game_type.wins_required;
-
-									knex = Bookshelf.knex;
-									knex('match')
-										.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
-										.where(knex.raw('match.game_id = ?', [game.id]))
-										.groupBy(knex.raw('match.winner_id'))
-										.then(function(rows) {
-											var playedMatches = 0;
-											var currentPlayerWins = 0;
-											for (var i = 0; i < rows.length; i++) {
-												var row = rows[i];
-												playedMatches += row.wins;
-												if (row.winner_id === currentPlayerId) {
-													currentPlayerWins = row.wins;
-												}
+								knex = Bookshelf.knex;
+								knex('match')
+									.select(knex.raw(`match.winner_id, count(match.winner_id) as wins`))
+									.where(knex.raw('match.game_id = ?', [game.id]))
+									.groupBy(knex.raw('match.winner_id'))
+									.then(function(rows) {
+										var playedMatches = 0;
+										var currentPlayerWins = 0;
+										for (var i = 0; i < rows.length; i++) {
+											var row = rows[i];
+											playedMatches += row.wins;
+											if (row.winner_id === currentPlayerId) {
+												currentPlayerWins = row.wins;
 											}
+										}
 
-											if (currentPlayerWins === requiredWins) {
-												// Game finished, current player won
-												new Game({ id: game.id })
-												.save({ 
-													is_finished: true, 
-													winner_id: currentPlayerId 
-												})
+										if (currentPlayerWins === requiredWins) {
+											// Game finished, current player won
+											Game.forge({ id: game.id })
+												.save({ is_finished: true,  winner_id: currentPlayerId })
 												.then(function (row) {
 													// Automatically update owes
 													var playersInGame = game.players;
@@ -554,42 +524,39 @@ router.post('/:id/finish', function (req, res) {
 													}
 													res.status(200).end();
 												});
-											}
-											else if (requiredMatches !== null && playedMatches === requiredMatches) {
-												// Game fnished, draw
-												new Game({ id: game.id}).save({ is_finished: true })
-												.then(function (row) {
-													res.status(200).end();
-												});
-											}
-											else {
-												// Game is not finished, continue to next leg
+										}
+										else if (requiredMatches !== null && playedMatches === requiredMatches) {
+											// Game fnished, draw
+											new Game({ id: game.id}).save({ is_finished: true })
+											.then(function (row) {
 												res.status(200).end();
-											}
-										})
-										.catch(function (err) {
-											helper.renderError(res, err);
-										});
-								})
-								.catch(function (err) {
-									helper.renderError(res, err);
-								});
-						});
-					})
-					.catch(function (err) {
-						helper.renderError(res, err);
+											});
+										}
+										else {
+											// Game is not finished, continue to next leg
+											res.status(200).end();
+										}
+									})
+									.catch(function (err) {
+										helper.renderError(res, err);
+									});
+							})
+							.catch(function (err) {
+								helper.renderError(res, err);
+							});
 					});
 				})
-				.catch(function(err) {
+				.catch(function (err) {
 					helper.renderError(res, err);
-				});
-				Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
-					if (err) {
-						debug('Unable to finalize match: %s', err);
-						return;
-					}
-				});
+				});				
+			});
+			Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
+				if (err) {
+					debug('Unable to finalize match: %s', err);
+					return;
+				}
 		});
+	});
 });
 
 function writeStatistics(match, winnerPlayerId, callback) {
