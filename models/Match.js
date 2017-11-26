@@ -58,7 +58,6 @@ var Match = bookshelf.Model.extend({
     },
     setCurrentPlayer: function(matchId, currentPlayerId, players, callback) {
         // We might as well load the player2match model in here for given match id
-        var numPlayers = players.length;
         var currentPlayerOrder = 1;
         var playersArray = {};
         for (var i = 0; i < players.length; i++){
@@ -66,12 +65,9 @@ var Match = bookshelf.Model.extend({
             if (player.player_id === currentPlayerId) {
                 currentPlayerOrder = player.order;
             }
-            playersArray[parseInt(player.order)] = {
-                playerId: player.player_id
-            }
+            playersArray[player.order] = { playerId: player.player_id }
         }
-        var nextPlayerOrder = ((parseInt(currentPlayerOrder) % numPlayers)) + 1;
-        var nextPlayerId = playersArray[nextPlayerOrder].playerId;
+        var nextPlayerId = playersArray[(currentPlayerOrder % players.length) + 1].playerId;
         new Match({ id: matchId })
             .save( {current_player_id: nextPlayerId} )
             .then(function (match) {
@@ -87,7 +83,7 @@ var Match = bookshelf.Model.extend({
                 { 'players': function (qb) { qb.orderBy('order', 'asc') } },
                 'game',
                 'game.game_type',
-                { 'scores': function (qb) { /*qb.where('is_bust', '0');*/ qb.orderBy('id', 'asc') } },
+                { 'scores': function (qb) { qb.orderBy('id', 'asc') } },
                 { 'player2match': function (qb) { qb.orderBy('order', 'asc') } }
             ] } )				
             .then(function (row) {
