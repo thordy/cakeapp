@@ -18,7 +18,7 @@ a:hover {
 #matches_list_table span {
     display: block;
 }
-.match_information {
+.match-information {
     font-weight: normal !important;
     display: inline-block !important;
 }
@@ -84,21 +84,21 @@ a:hover {
     color: black;
     border: 2px solid #e7e7e7;
 }
-#score_selector_table {
+#score-selector-table {
     border-spacing: 0px;
 }
-#score_selector_table td {
+#score-selector-table td {
     padding: 0px;
     border: 1px solid #000;
     vertical-align: middle;
 }
-#score_selector_table button {
+#score-selector-table button {
     border: 0;
     border-radius: 0;
     line-height: 0.8;
     padding: 10px;
 }
-#score_selector_table label, #visits_table label, #player_spectate_table label {
+#score-selector-table label, #visits_table label, #player_spectate_table label {
     display: block;
     text-align: center;
     border-radius: 0;

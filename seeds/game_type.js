@@ -9,7 +9,8 @@ exports.seed = function(knex, Promise) {
         {id: 2, wins_required: 2, matches_required: null, name: 'First to win 2', short_name: 'BO3'},
         {id: 3, wins_required: 3, matches_required: null, name: 'First to win 3', short_name: 'BO5'},
         {id: 4, wins_required: 2, matches_required: 2, name: 'Best of 2', short_name: 'BO2'},
-        {id: 5, wins_required: 3, matches_required: 4, name: 'Best of 4', short_name: 'BO4'}
+        {id: 5, wins_required: 3, matches_required: 4, name: 'Best of 4', short_name: 'BO4'},
+        {id: 6, wins_required: 4, matches_required: null, name: 'Best of 7', short_name: 'BO7'}
       ]);
     });
 };

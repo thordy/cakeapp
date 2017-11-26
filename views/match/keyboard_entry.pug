@@ -1,8 +1,9 @@
-extends layout.pug
+extends ../layout.pug
 
 block scripts
     script.
         $(function () {
+            var numSpectators = 0;
             FastClick.attach(document.body);
 
             var matchId = $('#submitScoreButton').data('match-id');
@@ -13,9 +14,15 @@ block scripts
 
             socket.on('spectator_connected', function(data) {
                 alertify.success('Spectator connected');
+                console.log('Currently: ' + numSpectators + ' spectators');
+                numSpectators++;
+                $('#spectator_count').text('Spectator Count: ' + numSpectators);
             });
             socket.on('spectator_disconnected', function(data) {
                 alertify.warning('Spectator disconnected');
+                numSpectators--;
+                console.log('Currently: ' + numSpectators + ' spectators');
+                $('#spectator_count').text('Spectator Count: ' + numSpectators);
             });
 
             socket.on('connected', function(data) {
@@ -385,7 +392,7 @@ block scripts
                     event.preventDefault();
                 });
 
-                $('#score_selector_table .throw_buttons :button').click(function () {
+                $('#score-selector-table .throw_buttons :button').click(function () {
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 
                     var dart;
@@ -570,7 +577,7 @@ block content
 
     h2 Match (Keyboard Entry)
     div(class='table-responsive')
-        table(id='score_selector_table' class='table')
+        table(id='score-selector-table' class='table')
             tbody
                 tr(class='row')
                     td(colspan='3' class='no-border')
@@ -585,17 +592,16 @@ block content
                 - var length = 12 / Object.keys(players).length
                 tr(class='row')
                     td(class='txt-center')
-                        label(id='round_number' class='match_information')= 'R' + match.round_number
-                        label(class='match_information')= '/' +game_type.short_name
+                        label(id='round_number' class='match-information')= 'R' + match.round_number
+                        label(class='match-information')= '/' +game_type.short_name
                     each player in players
                         - var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
                         if  player.current
-                            td(id='player_score_' + player.id + '' colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer' style='padding-right: 10px;')
+                            td(id='player_score_' + player.id + '' colspan=length + '' class='label-active-player' + player.modifier_class style='padding-right: 10px;')
                                 label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
                                 label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
                         else
-                            - var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
-                            td(id='player_score_' + player.id + '' colspan=length + '' class=css style='padding-right: 10px;')
+                            td(id='player_score_' + player.id + '' colspan=length + '' class='label-inactive-player ' + player.modifier_class style='padding-right: 10px;')
                                 label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
                                 label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
                 tr(class='throw_buttons row')
@@ -675,3 +681,6 @@ block content
         ul(class='dropdown-menu')
             li: a(id='editScoresButton') Edit scores
             li: a(id='cancelMatchButton') Cancel Match
+    
+    div
+        p(id='spectator_count') Spectator Count: 0

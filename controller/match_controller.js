@@ -99,7 +99,7 @@ router.get('/:id', function (req, res) {
 				scores = _.filter(scores, (score) => !scores.is_bust);
 				match.scores = scores;
 				match.round_number = Math.floor(scores.length / players.length) + 1;
-				res.render('match_socket', {
+				res.render('match/button_entry', {
 					match: match,
 					players: playersMap,
 					game: match.game,
@@ -160,7 +160,7 @@ router.get('/:id/keyboard', function (req, res) {
 				scores = _.filter(scores, (score) => !scores.is_bust);
 				match.scores = scores;
 				match.round_number = Math.floor(scores.length / players.length) + 1;
-				res.render('match_keyboard', {
+				res.render('match/keyboard_entry', {
 					match: match,
 					players: playersMap,
 					game: match.game,
@@ -215,7 +215,7 @@ router.get('/:id/spectate', function (req, res) {
 			// Set all scores and round number
 			match.scores = scores;
 			match.round_number = Math.floor(scores.length / players.length) + 1;
-			res.render('match_spectate', {
+			res.render('match/spectate', {
 				match: match,
 				players: playersMap,
 				game: match.game,

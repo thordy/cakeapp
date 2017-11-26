@@ -1,4 +1,4 @@
-extends layout.pug
+extends ../layout.pug
 
 block scripts
     script.
@@ -10,7 +10,7 @@ block scripts
 
                 $('[data-toggle="popover"]').popover();
 
-                var matchId = $('#submitScoreButton').data('match-id');
+                var matchId = $('#submit-score-button').data('match-id');
                 var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
                 socket.on('connect', function(data) {
                     socket.emit('join', 'Client Conneting');
@@ -34,10 +34,10 @@ block scripts
 
                 socket.on('score_update', function(data) {
                     console.log(data);
-                    $('#submitScoreButton').prop('disabled', false);
+                    $('#submit-score-button').prop('disabled', false);
 
                     var match = data.match;
-                    $('#round_number').text('R' + match.round_number);
+                    $('#round-number').text('R' + match.round_number);
 
                     // Set updated score per player
                     var currentPlayerId = data.current_player;
@@ -50,29 +50,16 @@ block scripts
                         label.text(player.current_score);
 
                         if (player.id === currentPlayerId) {
-                            td.addClass('label-active-player')
-                            td.removeClass('label-inactive-player');
-                            label.attr('id', 'current_player');
-                            $('#submitScoreButton').data('current-player-id', player.id);
+                            td.removeClass(1);
+                            td.addClass('label-active-player ' + player.modifier_class)
+                            label.attr('id', 'current-player');
+                            $('#submit-score-button').data('current-player-id', player.id);
                         }
                         else {
-                            td.addClass('label-inactive-player');
-                            td.removeClass('label-active-player');
-                            label.attr('id', 'label_' + player.id);
+                            td.removeClass();
+                            td.addClass('label-inactive-player ' + player.modifier_class);
+                            label.attr('id', 'player-label-' + player.id);
                             label.removeAttr('data-current-player-id');
-                        }
-
-                        if (!player.isBeerCheckoutSafe) {
-                            td.addClass('beer');
-                        }
-                        else {
-                            td.removeClass('beer');
-                        }
-                        if (player.isViliusVisit) {
-                            td.addClass('vilius');
-                        }
-                        else {
-                            td.removeClass('vilius');
                         }
 
                         // Update the popover with First 9 and PPD
@@ -94,13 +81,13 @@ block scripts
                     $('#third').removeAttr('data-score');
                     $('#third').attr('data-multiplier', 1);
                     $('#third').attr('data-checkout', 0);
-                    $('#submitScoreButton').data('busted', 0);
-                    $('#submitScoreButton').data('finished', 0);
+                    $('#submit-score-button').data('busted', 0);
+                    $('#submit-score-button').data('finished', 0);
                 });
 
 
-                $('#submitScoreButton').click(function (event) {
-                    $('#submitScoreButton').prop('disabled', true);
+                $('#submit-score-button').click(function (event) {
+                    $('#submit-score-button').prop('disabled', true);
 
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
                     // Scores
@@ -157,7 +144,7 @@ block scripts
                     event.preventDefault();
                 });
 
-                $('#score_selector_table .throw_buttons :button').click(function () {
+                $('#score-selector-table .throw-buttons :button').click(function () {
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 
                     var dart;
@@ -193,12 +180,12 @@ block scripts
                     dart.attr('data-score', $(this).attr('title') / multiplier);
                     dart.attr('data-multiplier', multiplier);
 
-                    var submitButton = $('#submitScoreButton');
-                    var currentPlayer = $('#current_player');
+                    var submitButton = $('#submit-score-button');
+                    var currentPlayer = $('#current-player');
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     var scoreNumeric = parseInt($(this).attr('title'));
                     var dartScore = scoreNumeric ? scoreNumeric : 0;
-                    var currentPlayerId = $('#submitScoreButton').data('current-player-id');
+                    var currentPlayerId = $('#submit-score-button').data('current-player-id');
                     var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
 
                     // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
@@ -276,13 +263,13 @@ block scripts
                     }
                 });
 
-                $('#undoButton').click(function () {
+                $('#undo-button').click(function () {
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
                     if (window.darts_thrown < 1) {
                         return;
                     }
-                    var currentPlayerId = $('#submitScoreButton').data('current-player-id');
-                    var currentPlayer = $('#current_player');
+                    var currentPlayerId = $('#submit-score-button').data('current-player-id');
+                    var currentPlayer = $('#current-player');
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     window.darts_thrown--;
                     currentPlayer.text(currentPlayerScore + scores[window.darts_thrown]);
@@ -311,12 +298,6 @@ block scripts
                     dart.text('');
                     dart.removeAttr('data-score');
                 });
-
-                $('#toggleKeyboardButton').click(function () {
-                  var matchId = $('#toggleKeyboardButton').data('match-id')
-                  window.location.href = '/match/' + matchId + '/keyboard';
-                });
-
             });
         });
     script.
@@ -334,22 +315,24 @@ block scripts
                         break;
                 }
                 if (enterPress >= 2) {
-                    var matchId = $('#toggleKeyboardButton').data('match-id')
-                    window.location.href = '/match/' + matchId + '/keyboard';                    
+                    var matchId = $('#toggle-keyboard-button').data('match-id')
+                    window.location.href = '/match/' + matchId + '/keyboard';
                 }
-            });                        
-
-            $('#editScoresButton').click(function () {
+            });
+            $('#toggle-keyboard-button').click(function () {
+                location.href = window.location.pathname + '/keyboard';
+            });
+            $('#edit-scores-button').click(function () {
                 location.href = window.location.pathname + '/leg';
             });
-            $('#cancelMatchButton').click(function () {
+            $('#cancel-match-button').click(function () {
                 showConfirm('Game will be cancelled.', function() {
                     executeDelete(window.location.pathname + '/cancel',
                         function (response) {
                             location.href = '/game/list';
                         },
                         function (error) {
-                            var alert = $('#cancelMatchFailedAlert');
+                            var alert = $('#cancel-match-failed-alert');
                             alert.show();
                             alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
                         }
@@ -359,14 +342,12 @@ block scripts
         });
 
 block content
-    div(id='cancelMatchFailedAlert' class='alert alert-danger' role='alert' hidden='true').
+    div(id='cancel-match-failed-alert' class='alert alert-danger' role='alert' hidden='true').
         Unable to cancel match
 
     h2 Match
-    div(class='keyboardButton')
-      button(id='toggleKeyboardButton' type='button' data-match-id=match.id) Enable keyboard mode
     div(class='table-responsive')
-        table(id='score_selector_table' class='table')
+        table(id='score-selector-table' class='table')
             tbody
                 tr(class='row')
                     td(colspan='3' class='no-border')
@@ -374,100 +355,66 @@ block content
                     td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2')
-                        button(id='submitScoreButton' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
+                        button(id='submit-score-button' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
                     td(colspan='2')
-                        button(id='undoButton' type='button' class='btn-score btn-info btn-lg btn-block')
+                        button(id='undo-button' type='button' class='btn-score btn-info btn-lg btn-block')
                             span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
-                - var length = 12 / Object.keys(players).length
                 tr(class='row')
                     td(class='txt-center')
-                        label(id='round_number' class='match_information')= 'R' + match.round_number
-                        label(class='match_information')= '/' +game_type.short_name
+                        label(id='round-number' class='match-information')= 'R' + match.round_number
+                        label(class='match-information')= '/' +game_type.short_name
+                    - var length = 12 / Object.keys(players).length
                     each player in players
-                        - var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2)
-                        if  player.current
-                            td(id='player_score_' + player.id + '' colspan=length + '' class=player.isBeerCheckoutSafe ? 'label-active-player' : 'label-active-player beer' style='padding-right: 10px;')
-                                label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
-                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
-                        else
-                            - var css = player.isViliusVisit ? 'label-inactive-player vilius' : player.isBeerCheckoutSafe ? 'label-inactive-player' : 'label-inactive-player beer'
-                            td(id='player_score_' + player.id + '' colspan=length + '' class=css style='padding-right: 10px;')
-                                label(class='label label-block label-player-score' id=player.current ? 'current_player' : 'label_' + player.id data-container='body' data-toggle='popover' data-placement='top' data-content=popoverContent)= player.current_score
-                                label(class='label-player-name' id='label_player_name_' + player.name)= player.name + player.wins_string
-                tr(class='throw_buttons row')
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='0' data-multiplier='1') Miss<br/>&nbsp;
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='20' data-multiplier='1') 20<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='19' data-multiplier='1') 19<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='18' data-multiplier='1') 18<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='17' data-multiplier='1') 17<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='40' data-multiplier='2') 20<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='38' data-multiplier='2') 19<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='36' data-multiplier='2') 18<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-double' title='34' data-multiplier='2') 17<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='60' data-multiplier='3') 20<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='57' data-multiplier='3') 19<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='54' data-multiplier='3') 18<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block btn-triple' title='51' data-multiplier='3') 17<br/>...
-                tr(class='throw_buttons row')
+                        mixin player_label(player)
+                            - var modifier_class = player.modifier_class;
+                            - var td_class = 'label-inactive-player ' + modifier_class;
+                            if player.current
+                                - td_class = 'label-active-player ' + modifier_class;
+                            td(id='player_score_' + player.id + '' colspan=length + '' class=td_class style='padding-right: 10px;')
+                                label(id=player.current ? 'current-player' : 'player-label-' + player.id class='label label-block label-player-score' data-container='body' data-toggle='popover' data-placement='top' data-content='First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2))= player.current_score
+                                label(class='label-player-name')= player.name + player.wins_string
+                        +player_label(player)
+
+                mixin score_button(value, multiplier, text, custom_class)
+                    - var score_button_class = 'btn-score btn-info btn-lg btn-block'
+                    if custom_class
+                        - score_button_class += ' ' + custom_class
+                    else if multiplier === 3
+                        - score_button_class += ' btn-triple'
+                    else if multiplier === 2
+                        - score_button_class += ' btn-double'
+                    - text = text === undefined ? value : text;
+                    button(type='button' class=score_button_class title=value * multiplier data-multiplier=multiplier)!= text + '<br>' + '.'.repeat(multiplier)
+
+                mixin button_row(values)
+                    //- Mixin to generate each row of single, double and tripple buttons
+                    for value in values
+                        td: +score_button(value, 1)
+                    for value in values
+                        td: +score_button(value, 2)
+                    for value in values
+                        td: +score_button(value, 3)
+
+                tr(class='throw-buttons row')
+                    td: +score_button(0, 1, 'Miss')
+                    +button_row([ 20, 19, 18, 17 ])
+                tr(class='throw-buttons row')
                     td(rowspan='2' style='height:100%; background-color: #ffe6cc;')
-                        button(type='button' style='height:100%;overflow: auto;' class='btn-score btn-info btn-lg btn-block btn-double' title='25' data-multiplier='1') Bull<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='16' data-multiplier='1') 16<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='15' data-multiplier='1') 15<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='14' data-multiplier='1') 14<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='13' data-multiplier='1') 13<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='32' data-multiplier='2') 16<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='30' data-multiplier='2') 15<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='28' data-multiplier='2') 14<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='26' data-multiplier='2') 13<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='48' data-multiplier='3') 16<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='45' data-multiplier='3') 15<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='42' data-multiplier='3') 14<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='39' data-multiplier='3') 13<br/>...
-                tr(class='throw_buttons row')
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='12' data-multiplier='1') 12<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='11' data-multiplier='1') 11<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='10' data-multiplier='1') 10<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='9' data-multiplier='1') 9<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='24' data-multiplier='2') 12<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='22' data-multiplier='2') 11<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='20' data-multiplier='2') 10<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='18' data-multiplier='2') 9<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='36' data-multiplier='3') 12<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='33' data-multiplier='3') 11<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='30' data-multiplier='3') 10<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='27' data-multiplier='3') 9<br/>...
-                tr(class='throw_buttons row')
+                        +score_button(25, 1, 'Bull', 'btn-double')
+                    +button_row([ 16, 15, 14, 13 ])
+                tr(class='throw-buttons row')
+                    +button_row([ 12, 11, 10, 9 ])
+                tr(class='throw-buttons row')
                     td(rowspan='2' style='height:100%; background-color: #ffcc66;')
-                        button(type='button' style='height:100%;' class='btn-score btn-info btn-lg btn-block btn-triple' title='50' data-multiplier='2') Bull<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='8' data-multiplier='1') 8<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='7' data-multiplier='1') 7<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='6' data-multiplier='1') 6<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='5' data-multiplier='1') 5<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='16' data-multiplier='2') 8<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='14' data-multiplier='2') 7<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='12' data-multiplier='2') 6<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='10' data-multiplier='2') 5<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='24' data-multiplier='3') 8<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='21' data-multiplier='3') 7<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='18' data-multiplier='3') 6<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='15' data-multiplier='3') 5<br/>...
-                tr(class='throw_buttons row')
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='4' data-multiplier='1') 4<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='3' data-multiplier='1') 3<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='2' data-multiplier='1') 2<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block' title='1' data-multiplier='1') 1<br/>.
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='8' data-multiplier='2') 4<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='6' data-multiplier='2') 3<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='4' data-multiplier='2') 2<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-double' title='2' data-multiplier='2') 1<br/>..
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='12' data-multiplier='3') 4<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='9' data-multiplier='3') 3<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='6' data-multiplier='3') 2<br/>...
-                    td: button(type='button' class='btn-score btn-info btn-lg btn-block  btn-triple' title='3' data-multiplier='3') 1<br/>...
+                        +score_button(25, 2, 'Bull', 'btn-triple')
+                    +button_row([ 8, 7, 6, 5 ])
+                tr(class='throw-buttons row')
+                    +button_row([ 4, 3, 2, 1 ])
 
     div(class='btn-group')
         button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced
             span(class='caret')
         ul(class='dropdown-menu')
-            li: a(id='editScoresButton') Edit scores
-            li: a(id='cancelMatchButton') Cancel Match
+            li: a(id='toggle-keyboard-button') Enable keyboard mode
+            li: a(id='edit-scores-button') Edit scores
+            li: a(id='cancel-match-button') Cancel Match

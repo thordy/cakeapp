@@ -36,6 +36,7 @@ var Player = bookshelf.Model.extend({
                 first9Score: 0,
                 totalScore: 0,
                 visits: 0,
+                modifier_class: '',
                 current_score: match.starting_score,
                 current: player.id === match.current_player_id ? true : false
             }
@@ -62,7 +63,9 @@ var Player = bookshelf.Model.extend({
         var lastVisit = scores[scores.length - 1];
         if (lastVisit !== undefined) {
             var lastPlayer = playersMap['p' + lastVisit.player_id];
-            lastPlayer.isViliusVisit = isViliusVisit(lastVisit);
+            if (isViliusVisit(lastVisit)) {
+                lastPlayer.modifier_class += 'vilius ';
+            }
         }
         var lowestScore = undefined;
         for (var id in playersMap) {
@@ -84,11 +87,8 @@ var Player = bookshelf.Model.extend({
             }
             player.ppd = player.totalScore / dartsThrown;
 
-            if (lowestScore < 171 && player.current_score > 200) {
-                player.isBeerCheckoutSafe = false;
-            }
-            else {
-                player.isBeerCheckoutSafe = true;
+            if (lowestScore < 171 && player.current_score > 199) {
+                player.modifier_class += 'beer ';
             }
         }
         return playersMap;
