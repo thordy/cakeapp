@@ -21,50 +21,37 @@ block scripts
                     $('#submit-score-button').prop('disabled', true);
 
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
+                    // Scores
+                    var firstScore = parseInt($('#first').attr('data-score'));
+                    var firstMultiplier = parseInt($('#first').attr('data-multiplier'));
+                    var secondScore = parseInt($('#second').attr('data-score'));
+                    var secondMultiplier = parseInt($('#second').attr('data-multiplier'));
+                    var thirdScore = parseInt($('#third').attr('data-score'));
+                    var thirdMultiplier =  parseInt($('#third').attr('data-multiplier'));
 
-                    
-                    var firstScoreNumeric = $('#first').attr('data-score');
-                    var firstScoreMultiplier = $('#first').attr('data-multiplier');
-
-                    var secondScoreNumeric = $('#second').attr('data-score');
-                    var secondScoreMultiplier = $('#second').attr('data-multiplier');
-
-                    var thirdScoreNumeric = $('#third').attr('data-score');
-                    var thirdScoreMultiplier =  $('#third').attr('data-multiplier');
-
-                    var isCheckoutFirst = $('#first').attr('data-checkout');
-                    var isCheckoutSecond = $('#second').attr('data-checkout');
-                    var isCheckoutThird = $('#third').attr('data-checkout');
-
-                    var matchId = $(this).data('match-id');
+                    var darts = {
+                        first: { score: firstScore, multiplier: firstMultiplier },
+                        second: { score: secondScore, multiplier: secondMultiplier },
+                        third: { score: thirdScore, multiplier: thirdMultiplier }
+                    }
                     var currentPlayerId = $(this).data('current-player-id');
-                    var playersInMatch = $(this).data('players-in-match');
-                    var isBust = $(this).data('busted');
-                    var isFinished = $(this).data('finished');
-
                     var data = JSON.stringify({
-                        matchId: matchId,
-                        playerId: currentPlayerId,
-                        firstDart: firstScoreNumeric,
-                        secondDart: secondScoreNumeric,
-                        thirdDart: thirdScoreNumeric,
-                        firstDartMultiplier: firstScoreMultiplier,
-                        secondDartMultiplier: secondScoreMultiplier,
-                        thirdDartMultiplier: thirdScoreMultiplier,
-                        playersInMatch: playersInMatch,
-                        isBust: isBust,
-                        isCheckoutFirst: isCheckoutFirst,
-                        isCheckoutSecond: isCheckoutSecond,
-                        isCheckoutThird: isCheckoutThird,
+                        match_id: matchId,
+                        current_player_id: currentPlayerId,
+                        throws: {
+                            first: { score: firstScore, multiplier: firstMultiplier },
+                            second: { score: secondScore, multiplier: secondMultiplier },
+                            third: { score: thirdScore, multiplier: thirdMultiplier }
+                        }
                     });
 
+                    var isFinished = $(this).data('finished');
                     if (isFinished) {
-                        executePost(window.location.pathname + '/finish', data, 'application/json',
+                        executePost(window.location.origin + '/match/' + matchId + '/finish', data, 'application/json',
                             function (response) {
-                                location.href = window.location.pathname + '/leg';
+                                location.href = window.location.origin + '/match/' + matchId + '/leg';
                             },
                             function (error) {
-                                // TODO Error handling
                                 console.log("Unable to proceed: " + error.responseText);
                             }
                         )
@@ -116,7 +103,7 @@ block scripts
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     var scoreNumeric = parseInt($(this).attr('title'));
                     var dartScore = scoreNumeric ? scoreNumeric : 0;
-                    var currentPlayerId = $('#submit-score-button').data('current-player-id');
+                    var currentPlayerId = submitButton.data('current-player-id');
                     var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
 
                     // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt

@@ -252,47 +252,36 @@ block scripts
 
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
                     // Scores
-                    var firstScoreNumeric = $('#first').attr('data-score');
-                    var secondScoreNumeric = $('#second').attr('data-score');
-                    var thirdScoreNumeric = $('#third').attr('data-score');
+                    var firstScore = parseInt($('#first').attr('data-score'));
+                    var firstMultiplier = parseInt($('#first').attr('data-multiplier'));
+                    var secondScore = parseInt($('#second').attr('data-score'));
+                    var secondMultiplier = parseInt($('#second').attr('data-multiplier'));
+                    var thirdScore = parseInt($('#third').attr('data-score'));
+                    var thirdMultiplier =  parseInt($('#third').attr('data-multiplier'));
 
-                    // Multipliers
-                    var firstScoreMultiplier = $('#first').attr('data-multiplier');
-                    var secondScoreMultiplier = $('#second').attr('data-multiplier');
-                    var thirdScoreMultiplier =  $('#third').attr('data-multiplier');
-                    // Checkouts
-                    var isCheckoutFirst = $('#first').attr('data-checkout');
-                    var isCheckoutSecond = $('#second').attr('data-checkout');
-                    var isCheckoutThird = $('#third').attr('data-checkout');
-
+                    var darts = {
+                        first: { score: firstScore, multiplier: firstMultiplier },
+                        second: { score: secondScore, multiplier: secondMultiplier },
+                        third: { score: thirdScore, multiplier: thirdMultiplier }
+                    }
                     var currentPlayerId = $(this).data('current-player-id');
-                    var playersInMatch = $(this).data('players-in-match');
-                    var isBust = $(this).data('busted');
-                    var isFinished = $(this).data('finished');
-
                     var data = JSON.stringify({
-                        'matchId': matchId,
-                        'playerId': currentPlayerId,
-                        'firstDart': firstScoreNumeric,
-                        'secondDart': secondScoreNumeric,
-                        'thirdDart': thirdScoreNumeric,
-                        'firstDartMultiplier': firstScoreMultiplier,
-                        'secondDartMultiplier': secondScoreMultiplier,
-                        'thirdDartMultiplier': thirdScoreMultiplier,
-                        'playersInMatch': playersInMatch,
-                        'isBust': isBust,
-                        'isCheckoutFirst': isCheckoutFirst,
-                        'isCheckoutSecond': isCheckoutSecond,
-                        'isCheckoutThird': isCheckoutThird,
+                        match_id: matchId,
+                        current_player_id: currentPlayerId,
+                        throws: {
+                            first: { score: firstScore, multiplier: firstMultiplier },
+                            second: { score: secondScore, multiplier: secondMultiplier },
+                            third: { score: thirdScore, multiplier: thirdMultiplier }
+                        }
                     });
 
+                    var isFinished = $(this).data('finished');
                     if (isFinished) {
                         executePost(window.location.origin + '/match/' + matchId + '/finish', data, 'application/json',
                             function (response) {
                                 location.href = window.location.origin + '/match/' + matchId + '/leg';
                             },
                             function (error) {
-                                // TODO Error handling
                                 console.log("Unable to proceed: " + error.responseText);
                             }
                         )
@@ -459,7 +448,6 @@ block scripts
                 });
             });
             
-
             $('#toggle-keyboard-button').click(function () {
                 location.href = '/match/' + matchId;
             });
