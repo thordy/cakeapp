@@ -11,7 +11,7 @@ a:hover {
 }
 
 /* CSS Related to games page */
-#games_list_table span {
+#games-list-table span {
     display: block;
 }
 
@@ -98,7 +98,7 @@ a:hover {
     line-height: 0.8;
     padding: 10px;
 }
-#score-selector-table label, #visits_table label, #player_spectate_table label {
+#score-selector-table label, #visits-table label, #player-spectate-table label {
     display: block;
     text-align: center;
     border-radius: 0;

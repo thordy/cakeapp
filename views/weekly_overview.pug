@@ -1,113 +1,55 @@
 extends layout.pug
 
-block scripts
-    script.
-        /*$(document).ready(function(){
-            $('#current_week_statistics_table').DataTable({
-                searching: false,
-                pageLength: 25,
-                bLengthChange: false,
-                bInfo : false,
-                order: [[ 4,  'desc' ]]
-            });
-            $('#last_week_statistics_table').DataTable({
-                searching: false,
-                pageLength: 25,
-                bLengthChange: false,
-                bInfo : false,
-                order: [[ 4,  'desc' ]]
-            });
-        });*/
-
 block content
     h2 Weekly Statistics
 
-    h3 Current
-    if weekly.this_week === undefined
-        p No matches played yet this week...
-    else
-        div(class='table-responsive')
-            table(id='current_week_statistics_table' class='table table-striped table-bordered')
-                thead
-                    tr
-                        th(colspan='7')
-                        th(colspan='4') Per Game
-                        th(colspan='3') Accuracy              
-                    tr
-                        th Rank
-                        th Player
-                        th Played
-                        th Won
-                        th Win %                        
-                        th PPD
-                        th PPD (First 9)
-                        th 60s+
-                        th 100s+
-                        th 140s+
-                        th 180
-                        th Overall
-                        th 20s
-                        th 19s
-                tbody
-                    - var rank = 1
-                    each stats in weekly.this_week
+    mixin create_statistics_table(id, statistics)
+        if statistics.length === 0
+            p No matches played ...
+        else
+            div(class='table-responsive')
+                table(id=id class='table table-striped table-bordered')
+                    thead
                         tr
-                            td= rank++
-                            td(style='width: 12%'): a(href='/player/' + stats.player_id + '/stats')= stats.player_name
-                            td= stats.games_played
-                            td= stats.games_won === undefined ? 0 : stats.games_won
-                            td= stats.games_won === undefined ? 0 : (stats.games_won / stats.games_played * 100).toFixed(2)
-                            td= stats.ppd.toFixed(2)
-                            td(style='width: 12%')= stats.first_nine_ppd.toFixed(2)
-                            td= stats['60s_plus'] == 0 ? 0 : (stats['60s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['100s_plus'] == 0 ? 0 : (stats['100s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['140s_plus'] == 0 ? 0 : (stats['140s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['180s'] == 0 ? 0 : (stats['180s'] / stats.games_played).toFixed(2)
-                            td= stats.overall_accuracy === null ? '-' : stats.overall_accuracy.toFixed(2)
-                            td= stats.accuracy_20 === null ? '-' : stats.accuracy_20.toFixed(2)
-                            td= stats.accuracy_19 === null ? '-' : stats.accuracy_19.toFixed(2)
+                            th(colspan='7')
+                            th(colspan='4') Per Game
+                            th(colspan='3') Accuracy              
+                        tr
+                            th Rank
+                            th Player
+                            th Played
+                            th Won
+                            th Win %                        
+                            th PPD
+                            th PPD (First 9)
+                            th 60s+
+                            th 100s+
+                            th 140s+
+                            th 180
+                            th Overall
+                            th 20s
+                            th 19s
+                    tbody
+                        - var rank = 1
+                        each stats in statistics
+                            tr
+                                td= rank++
+                                td(style='width: 12%'): a(href='/player/' + stats.player_id + '/stats')= stats.player_name
+                                td= stats.games_played
+                                td= stats.games_won === undefined ? 0 : stats.games_won
+                                td= stats.games_won === undefined ? 0 : (stats.games_won / stats.games_played * 100).toFixed(2)
+                                td= stats.ppd.toFixed(2)
+                                td(style='width: 12%')= stats.first_nine_ppd.toFixed(2)
+                                td= stats['60s_plus'] == 0 ? 0 : (stats['60s_plus'] / stats.games_played).toFixed(2)
+                                td= stats['100s_plus'] == 0 ? 0 : (stats['100s_plus'] / stats.games_played).toFixed(2)
+                                td= stats['140s_plus'] == 0 ? 0 : (stats['140s_plus'] / stats.games_played).toFixed(2)
+                                td= stats['180s'] == 0 ? 0 : (stats['180s'] / stats.games_played).toFixed(2)
+                                td= stats.overall_accuracy === null ? '-' : stats.overall_accuracy.toFixed(2)
+                                td= stats.accuracy_20 === null ? '-' : stats.accuracy_20.toFixed(2)
+                                td= stats.accuracy_19 === null ? '-' : stats.accuracy_19.toFixed(2)
 
+    h3 Current
+        +create_statistics_table('current_week_statistics_table', weekly.this_week)
+            
     h3 Last Week
-    if weekly.last_week === undefined
-        p No matches were played last week
-    else
-        div(class='table-responsive')
-            table(id='last_week_statistics_table' class='table table-striped table-bordered')
-                thead
-                    tr
-                        th(colspan='7')
-                        th(colspan='4') Per Game
-                        th(colspan='3') Accuracy
-                    tr
-                        th Rank
-                        th Player
-                        th Played
-                        th Won
-                        th Win %
-                        th PPD
-                        th PPD (First 9)
-                        th 60s+
-                        th 100s+
-                        th 140s+
-                        th 180
-                        th Overall
-                        th 20s
-                        th 19s
-                tbody
-                    - var rank = 1
-                    each stats in weekly.last_week
-                        tr
-                            td= rank++
-                            td(style='width: 12%'): a(href='/player/' + stats.player_id + '/stats')= stats.player_name
-                            td= stats.games_played
-                            td= stats.games_won === undefined ? 0 : stats.games_won
-                            td= stats.games_won === undefined ? 0 : (stats.games_won / stats.games_played * 100).toFixed(2)
-                            td= stats.ppd.toFixed(2)
-                            td(style='width: 12%')= stats.first_nine_ppd.toFixed(2)
-                            td= stats['60s_plus'] == 0 ? 0 : (stats['60s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['100s_plus'] == 0 ? 0 : (stats['100s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['140s_plus'] == 0 ? 0 : (stats['140s_plus'] / stats.games_played).toFixed(2)
-                            td= stats['180s'] == 0 ? 0 : (stats['180s'] / stats.games_played).toFixed(2)
-                            td= stats.overall_accuracy === null ? '-' : stats.overall_accuracy.toFixed(2)
-                            td= stats.accuracy_20 === null ? '-' : stats.accuracy_20.toFixed(2)
-                            td= stats.accuracy_19 === null ? '-' : stats.accuracy_19.toFixed(2)
+        +create_statistics_table('last_week_statistics_table', weekly.last_week)

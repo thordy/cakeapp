@@ -33,13 +33,13 @@ var Score = bookshelf.Model.extend({
                 is_bust: isBust,
                 first_dart: firstDart.score,
                 first_dart_multiplier: firstDart.multiplier,
-                is_checkout_first: firstDart.is_checkout,
+                is_checkout_first: firstDart.is_checkout_attempt,
                 second_dart: secondDart.score,
                 second_dart_multiplier: secondDart.multiplier,
-                is_checkout_second: secondDart.is_checkout,
+                is_checkout_second: secondDart.is_checkout_attempt,
                 third_dart: thirdDart.score,
                 third_dart_multiplier: thirdDart.multiplier,
-                is_checkout_third: thirdDart.is_checkout
+                is_checkout_third: thirdDart.is_checkout_attempt
             })
             .save(null, { method: 'insert' })
             .then(function(row) {

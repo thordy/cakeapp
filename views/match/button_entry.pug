@@ -245,9 +245,9 @@ block scripts
             $(document).keypress(function(e) {
                 if (e.key === 'Enter') {
                     enterPress++;
-                }
-                if (enterPress >= 2) {
-                    location.href = window.location.pathname + '/keyboard';
+                    if (enterPress >= 2) {
+                        location.href = window.location.pathname + '/keyboard';
+                    }
                 }
             });
         });
@@ -266,7 +266,7 @@ block content
                     td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
                     td(colspan='2')
-                        button(id='submit-score-button' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
+                        button(id='submit-score-button' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-busted='0' data-finished='0') Submit
                     td(colspan='2')
                         button(id='undo-button' type='button' class='btn-score btn-info btn-lg btn-block')
                             span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')

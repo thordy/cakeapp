@@ -3,7 +3,7 @@ extends layout.pug
 block scripts
 	script.
 		$(document).ready(function(){
-			$('#games_list_table').DataTable({
+			$('#games-list-table').DataTable({
 				searching: false,
 				pageLength: 25,
 				bLengthChange: false,
@@ -13,13 +13,13 @@ block scripts
 		});
 	script.
 		$(function() {
-			$('#games_list_table').on('click', '#continueGameButton', function () {
+			$('#games-list-table').on('click', '#continue-game-button', function () {
 				location.href = '/game/' + $(this).data('game');
 			});
-			$('#games_list_table').on('click', '#spectateGameButton', function() {
+			$('#games-list-table').on('click', '#spectate-game-button', function() {
 				location.href = '/game/' + $(this).data('game') + '/spectate';
 			});
-			$('#games_list_table').on('click', '#viewGameButton', function () {
+			$('#games-list-table').on('click', '#view-game-button', function () {
 				location.href = '/game/' + $(this).data('game') + '/results';
 			});
 		});
@@ -30,7 +30,7 @@ block content
 		Overview over all played games
 
 	div(class='table-responsive')
-		table(class='table table-striped table-bordered' id='games_list_table')
+		table(class='table table-striped table-bordered' id='games-list-table')
 			thead
 				tr
 					th(hidden=true)
@@ -59,7 +59,7 @@ block content
 							td(class='col-sm-2')
 						td(class='col-sm-2')
 							if !game.is_finished
-								button(type='button' id='continueGameButton' data-game=game.id class='btn btn-primary btn-block') Continue
-								button(type='button' id='spectateGameButton' data-game=game.id class='btn btn-primary btn-block') Spectate
+								button(type='button' id='continue-game-button' data-game=game.id class='btn btn-primary btn-block') Continue
+								button(type='button' id='spectate-game-button' data-game=game.id class='btn btn-primary btn-block') Spectate
 							else
-								button(type='button' id='viewGameButton' data-game=game.id class='btn btn-primary btn-block') View
+								button(type='button' id='view-game-button' data-game=game.id class='btn btn-primary btn-block') View

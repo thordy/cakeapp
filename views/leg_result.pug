@@ -122,7 +122,7 @@ block scripts
                 }, function(){ /* NOOP */ });
             });
 
-            $('#changeOrderButton').click(function (e) {
+            $('#change-order-button').click(function (e) {
                 var players = $('.form-check-input');
                 var order = {}
                 order.players = {};
@@ -130,9 +130,7 @@ block scripts
                     order.players[players[i].value] = i + 1;
                 }
                 executePut(window.origin + '/match/' + match.id + '/order', JSON.stringify(order), 'application/json', function() {
-                    showAlert('Order successfully changed!', function() {
-                        location.reload();
-                    })
+                    location.href = '/match/' + match.id;
                 },
                 function(error) {
                     alert('Error changing player order. Please reload');
@@ -141,8 +139,8 @@ block scripts
                 })
             });
 
-            $('#player_order_list').sortable();
-            $('#player_order_list').disableSelection();
+            $('#player-order-list').sortable();
+            $('#player-order-list').disableSelection();
 
             $('#continue-game').click(function () {
                 location.href = '/game/' + $(this).data('game');
@@ -200,8 +198,7 @@ block content
                         td: p= player.name
                         td: p= statistics.ppd.toFixed(2) + ' / ' + statistics.first_nine_ppd.toFixed(2)
                         if player.id === match.winner_id
-                            // td: p= statistics.checkout_percentage === null ? '-' : statistics.checkout_percentage.toFixed(2)
-                            td: p -
+                            td: p= statistics.checkout_percentage === null ? '-' : statistics.checkout_percentage.toFixed(2)
                         else
                             td: p -
                         td
@@ -526,9 +523,9 @@ block content
     if !match.winner_id
         h2 Player Order      
         div
-            div(id='player_order_list')
+            div(id='player-order-list')
                 each player in players
                     div(class='float-left')
                         input(style='display: none;' type='checkbox' class='form-check-input' id='checkbox_player_' + player.id value=player.id)
                         label(style='margin-left: 10px; width: 160px; text-transform: uppercase;' class='player_name_label form-check-label btn btn-warning' for='checkbox_player_' + player.id)= player.name
-            button(type='submit' name='submit' style='margin-left: 10px' id='changeOrderButton' class='btn btn-primary') Change Order
+            button(type='submit' name='submit' style='margin-left: 10px' id='change-order-button' class='btn btn-primary') Change Order
