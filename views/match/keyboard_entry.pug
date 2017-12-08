@@ -458,7 +458,7 @@ block scripts
 
             $('#cancel-match-button').click(function () {
                 showConfirm('Game will be cancelled.', function() {
-                    executeDelete('http://' + window.location.hostname + ':3000/match/' + matchId + '/cancel',
+                    executeDelete(window.location.protocol + '//' + window.location.host + '/match/' + matchId + '/cancel',
                         function (response) {
                             location.href = '/game/list';
                         },
