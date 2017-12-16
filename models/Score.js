@@ -1,5 +1,5 @@
 'use strict';
-const debug = require('debug')('dartapp:score-model');
+const debug = require('debug')('kcapp:score-model');
 const bookshelf = require('../bookshelf');
 bookshelf.plugin('registry');
 

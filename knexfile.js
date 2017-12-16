@@ -3,7 +3,7 @@ var dbConfig = {
 	development: {
         client: 'mysql',
         connection: {
-            host : 'localhost',
+            host : '10.12.100.66',
             user : 'developer',
             password : 'abcd1234',
             database : 'cakeapp_dev'

@@ -9,7 +9,8 @@ Application uses bookshelf.js library as ORM for node.js and Knex query builder.
 `npm install`
 
 ## How to run the app
-`node app.js`
+`DEBUG:ckapp.* node app.js`
+To run in a different environment specify `NODE_ENV=<env>`
 
 ## Database migration
 To set up database in docker, run:

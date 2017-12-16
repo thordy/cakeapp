@@ -1,5 +1,5 @@
 'use strict';
-const debug = require('debug')('dartapp:match-model');
+const debug = require('debug')('kcapp:match-model');
 
 const bookshelf = require('../bookshelf');
 bookshelf.plugin('registry');
