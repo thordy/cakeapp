@@ -40,4 +40,58 @@ block content
                                 span(class='glyphicon glyphicon-ok' aria-hidden='true')
                             else
                                 span(class='glyphicon glyphicon-remove' aria-hidden='true')
+                                                               
                     td: button(type='button' class='btn btn-primary btn-block btn-view-results') View
+    
+    div(class='table-responsive')
+        table(id='player_comparison_table' class='table table-striped table-bordered')
+            thead
+                tr
+                    th
+                    each player in players
+                        th= player.name
+            tbody
+                tr
+                    td(class='col-sm-2') PPD
+                    each player in players
+                        td= player.ppd.toFixed(2)
+                tr
+                    td(class='col-sm-2') First 9 PPD
+                    each player in players
+                        td= player.first_nine_ppd.toFixed(2)
+                tr
+                    td(class='col-sm-2') Checkout%
+                    each player in players
+                        td= player.checkout_percentage === 0 ? '-' : player.checkout_percentage.toFixed(2) + '%'
+                tr
+                    td(class='col-sm-2') Overall Accuracy
+                    each player in players
+                        td= player.overall_accuracy.toFixed(2)
+                //tr
+                    td(class='col-sm-2') Accuracy 20s
+                    each player in players
+                        td= player.accuracy_20s.toFixed(2)
+                //tr
+                    td(class='col-sm-2') Accuracy 19s
+                    each player in players
+                        td= player.accuracy_19s.toFixed(2)
+                tr
+                    td(class='separator_row')
+                        each player in players
+                            td(class='separator_row') High Scores
+                tr
+                    td(class='col-sm-2') 60+
+                    each player in players
+                        td= player.scores_60s
+                tr
+                    td(class='col-sm-2') 100+
+                    each player in players
+                        td= player.scores_100s
+                tr
+                    td(class='col-sm-2') 140+
+                    each player in players
+                        td= player.scores_140s
+                tr
+                    td(class='col-sm-2') 180
+                    each player in players
+                        td= player.scores_180s

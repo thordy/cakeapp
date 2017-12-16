@@ -72,5 +72,5 @@ app.use(function(req, res, next){
 });
 
 server.listen(3000, function () {
-  debug('DartApp listening on port 3000');
+  debug('K-Capp listening on port 3000');
 });

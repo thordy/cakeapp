@@ -201,10 +201,57 @@ router.get('/:id/results', function (req, res) {
             var matches = row.serialize();
             var game = matches[0].game;
             game.end_time = matches[matches.length - 1].end_time;
+
+            var playersMap = matches[0].players.reduce(function ( map, player ) {
+                map['p' + player.id] = {
+                    id: player.id,
+                    name: player.name,
+                    checkout_percentage: 0,
+                    ppd: 0,
+                    first_nine_ppd: 0,
+                    scores_60s: 0,
+                    scores_100s: 0,
+                    scores_140s: 0,
+                    scores_180: 0,
+                    accuracy_20s: 0,
+                    accuracy_19s: 0,
+                    overall_accuracy: 0
+                }
+                return map;
+            }, {});
+
+            // Calculate some global statics for all legs
+            for (var i = 0; i < matches.length; i++) {
+                var statistics = matches[i].statistics;
+                for (var j = 0; j < statistics.length; j++) {
+                    var stats = statistics[j];
+                    var player = playersMap['p' + stats.player_id];
+                    player.scores_60s += stats['60s_plus'];
+                    player.scores_100s += stats['100s_plus'];
+                    player.scores_140s += stats['140s_plus'];
+                    player.scores_180 += stats['180s'];
+                    player.ppd += stats.ppd;
+                    player.first_nine_ppd += stats.first_nine_ppd;
+                    player.checkout_percentage += stats.checkout_percentage;
+                    player.accuracy_19s += stats.accuracy_19s == null ? 0 : stats.accuracy_19s;
+                    player.accuracy_20s += stats.accuracy_20s == null ? 0 : stats.accuracy_20s;
+                    player.overall_accuracy += stats.overall_accuracy;
+                }
+            }
+            var numLegs = matches.length;
+            _.each(playersMap, (player) => {
+                player.ppd = player.ppd / numLegs;
+                player.first_nine_ppd = player.first_nine_ppd / numLegs;
+                player.checkout_percentage = player.checkout_percentage / numLegs;
+                player.accuracy_19s = player.accuracy_19s / numLegs;
+                player.accuracy_20s = player.accuracy_20s / numLegs;
+                player.overall_accuracy = player.overall_accuracy / numLegs;
+            });
+
             res.render('game_result', {
                 game: game,
                 matches: matches,
-                players: matches[0].players
+                players: playersMap
             });
         })
         .catch(function (err) {

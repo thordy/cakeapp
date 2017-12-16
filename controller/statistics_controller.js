@@ -10,10 +10,26 @@ var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 var _ = require('underscore');
-var moment = require('moment')
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
+
+router.get('/:from/:to', function(req, res) {
+	var from = req.params.from;
+	var to = req.params.to;
+    getStatistics(from, to, (err, stats) => {
+        if (err) {
+            return helper.renderError(res, err);
+        }
+        var stats = {
+            last_week: null,
+            this_week: _.sortBy(stats, (player) => -(player.games_won / player.games_played) ),
+            from: from,
+            to: to
+        }
+        res.render('weekly_overview', { weekly: stats });
+    });
+});
 
 router.get('/weekly', function (req, res) {
     var from = moment().isoWeekday(-6).format('YYYY-MM-DD');
@@ -30,7 +46,9 @@ router.get('/weekly', function (req, res) {
             }
             var stats = {
                 last_week: _.sortBy(lastWeek, (player) => -(player.games_won / player.games_played) ),
-                this_week: _.sortBy(thisWeek, (player) => -(player.games_won / player.games_played) )
+                this_week: _.sortBy(thisWeek, (player) => -(player.games_won / player.games_played) ),
+                from: from,
+                to: to
             }
             res.render('weekly_overview', { weekly: stats });
         });
