@@ -18,7 +18,7 @@ function resetUIelements() {
 }
 
 function setupSocketIO(matchId) {
-    var socket = io('http://' + window.location.hostname + ':3000/match/' + matchId);
+    var socket = io(window.location.protocol + '//' + window.location.host + '/match/' + matchId);
     
     socket.on('connect', function(data) {
         socket.emit('join', 'Client Conneting');
