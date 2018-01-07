@@ -76,14 +76,10 @@ block scripts
                     var routeRedirect = window.location.pathname;
                     executePost(route, data, 'application/json',
                         function (response) {
-                            if (response.statusCode == 200) {
-                                location.reload();
-                            } else {
-                                alert('Error changing score.');
-                            }
+                            location.href = '/match/' + match.id;
                         },
                         function (error) {
-                            // TODO Error handling
+                            alert("Error when updating score, please reload!");
                             console.log("Unable to proceed: " + error.responseText);
                         }
                     )

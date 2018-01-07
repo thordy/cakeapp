@@ -229,7 +229,7 @@ router.get('/:id/results', function (req, res) {
                     player.scores_60s += stats['60s_plus'];
                     player.scores_100s += stats['100s_plus'];
                     player.scores_140s += stats['140s_plus'];
-                    player.scores_180 += stats['180s'];
+                    player.scores_180s += stats['180s'];
                     player.ppd += stats.ppd;
                     player.first_nine_ppd += stats.first_nine_ppd;
                     player.checkout_percentage += stats.checkout_percentage;
