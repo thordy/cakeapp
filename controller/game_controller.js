@@ -14,62 +14,21 @@ var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 var _ = require('underscore');
 
+const axios = require('axios');
+
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all games */
 router.get('/list', function (req, res) {
-    // Get collection of matches
-    var Games = Bookshelf.Collection.extend({ model: Game });
-
-    // Fetch related players
-    new Games()
-        .fetch({
-            withRelated: [
-                'game_winner',
-                'game_type',
-                'players'
-            ]
-        })
-        .then(function (rows) {
-            var games = _.indexBy(rows.serialize(), 'id');
-            _.each(games, function(game) {
-                for (var j = 0; j < game.players.length; j++){
-                    var player = game.players[j];
-                    player.legs_won = 0;
-                }
-                game.players = _.indexBy(game.players, 'id');
-            });
-
-            knex = Bookshelf.knex;
-            knex('match')
-            .select(knex.raw(`
-                game.id as game_id,
-                match.winner_id,
-                count(match.winner_id) as wins,
-                game_type.matches_required`
-            ))
-            .join(knex.raw('game on game.id = match.game_id'))
-            .join(knex.raw('game_type on game_type.id = game.game_type_id'))
-            .groupBy(['match.winner_id', 'game.id'])
-            .then(function(rows) {
-                for (var i = 0; i < rows.length; i++) {
-                    var winner = rows[i];
-                    if (winner.winner_id) {
-                        var game = games[winner.game_id];
-                        var player = game.players[winner.winner_id];
-                        player.legs_won = winner.wins;
-                    }
-                }
-                res.render('games', { games: games });
-            })
-            .catch(function (err) {
-               return helper.renderError(res, err);
-            });
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+    axios.get('http://localhost:8000/game')
+        .then(response => {
+            var games = response.data;
+            res.render('games', { games: games });
+          })
+          .catch(error => {
+            debug('Error when getting games: ' + error);
+          });
 });
 
 /**

@@ -9,6 +9,7 @@
   "author": "thordy",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.17.1",
     "body-parser": "^1.16.1",
     "bookshelf": "^0.10.3",
     "bookshelf-cascade-delete": "^2.0.1",

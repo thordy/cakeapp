@@ -48,7 +48,7 @@ block content
 						td(class='col-sm-1')
 							each player in game.players
 								div(style='margin-bottom: 5px;')
-									span(class='label label-primary' style='line-height: inherit;')= player.name + ' (' + player.legs_won + ')'
+									span(class='label label-primary' style='line-height: inherit;')= player.name
 						if game.is_finished
 							td(class='col-sm-1')
 								if game.winner_id === null

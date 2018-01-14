@@ -44,6 +44,7 @@ func GetGames() ([]*Game, error) {
 	defer rows.Close()
 
 	gms := make([]*Game, 0)
+	m := make(map[int]*Game)
 	for rows.Next() {
 		g := new(Game)
 		gt := new(GameType)
@@ -58,6 +59,33 @@ func GetGames() ([]*Game, error) {
 			return nil, err
 		}
 		gms = append(gms, g)
+		m[g.ID] = g
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Load Players
+	rows, err = db.Query(`
+		SELECT
+			p2m.game_id, p.id, p.name, p.nickname
+		FROM player2match p2m
+		JOIN player p ON p.id = p2m.player_id
+		GROUP BY p2m.player_id, p2m.game_id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		p := new(Player)
+		var id int
+		err := rows.Scan(&id, &p.ID, &p.Name, &p.Nickname)
+		if err != nil {
+			return nil, err
+		}
+		g := m[id]
+		g.Players = append(g.Players, p)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
