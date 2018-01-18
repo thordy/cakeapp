@@ -46,15 +46,15 @@ block content
 						td(class='col-sm-2')= moment(game.created_at).format('YYYY-MM-DD HH:mm:ss')
 						td(class='col-sm-2')= game.game_type.name
 						td(class='col-sm-1')
-							each player in game.players
+							each id in game.player_ids
 								div(style='margin-bottom: 5px;')
-									span(class='label label-primary' style='line-height: inherit;')= player.name
+									span(class='label label-primary' style='line-height: inherit;')= players[id].name
 						if game.is_finished
 							td(class='col-sm-1')
 								if game.winner_id === null
 									div: span(class='label label-info' style='line-height: inherit;') Draw
 								else
-									div: span(class='label label-success' style='line-height: inherit;')= game.players[game.winner_id].name
+									div: span(class='label label-success' style='line-height: inherit;')= players[game.winner_id].name
 						else
 							td(class='col-sm-2')
 						td(class='col-sm-2')

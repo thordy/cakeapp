@@ -24,10 +24,19 @@ router.get('/list', function (req, res) {
     axios.get('http://localhost:8000/game')
         .then(response => {
             var games = response.data;
-            res.render('games', { games: games });
+            axios.get('http://localhost:8000/player')
+                .then(response => {
+                    var players = response.data;
+                    res.render('games', { games: games, players: players });
+                  })
+                  .catch(error => {
+                    debug('Error when getting players: ' + error);
+                    helper.renderError(res, error);
+                  });
           })
           .catch(error => {
             debug('Error when getting games: ' + error);
+            helper.renderError(res, error);
           });
 });
 
@@ -104,14 +113,14 @@ router.get('/:gameid', function (req, res) {
                                     .insert(playersInMatch)
                                     .then(function (rows) {
                                         debug('Added players %s', playersArray);
-                                        
+
                                         socketHandler.setupNamespace(newmatch.id);
 
                                         // Forward all spectating clients to next match
                                         socketHandler.emitMessage(currentMatchId, 'match_finished', {
                                             old_match_id: currentMatchId,
                                             new_match_id: newmatch.id
-                                        }); 
+                                        });
                                         res.redirect('/match/' + newmatch.id);
                                     })
                                     .catch(function (err) {
@@ -156,7 +165,7 @@ router.get('/:id/results', function (req, res) {
         .then(function (row) {
             if (row === null) {
                 return helper.renderError(res, 'No game with id ' + req.params.id + ' exists');
-            }			
+            }
             var matches = row.serialize();
             var game = matches[0].game;
             game.end_time = matches[matches.length - 1].end_time;
@@ -215,7 +224,7 @@ router.get('/:id/results', function (req, res) {
         })
         .catch(function (err) {
             helper.renderError(res, err);
-        });	
+        });
 });
 
 /* Method for starting a new game */

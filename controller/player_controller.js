@@ -10,6 +10,8 @@ var Score = require.main.require('./models/Score');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 
+const axios = require('axios');
+
 router.use(bodyParser.json()); // Accept incoming JSON entities
 
 /* Add a new player */
@@ -97,16 +99,15 @@ router.get('/:id/stats', function(req, res) {
 
 /* Get a list of all players */
 router.get('/list', function (req, res) {
-	Player.query(function(qb) {
-			qb.orderBy('name','ASC');
-		})
-		.fetchAll()
-		.then(function(players) {
-			res.render('players', { players: players.serialize() });
-		})
-		.catch(function(err) {
-			helper.renderError(res, err);
-		});
+	axios.get('http://localhost:8000/player')
+	.then(response => {
+		var players = response.data;
+		res.render('players', { players: players });
+	  })
+	  .catch(error => {
+	    debug('Error when getting players: ' + error);
+		helper.renderError(res, error);
+	  });	
 });
 
 /* Get comparable statistics for the given players */

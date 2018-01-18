@@ -20,5 +20,9 @@ func main() {
 	router.HandleFunc("/game/{id}", controllers.DeleteGame).Methods("DELETE")
 	router.HandleFunc("/game/{id}/spectate", controllers.SpectateGame).Methods("GET")
 
+	router.HandleFunc("/player", controllers.GetPlayers).Methods("GET")
+	router.HandleFunc("/player/(id]", controllers.GetPlayer).Methods("GET")
+	router.HandleFunc("/player", controllers.AddPlayer).Methods("POST")
+
 	log.Println(http.ListenAndServe(":8000", router))
 }
