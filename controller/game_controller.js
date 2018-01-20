@@ -21,10 +21,10 @@ router.use(bodyParser.urlencoded({extended: true}));
 
 /* Get a list of all games */
 router.get('/list', function (req, res) {
-    axios.get('http://localhost:8000/game')
+    axios.get('http://localhost:8001/game')
         .then(response => {
             var games = response.data;
-            axios.get('http://localhost:8000/player')
+            axios.get('http://localhost:8001/player')
                 .then(response => {
                     var players = response.data;
                     res.render('games', { games: games, players: players });

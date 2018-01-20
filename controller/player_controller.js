@@ -16,15 +16,13 @@ router.use(bodyParser.json()); // Accept incoming JSON entities
 
 /* Add a new player */
 router.post('/', function (req, res) {
-	new Player({name: req.body.name})
-		.save(null, {method: 'insert'})
-		.then(function(player) {
-			debug('Created player %s', req.body.name);
-			res.redirect('/player/list');
-		})
-		.catch(function(err) {
-			return helper.renderError(res, err);
-		});
+	axios.post('http://localhost:8001/player', { name: req.body.name, nickname: req.body.nickname })
+	  .then(function (response) {
+		res.redirect('/player/list');
+	  })
+	  .catch(function (error) {
+		helper.renderError(res, error);
+	  });
 });
 
 /* Get specific statistics for a given player */
@@ -99,15 +97,15 @@ router.get('/:id/stats', function(req, res) {
 
 /* Get a list of all players */
 router.get('/list', function (req, res) {
-	axios.get('http://localhost:8000/player')
-	.then(response => {
-		var players = response.data;
-		res.render('players', { players: players });
-	  })
-	  .catch(error => {
-	    debug('Error when getting players: ' + error);
-		helper.renderError(res, error);
-	  });	
+	axios.get('http://localhost:8001/player')
+		.then(response => {
+			var players = response.data;
+			res.render('players', { players: players });
+		  })
+		  .catch(error => {
+		    debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
+		  });
 });
 
 /* Get comparable statistics for the given players */

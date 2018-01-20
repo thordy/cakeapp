@@ -2,7 +2,6 @@ package models
 
 import (
 	"kcapp-api/jsonutil"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -96,8 +95,6 @@ func GetGame(id int) (*Game, error) {
 	if g.OweTypeID.Valid {
 		g.OweType = ot
 	}
-
-	log.Println("Got row from database: ", g)
 	return g, nil
 }
 

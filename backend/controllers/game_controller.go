@@ -12,6 +12,7 @@ import (
 
 // GetGames will return a list of all games
 func GetGames(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
 	games, err := models.GetGames()
 	if err != nil {
 		log.Println("Unable to get games", err)
@@ -23,6 +24,7 @@ func GetGames(w http.ResponseWriter, r *http.Request) {
 
 // GetGame will reurn a the game with the given ID
 func GetGame(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -40,11 +42,14 @@ func GetGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpectateGame(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
 	// TODO
 }
 func NewGame(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
 	// TODO
 }
 func DeleteGame(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
 	// TODO
 }

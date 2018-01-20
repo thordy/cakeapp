@@ -2,11 +2,11 @@ package models
 
 // StatisticsX01 struct used for storing statistics
 type StatisticsX01 struct {
-	ID                 int     `json:"id"`
-	MatchID            int     `json:"match_id"`
-	PlayerID           int     `json:"player_id"`
+	ID                 int     `json:"id,omitempty"`
+	MatchID            int     `json:"match_id,omitempty"`
+	PlayerID           int     `json:"player_id,omitempty"`
 	PPD                float32 `json:"ppd"`
-	FistNinePPD        float32 `json:"first_nine_ppd"`
+	FirstNinePPD       float32 `json:"first_nine_ppd"`
 	CheckoutPercentage float32 `json:"checkout_percentage"`
 	DartsThrown        int     `json:"darts_thrown"`
 	Score60sPlus       int     `json:"60s_plus"`
