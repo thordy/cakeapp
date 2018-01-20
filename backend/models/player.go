@@ -57,7 +57,6 @@ func AddPlayer(player Player) error {
 // GetPlayerStatistics will get statistics about the given player id
 func GetPlayerStatistics(id int) (*StatisticsX01, error) {
 	s := new(StatisticsX01)
-	p := new(Player)
 	err := db.QueryRow(`
 		SELECT
 			p.id,
@@ -67,20 +66,25 @@ func GetPlayerStatistics(id int) (*StatisticsX01, error) {
 			SUM(s.100s_plus),
 			SUM(s.140s_plus),
 			SUM(s.180s),
-			SUM(accuracy_20),
-			SUM(accuracy_19),
-			SUM(overall_accuracy),
-			p.name,
-			p.games_played,
-			p.games_won
+			SUM(accuracy_20) / COUNT(accuracy_20),
+			SUM(accuracy_19) / COUNT(accuracy_19),
+			SUM(overall_accuracy) / COUNT(overall_accuracy),
+			SUM(checkout_percentage) / COUNT(checkout_percentage)
 		FROM statistics_x01 s
 		JOIN player p ON p.id = s.player_id
 		JOIN `+"`match`"+` m ON m.id = s.match_id
 		WHERE s.player_id = ?
 		GROUP BY s.player_id`, id).Scan(&s.PlayerID, &s.PPD, &s.FirstNinePPD, &s.Score60sPlus, &s.Score100sPlus, &s.Score140sPlus,
-		&s.Score180s, &s.Accuracy20, &s.Accuracy19, &s.AccuracyOverall, &p.Name, &p.GamesPlayed, &p.GamesWon)
+		&s.Score180s, &s.Accuracy20, &s.Accuracy19, &s.AccuracyOverall, &s.CheckoutPercentage)
 	if err != nil {
 		return nil, err
 	}
+
+	visits, err := GetPlayerVisits(id)
+	if err != nil {
+		return nil, err
+	}
+	s.Visits = visits
+
 	return s, nil
 }
