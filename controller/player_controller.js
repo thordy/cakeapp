@@ -17,82 +17,33 @@ router.use(bodyParser.json()); // Accept incoming JSON entities
 /* Add a new player */
 router.post('/', function (req, res) {
 	axios.post('http://localhost:8001/player', { name: req.body.name, nickname: req.body.nickname })
-	  .then(function (response) {
-		res.redirect('/player/list');
-	  })
-	  .catch(function (error) {
-		helper.renderError(res, error);
-	  });
+		.then(function (response) {
+			res.redirect('/player/list');
+		})
+		.catch(function (error) {
+			helper.renderError(res, error);
+		});
 });
 
 /* Get specific statistics for a given player */
 router.get('/:id/stats', function(req, res) {
 	var playerId = req.params.id;
-	new StatisticsX01().getAggregatedStatistics([playerId], function(err, rows) {
-		if (err) {
-			return helper.renderError(res, err);
-		}
-		var playerStatistics = rows[0];
-		new StatisticsX01().getCheckouts([playerId], function(err, rows) {
-			if (err) {
-				return helper.renderError(res, err);
-			}
-			playerStatistics.checkoutAttempts = 0;
-			if (rows.attempts.length !== 0) {
-				playerStatistics.checkoutAttempts = rows.attempts[0].checkout_attempts;
-			}
-			Score.forge()
-				.where('player_id', '=', playerId)
-				.fetchAll()
-				.then(function (scoreRows) {
-					var scores = scoreRows.serialize();
-					var scoresMap = {
-						'25': { '1': 0, '2': 0 },
-						'20': { '1': 0, '2': 0, '3': 0 },
-						'19': { '1': 0, '2': 0, '3': 0 },
-						'18': { '1': 0, '2': 0, '3': 0 },
-						'17': { '1': 0, '2': 0, '3': 0 },
-						'16': { '1': 0, '2': 0, '3': 0 },
-						'15': { '1': 0, '2': 0, '3': 0 },
-						'14': { '1': 0, '2': 0, '3': 0 },
-						'13': { '1': 0, '2': 0, '3': 0 },
-						'12': { '1': 0, '2': 0, '3': 0 },
-						'11': { '1': 0, '2': 0, '3': 0 },
-						'10': { '1': 0, '2': 0, '3': 0 },
-						'9': { '1': 0, '2': 0, '3': 0 },
-						'8': { '1': 0, '2': 0, '3': 0 },
-						'7': { '1': 0, '2': 0, '3': 0 },
-						'6': { '1': 0, '2': 0, '3': 0 },
-						'5': { '1': 0, '2': 0, '3': 0 },
-						'4': { '1': 0, '2': 0, '3': 0 },
-						'3': { '1': 0, '2': 0, '3': 0 },
-						'2': { '1': 0, '2': 0, '3': 0 },
-						'1': { '1': 0, '2': 0, '3': 0 },
-						'0': { '1': 0 },
-						'totalThrows': 0
-					}
-					for (var i = 0; i < scores.length; i++) {
-						var score = scores[i];
-						if (score.first_dart !== null) {
-							scoresMap[score.first_dart][score.first_dart_multiplier] += 1;
-							scoresMap.totalThrows++;
-						}
-						if (score.second_dart !== null) {
-							scoresMap[score.second_dart][score.second_dart_multiplier] += 1;
-							scoresMap.totalThrows++;
-						}
-						if (score.third_dart !== null) {
-							scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
-							scoresMap.totalThrows++;
-						}
-					}
-					res.render('player_statistics', { player: playerStatistics, scoresMap: scoresMap });
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/player/' + playerId + '/statistics')
+				.then(response => {
+					var statistics = response.data;
+					res.render('player_statistics', { player: playersMap[statistics.player_id], statistics: statistics });
 				})
-				.catch(function(err) {
-					helper.renderError(res, err);
+				.catch(error => {
+			    	debug('Error when getting player statistics: ' + error);
+					helper.renderError(res, error);
 				});
+		})
+		.catch(function (error) {
+			helper.renderError(res, error);
 		});
-	});
 });
 
 /* Get a list of all players */

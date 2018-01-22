@@ -1,6 +1,6 @@
 package models
 
-import "kcapp-api/jsonutil"
+import "github.com/guregu/null"
 
 // Visit struct used for storing matches
 type Visit struct {
@@ -17,9 +17,9 @@ type Visit struct {
 
 // Dart struct used for storing darts
 type Dart struct {
-	Value      jsonutil.JSONInt `json:"value"`
-	Multiplier int              `json:"multiplier"`
-	IsCheckout bool             `json:"is_checkout"`
+	Value      null.Int `json:"value"`
+	Multiplier int      `json:"multiplier"`
+	IsCheckout bool     `json:"is_checkout"`
 }
 
 // GetPlayerVisits will return all visits for a given player

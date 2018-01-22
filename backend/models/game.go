@@ -1,32 +1,33 @@
 package models
 
 import (
-	"kcapp-api/jsonutil"
 	"strconv"
 	"strings"
+
+	"github.com/guregu/null"
 )
 
 // Game struct used for storing games
 type Game struct {
-	ID             int              `json:"id"`
-	IsFinished     bool             `json:"is_finished"`
-	CurrentMatchID jsonutil.JSONInt `json:"current_match_id"`
-	GameType       *GameType        `json:"game_type"`
-	WinnerID       jsonutil.JSONInt `json:"winner_id"`
-	CreatedAt      string           `json:"created_at"`
-	UpdatedAt      string           `json:"updated_at"`
-	OweTypeID      jsonutil.JSONInt `json:"owe_type_id"`
-	OweType        *OweType         `json:"owe_type,omitempty"`
-	Players        []int            `json:"player_ids"`
+	ID             int       `json:"id"`
+	IsFinished     bool      `json:"is_finished"`
+	CurrentMatchID null.Int  `json:"current_match_id"`
+	GameType       *GameType `json:"game_type"`
+	WinnerID       null.Int  `json:"winner_id"`
+	CreatedAt      string    `json:"created_at"`
+	UpdatedAt      string    `json:"updated_at"`
+	OweTypeID      null.Int  `json:"owe_type_id"`
+	OweType        *OweType  `json:"owe_type,omitempty"`
+	Players        []int     `json:"player_ids"`
 }
 
 // GameType struct used for storing game types
 type GameType struct {
-	ID              int              `json:"id"`
-	Name            string           `json:"name"`
-	ShortName       string           `json:"short_name"`
-	WinsRequired    int              `json:"wins_required"`
-	MatchesRequired jsonutil.JSONInt `json:"matches_required"`
+	ID              int      `json:"id"`
+	Name            string   `json:"name"`
+	ShortName       string   `json:"short_name"`
+	WinsRequired    int      `json:"wins_required"`
+	MatchesRequired null.Int `json:"matches_required"`
 }
 
 // GetGames returns all games

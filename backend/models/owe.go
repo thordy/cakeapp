@@ -1,9 +1,9 @@
 package models
 
-import "kcapp-api/jsonutil"
+import "github.com/guregu/null"
 
 // OweType struct used for storing owe types
 type OweType struct {
-	ID   jsonutil.JSONInt    `json:"id"`
-	Item jsonutil.JSONString `json:"item"`
+	ID   null.Int    `json:"id"`
+	Item null.String `json:"item"`
 }

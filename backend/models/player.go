@@ -1,20 +1,18 @@
 package models
 
-import (
-	"kcapp-api/jsonutil"
-)
+import "github.com/guregu/null"
 
 // Player struct used for storing players
 type Player struct {
-	ID           int                 `json:"id"`
-	Name         string              `json:"name"`
-	Nickname     jsonutil.JSONString `json:"nickname,omitempty"`
-	GamesPlayed  int                 `json:"games_played"`
-	GamesWon     int                 `json:"games_won"`
-	PPD          float32             `json:"ppd,omitempty"`
-	FirstNinePPD float32             `json:"first_nine_ppd,omitempty"`
-	CreatedAt    string              `json:"created_at"`
-	UpdatedAt    string              `json:"updated_at,omitempty"`
+	ID           int         `json:"id"`
+	Name         string      `json:"name"`
+	Nickname     null.String `json:"nickname,omitempty"`
+	GamesPlayed  int         `json:"games_played"`
+	GamesWon     int         `json:"games_won"`
+	PPD          float32     `json:"ppd,omitempty"`
+	FirstNinePPD float32     `json:"first_nine_ppd,omitempty"`
+	CreatedAt    string      `json:"created_at"`
+	UpdatedAt    string      `json:"updated_at,omitempty"`
 }
 
 // GetPlayers returns a map of all players
@@ -84,7 +82,59 @@ func GetPlayerStatistics(id int) (*StatisticsX01, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.Visits = visits
+	s.Hits = getHitsMap(s, visits)
 
 	return s, nil
+}
+
+func getHitsMap(stats *StatisticsX01, visits []*Visit) map[int64]*Hits {
+	hitsMap := make(map[int64]*Hits)
+	// Populate the map with hits for each value (miss - 20) and bull
+	for i := 0; i <= 20; i++ {
+		hitsMap[int64(i)] = new(Hits)
+	}
+	hitsMap[25] = new(Hits)
+
+	for _, visit := range visits {
+		if visit.FirstDart != nil {
+			hit := hitsMap[visit.FirstDart.Value.Int64]
+			if visit.FirstDart.Multiplier == 1 {
+				hit.Singles++
+			}
+			if visit.FirstDart.Multiplier == 2 {
+				hit.Doubles++
+			}
+			if visit.FirstDart.Multiplier == 3 {
+				hit.Triples++
+			}
+			stats.DartsThrown++
+		}
+		if visit.SecondDart != nil {
+			hit := hitsMap[visit.SecondDart.Value.Int64]
+			if visit.SecondDart.Multiplier == 1 {
+				hit.Singles++
+			}
+			if visit.SecondDart.Multiplier == 2 {
+				hit.Doubles++
+			}
+			if visit.SecondDart.Multiplier == 3 {
+				hit.Triples++
+			}
+			stats.DartsThrown++
+		}
+		if visit.ThirdDart != nil {
+			hit := hitsMap[visit.ThirdDart.Value.Int64]
+			if visit.ThirdDart.Multiplier == 1 {
+				hit.Singles++
+			}
+			if visit.ThirdDart.Multiplier == 2 {
+				hit.Doubles++
+			}
+			if visit.ThirdDart.Multiplier == 3 {
+				hit.Triples++
+			}
+			stats.DartsThrown++
+		}
+	}
+	return hitsMap
 }

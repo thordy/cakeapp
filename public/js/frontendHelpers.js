@@ -142,6 +142,8 @@ function drawHeatmap(canvas, scoresMap, display, size, spread, intensity) {
 		for (var multiplier in dartScores) {
 			var count = dartScores[multiplier];
 			if (count !== 0 && display === 0 || multiplier === display) {
+				console.log(dart)
+				console.log(multiplier)
 				var coordinatesX = heatmapDataPoints[dart][multiplier]['x'];
 				var coordinatesY = heatmapDataPoints[dart][multiplier]['y'];
 				for (var i = 0; i < count; i++) {
