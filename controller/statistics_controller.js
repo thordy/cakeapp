@@ -11,52 +11,55 @@ var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 var _ = require('underscore');
 
+const axios = require('axios');
+
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
 router.get('/:from/:to', function(req, res) {
 	var from = req.params.from;
-	var to = req.params.to;
-    getStatistics(from, to, (err, stats) => {
-        if (err) {
-            return helper.renderError(res, err);
-        }
-        var stats = {
-            last_week: null,
-            this_week: _.sortBy(stats, (player) => -(player.games_won / player.games_played) ),
-            from: from,
-            to: to
-        }
-        res.render('weekly_overview', { weekly: stats });
-    });
+    var to = req.params.to;
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/statistics/x01/' + from + "/" + to)
+				.then(response => {
+                    var statistics = response.data;
+                    statistics.from = from
+                    statistics.to = to
+					res.render('weekly_overview', { players: playersMap, statistics: statistics });
+				})
+				.catch(error => {
+			    	debug('Error when getting player statistics: ' + error);
+					helper.renderError(res, error);
+				});
+		})
+		.catch(function (error) {
+			helper.renderError(res, error);
+		});
 });
 
 router.get('/weekly', function (req, res) {
-    var from = moment().isoWeekday(-6).format('YYYY-MM-DD');
-    var to = moment().isoWeekday(0).format('YYYY-MM-DD');
-    getStatistics(from, to, (err, lastWeek) => {
-        if (err) {
-            return helper.renderError(res, err);
-        }
-        var from = moment().isoWeekday(1).format('YYYY-MM-DD');
-        var to = moment().isoWeekday(7).format('YYYY-MM-DD');
-        getStatistics(from, to, (err, thisWeek) => {
-            if (err) {
-                return helper.renderError(res, err);
-            }
-            var stats = {
-                last_week: _.sortBy(lastWeek, (player) => -(player.games_won / player.games_played) ),
-                this_week: _.sortBy(thisWeek, (player) => -(player.games_won / player.games_played) ),
-                from: from,
-                to: to
-            }
-            res.render('weekly_overview', { weekly: stats });
-        });
-    });
-});
-
-router.get('/league', function (req, res) {
-    res.render('leaguerepublic' );
+    var from = moment().isoWeekday(1).format('YYYY-MM-DD');
+    var to = moment().isoWeekday(7).format('YYYY-MM-DD');
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/statistics/x01/' + from + "/" + to)
+				.then(response => {
+                    var statistics = response.data;
+                    statistics.from = from
+                    statistics.to = to
+					res.render('weekly_overview', { players: playersMap, statistics: statistics });
+				})
+				.catch(error => {
+			    	debug('Error when getting player statistics: ' + error);
+					helper.renderError(res, error);
+				});
+		})
+		.catch(function (error) {
+			helper.renderError(res, error);
+		});
 });
 
 function getStatistics(from, to, callback) {

@@ -51,12 +51,12 @@ func GetPlayerVisits(id int) ([]*Visit, error) {
 			&second.Value, &second.Multiplier, &second.IsCheckout,
 			&third.Value, &third.Multiplier, &third.IsCheckout,
 			&v.IsBust, &v.CreatedAt, &v.UpdatedAt)
-		v.FirstDart = first
-		v.SecondDart = second
-		v.ThirdDart = third
 		if err != nil {
 			return nil, err
 		}
+		v.FirstDart = first
+		v.SecondDart = second
+		v.ThirdDart = third
 		visits = append(visits, v)
 	}
 	if err = rows.Err(); err != nil {

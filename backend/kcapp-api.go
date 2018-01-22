@@ -25,5 +25,7 @@ func main() {
 	router.HandleFunc("/player/{id}/statistics", controllers.GetPlayerStatistics).Methods("GET")
 	router.HandleFunc("/player", controllers.AddPlayer).Methods("POST")
 
+	router.HandleFunc("/statistics/x01/{from}/{to}", controllers.GetX01Statistics).Methods("GET")
+
 	log.Println(http.ListenAndServe(":8001", router))
 }
