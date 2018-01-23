@@ -53,8 +53,8 @@ block content
 		tbody
 			each owe in owes
 				tr
-					td= owe.player_ower.name
-					td= owe.player_owee.name
+					td= players[owe.player_ower_id].name
+					td= players[owe.player_owee_id].name
 					td= owe.owe_type.item
 					td= owe.amount
 

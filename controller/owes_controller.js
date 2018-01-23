@@ -8,30 +8,28 @@ var Player = require.main.require('./models/Player');
 var Owe = require.main.require('./models/Owe');
 var helper = require('../helpers.js');
 
+const axios = require('axios');
+
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
 /* Method to get overview over who owes who what */
 router.get('/owes', function (req, res, next) {
-	Owe.collection()
-		.query(function(qb) {
-			qb.orderBy('player_ower_id','ASC');
-			qb.where('amount', '<>', 0);
-		})
-		.fetch({ withRelated: ['player_ower', 'player_owee', 'owe_type'] })
-		.then(function (rows) {
-			var owes = rows.serialize();
-			Player
-				.fetchAll()
-				.then(function(players) {
-					res.render('owes', { owes: owes, players: players.serialize() });
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/owe')
+				.then(response => {
+					var owes = response.data;
+					res.render('owes', { owes: owes, players: playersMap });
 				})
-				.catch(function(err) {
-					helper.renderError(res, err);
+				.catch(error => {
+			    	debug('Error when getting owes: ' + error);
+					helper.renderError(res, error);
 				});
 		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+		.catch(function (error) {
+			helper.renderError(res, error);
 		});
 });
 

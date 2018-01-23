@@ -16,7 +16,7 @@ func GetGames(w http.ResponseWriter, r *http.Request) {
 	games, err := models.GetGames()
 	if err != nil {
 		log.Println("Unable to get games", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(games)
@@ -35,7 +35,7 @@ func GetGame(w http.ResponseWriter, r *http.Request) {
 	game, err := models.GetGame(id)
 	if err != nil {
 		log.Println("Unable to get game: ", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(game)

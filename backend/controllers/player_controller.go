@@ -16,7 +16,7 @@ func GetPlayers(w http.ResponseWriter, r *http.Request) {
 	players, err := models.GetPlayers()
 	if err != nil {
 		log.Println("Unable to get players", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(players)
@@ -50,7 +50,7 @@ func GetPlayerStatistics(w http.ResponseWriter, r *http.Request) {
 	stats, err := models.GetPlayerStatistics(id)
 	if err != nil {
 		log.Println("Unable to get player statistics")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(stats)

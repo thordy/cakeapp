@@ -10,6 +10,7 @@ var Score = require.main.require('./models/Score');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 
+const _ = require('underscore');
 const axios = require('axios');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
@@ -51,6 +52,7 @@ router.get('/list', function (req, res) {
 	axios.get('http://localhost:8001/player')
 		.then(response => {
 			var players = response.data;
+			players = _.sortBy(players, (player) => player.name )
 			res.render('players', { players: players });
 		  })
 		  .catch(error => {

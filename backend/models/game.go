@@ -51,15 +51,15 @@ func GetGames() ([]*Game, error) {
 	games := make([]*Game, 0)
 	for rows.Next() {
 		g := new(Game)
-		gt := new(GameType)
+		g.GameType = new(GameType)
 		ot := new(OweType)
 		var players string
 		err := rows.Scan(&g.ID, &g.IsFinished, &g.CurrentMatchID, &g.WinnerID, &g.CreatedAt, &g.UpdatedAt, &g.OweTypeID,
-			&gt.ID, &gt.Name, &gt.ShortName, &gt.WinsRequired, &gt.MatchesRequired, &ot.ID, &ot.Item, &players)
+			&g.GameType.ID, &g.GameType.Name, &g.GameType.ShortName, &g.GameType.WinsRequired, &g.GameType.MatchesRequired,
+			&ot.ID, &ot.Item, &players)
 		if err != nil {
 			return nil, err
 		}
-		g.GameType = gt
 		if g.OweTypeID.Valid {
 			g.OweType = ot
 		}

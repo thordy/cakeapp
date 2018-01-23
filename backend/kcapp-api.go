@@ -27,5 +27,7 @@ func main() {
 
 	router.HandleFunc("/statistics/x01/{from}/{to}", controllers.GetX01Statistics).Methods("GET")
 
+	router.HandleFunc("/owe", controllers.GetOwes).Methods("GET")
+
 	log.Println(http.ListenAndServe(":8001", router))
 }
