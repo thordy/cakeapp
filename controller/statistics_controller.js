@@ -18,7 +18,7 @@ router.get('/:from/:to', function(req, res) {
 			axios.get('http://localhost:8001/statistics/x01/' + from + "/" + to)
 				.then(response => {
                     var statistics = response.data;
-                    statistics = _.sortBy(statistics, (stats) => -(stats.games_won / stats.games_played) )
+                    statistics = _.sortBy(statistics, (stats) => (stats.games_won / stats.games_played) )
                     statistics.from = from
                     statistics.to = to
 					res.render('weekly_overview', { players: playersMap, statistics: statistics });

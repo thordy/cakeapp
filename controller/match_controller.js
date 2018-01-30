@@ -14,6 +14,8 @@ var StatisticsX01 = require.main.require('./models/StatisticsX01');
 var helper = require('../helpers.js');
 var _ = require('underscore');
 
+const axios = require('axios');
+
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
@@ -231,108 +233,30 @@ router.get('/:id/spectate', function (req, res) {
 
 /* Method for getting results for a given leg */
 router.get('/:legid/leg', function (req, res) {
-	new Match( { id: req.params.legid } )
-		.fetch( { withRelated: ['players', 'statistics', 'scores', 'game', 'game.game_type' ] } )
-		.then(function (row) {
-			if (row === null) {
-				return helper.renderError(res, 'No match with id ' + req.params.legid + ' exists');
-			}
-			var players = row.related('players').serialize();
-			var game = row.related('game').serialize();
-			var statistics = row.related('statistics').serialize();
-			var scores = row.related('scores').serialize();
-			var match = row.serialize();
-			var playersMap = players.reduce(function ( map, player ) {
-				map[player.id] = player;
-				player.remaining_score = match.starting_score;
-				return map;
-			}, {});
-
-			for (var i = 0; i < statistics.length; i++) {
-				var stats = statistics[i];
-				playersMap[stats.player_id].statistics = stats;
-			}
-			// Calculate round number
-			match.round_number = Math.floor(scores.length / players.length) + 1;
-
-			// Create a map of scores used to visualize throws in a heatmap
-			var scoresMap = {
-					'25': { '1': 0, '2': 0 },
-					'20': { '1': 0, '2': 0, '3': 0 },
-					'19': { '1': 0, '2': 0, '3': 0 },
-					'18': { '1': 0, '2': 0, '3': 0 },
-					'17': { '1': 0, '2': 0, '3': 0 },
-					'16': { '1': 0, '2': 0, '3': 0 },
-					'15': { '1': 0, '2': 0, '3': 0 },
-					'14': { '1': 0, '2': 0, '3': 0 },
-					'13': { '1': 0, '2': 0, '3': 0 },
-					'12': { '1': 0, '2': 0, '3': 0 },
-					'11': { '1': 0, '2': 0, '3': 0 },
-					'10': { '1': 0, '2': 0, '3': 0 },
-					'9': { '1': 0, '2': 0, '3': 0 },
-					'8': { '1': 0, '2': 0, '3': 0 },
-					'7': { '1': 0, '2': 0, '3': 0 },
-					'6': { '1': 0, '2': 0, '3': 0 },
-					'5': { '1': 0, '2': 0, '3': 0 },
-					'4': { '1': 0, '2': 0, '3': 0 },
-					'3': { '1': 0, '2': 0, '3': 0 },
-					'2': { '1': 0, '2': 0, '3': 0 },
-					'1': { '1': 0, '2': 0, '3': 0 },
-					'0': { '1': 0 },
-					totalThrows: 0
-			}
-			for (var i = 0; i < scores.length; i++) {
-				var score = scores[i];
-				if (score.first_dart !== null) {
-					scoresMap[score.first_dart][score.first_dart_multiplier] += 1;
-					scoresMap.totalThrows++;
-				}
-				if (score.second_dart !== null) {
-					scoresMap[score.second_dart][score.second_dart_multiplier] += 1;
-					scoresMap.totalThrows++;
-				}
-				if (score.third_dart !== null) {
-					scoresMap[score.third_dart][score.third_dart_multiplier] += 1;
-					scoresMap.totalThrows++;
-				}
-				var player = playersMap[score.player_id];
-				var visitScore = (score.first_dart * score.first_dart_multiplier) + (score.second_dart * score.second_dart_multiplier) + (score.third_dart * score.third_dart_multiplier);
-				if (score.is_bust !== 1) {
-					player.remaining_score = player.remaining_score - visitScore;
-					score.remaining_score = player.remaining_score;
-				}
-				else {
-					score.remaining_score = 'BUST';
-				}
-			}
-			knex = Bookshelf.knex;
-			knex('match')
-			.select(knex.raw(`
-				match.winner_id,
-				count(match.winner_id) as wins,
-				game_type.matches_required`
-			))
-			.where(knex.raw('match.game_id = ?', [game.id]))
-			.join(knex.raw('game on game.id = match.game_id'))
-			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-			.groupBy('match.winner_id')
-			.orderByRaw('count(match.winner_id) DESC')
-			.then(function(rows) {
-				res.render('leg_result', {
-					match: match,
-					scores: scores,
-					players: playersMap,
-					scoresMap: scoresMap,
-					game_data: rows,
-					game: game,
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/match/' + req.params.legid)
+				.then(response => {
+					var match = response.data;
+					axios.get('http://localhost:8001/match/' + req.params.legid + '/statistics')
+					.then(response => {
+						var stats = response.data;
+						res.render('leg_result', { match: match, players: playersMap, stats: stats });
+					})
+					.catch(error => {
+				    	debug('Error when getting statistics: ' + error);
+						helper.renderError(res, error);
+					});					
+				})
+				.catch(error => {
+			    	debug('Error when getting match: ' + error);
+					helper.renderError(res, error);
 				});
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
 		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+		.catch(function (error) {
+	    	debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
 		});
 });
 

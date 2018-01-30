@@ -16,9 +16,11 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/game", controllers.GetGames).Methods("GET")
 	router.HandleFunc("/game/{id}", controllers.GetGame).Methods("GET")
-	router.HandleFunc("/game/", controllers.NewGame).Methods("POST")
-	router.HandleFunc("/game/{id}", controllers.DeleteGame).Methods("DELETE")
-	router.HandleFunc("/game/{id}/spectate", controllers.SpectateGame).Methods("GET")
+	router.HandleFunc("/game/{id}/statistics", controllers.GetX01StatisticsForGame).Methods("GET")
+	router.HandleFunc("/game/{id}/matches", controllers.GetMatchesForGame).Methods("GET")
+
+	router.HandleFunc("/match/{id}", controllers.GetMatch).Methods("GET")
+	router.HandleFunc("/match/{id}/statistics", controllers.GetX01StatisticsForMatch).Methods("GET")
 
 	router.HandleFunc("/player", controllers.GetPlayers).Methods("GET")
 	router.HandleFunc("/player/{id}", controllers.GetPlayer).Methods("GET")

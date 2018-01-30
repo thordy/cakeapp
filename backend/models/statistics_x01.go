@@ -1,8 +1,6 @@
 package models
 
 import (
-	"sort"
-
 	"github.com/guregu/null"
 )
 
@@ -100,9 +98,86 @@ func GetX01Statistics(from string, to string) ([]*StatisticsX01, error) {
 	for _, s := range statsMap {
 		stats = append(stats, s)
 	}
-	sort.Slice(stats, func(i, j int) bool {
-		return (stats[i].GamesWon / stats[i].GamesPlayed) > (stats[j].GamesWon / stats[j].GamesPlayed)
-	})
 
+	return stats, nil
+}
+
+// GetX01StatisticsForMatch will return statistics for all players in the given match
+func GetX01StatisticsForMatch(id int) ([]*StatisticsX01, error) {
+	rows, err := db.Query(`
+		SELECT
+			m.id,
+			p.id,
+			COUNT(DISTINCT g.id),
+			SUM(s.ppd) / COUNT(p.id),
+			SUM(s.first_nine_ppd) / COUNT(p.id),
+			SUM(60s_plus),
+			SUM(100s_plus),
+			SUM(140s_plus),
+			SUM(180s) AS '180s',
+			SUM(accuracy_20) / COUNT(accuracy_20),
+			SUM(accuracy_19) / COUNT(accuracy_19),
+			SUM(overall_accuracy) / COUNT(overall_accuracy),
+			SUM(checkout_percentage) / COUNT(checkout_percentage)
+		FROM statistics_x01 s
+			JOIN player p ON p.id = s.player_id
+			JOIN `+"`match`"+` m ON m.id = s.match_id
+			JOIN game g ON g.id = m.game_id
+		WHERE m.id = ? GROUP BY p.id`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := make([]*StatisticsX01, 0)
+	for rows.Next() {
+		s := new(StatisticsX01)
+		err := rows.Scan(&s.MatchID, &s.PlayerID, &s.GamesPlayed, &s.PPD, &s.FirstNinePPD, &s.Score60sPlus, &s.Score100sPlus,
+			&s.Score140sPlus, &s.Score180s, &s.Accuracy20, &s.Accuracy19, &s.AccuracyOverall, &s.CheckoutPercentage)
+		if err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
+}
+
+// GetX01StatisticsForGame will return statistics for all players in the given game
+func GetX01StatisticsForGame(id int) ([]*StatisticsX01, error) {
+	rows, err := db.Query(`
+		SELECT
+			m.id,
+			p.id,
+			COUNT(DISTINCT g.id),
+			SUM(s.ppd) / COUNT(p.id),
+			SUM(s.first_nine_ppd) / COUNT(p.id),
+			SUM(60s_plus),
+			SUM(100s_plus),
+			SUM(140s_plus),
+			SUM(180s) AS '180s',
+			SUM(accuracy_20) / COUNT(accuracy_20),
+			SUM(accuracy_19) / COUNT(accuracy_19),
+			SUM(overall_accuracy) / COUNT(overall_accuracy),
+			SUM(checkout_percentage) / COUNT(checkout_percentage)
+		FROM statistics_x01 s
+			JOIN player p ON p.id = s.player_id
+			JOIN `+"`match`"+` m ON m.id = s.match_id
+			JOIN game g ON g.id = m.game_id
+		WHERE g.id = ? GROUP BY p.id`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := make([]*StatisticsX01, 0)
+	for rows.Next() {
+		s := new(StatisticsX01)
+		err := rows.Scan(&s.MatchID, &s.PlayerID, &s.GamesPlayed, &s.PPD, &s.FirstNinePPD, &s.Score60sPlus, &s.Score100sPlus,
+			&s.Score140sPlus, &s.Score180s, &s.Accuracy20, &s.Accuracy19, &s.AccuracyOverall, &s.CheckoutPercentage)
+		if err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
 	return stats, nil
 }

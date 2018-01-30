@@ -46,7 +46,7 @@ block content
 						td(class='col-sm-2')= moment(game.created_at).format('YYYY-MM-DD HH:mm:ss')
 						td(class='col-sm-2')= game.game_type.name
 						td(class='col-sm-1')
-							each id in game.player_ids
+							each id in game.players
 								div(style='margin-bottom: 5px;')
 									span(class='label label-primary' style='line-height: inherit;')= players[id].name
 						if game.is_finished

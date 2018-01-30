@@ -41,15 +41,22 @@ func GetGame(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(game)
 }
 
-func SpectateGame(w http.ResponseWriter, r *http.Request) {
+// GetX01StatisticsForGame will return X01 statistics for all players in the given match
+func GetX01StatisticsForGame(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-	// TODO
-}
-func NewGame(w http.ResponseWriter, r *http.Request) {
-	SetHeaders(w)
-	// TODO
-}
-func DeleteGame(w http.ResponseWriter, r *http.Request) {
-	SetHeaders(w)
-	// TODO
+	params := mux.Vars(r)
+	gameID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println("Invalid id parameter")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	stats, err := models.GetX01StatisticsForGame(gameID)
+	if err != nil {
+		log.Println("Unable to get statistics", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(stats)
 }

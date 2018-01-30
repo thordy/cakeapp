@@ -82,59 +82,7 @@ func GetPlayerStatistics(id int) (*StatisticsX01, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.Hits = getHitsMap(s, visits)
+	s.Hits, s.DartsThrown = GetHitsMap(visits)
 
 	return s, nil
-}
-
-func getHitsMap(stats *StatisticsX01, visits []*Visit) map[int64]*Hits {
-	hitsMap := make(map[int64]*Hits)
-	// Populate the map with hits for each value (miss - 20) and bull
-	for i := 0; i <= 20; i++ {
-		hitsMap[int64(i)] = new(Hits)
-	}
-	hitsMap[25] = new(Hits)
-
-	for _, visit := range visits {
-		if visit.FirstDart != nil {
-			hit := hitsMap[visit.FirstDart.Value.Int64]
-			if visit.FirstDart.Multiplier == 1 {
-				hit.Singles++
-			}
-			if visit.FirstDart.Multiplier == 2 {
-				hit.Doubles++
-			}
-			if visit.FirstDart.Multiplier == 3 {
-				hit.Triples++
-			}
-			stats.DartsThrown++
-		}
-		if visit.SecondDart != nil {
-			hit := hitsMap[visit.SecondDart.Value.Int64]
-			if visit.SecondDart.Multiplier == 1 {
-				hit.Singles++
-			}
-			if visit.SecondDart.Multiplier == 2 {
-				hit.Doubles++
-			}
-			if visit.SecondDart.Multiplier == 3 {
-				hit.Triples++
-			}
-			stats.DartsThrown++
-		}
-		if visit.ThirdDart != nil {
-			hit := hitsMap[visit.ThirdDart.Value.Int64]
-			if visit.ThirdDart.Multiplier == 1 {
-				hit.Singles++
-			}
-			if visit.ThirdDart.Multiplier == 2 {
-				hit.Doubles++
-			}
-			if visit.ThirdDart.Multiplier == 3 {
-				hit.Triples++
-			}
-			stats.DartsThrown++
-		}
-	}
-	return hitsMap
 }
