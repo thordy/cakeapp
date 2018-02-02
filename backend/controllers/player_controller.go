@@ -56,6 +56,32 @@ func GetPlayerStatistics(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(stats)
 }
 
+// GetPlayersStatistics will return statistics for the given player
+func GetPlayersStatistics(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
+
+	params := r.URL.Query()["id"]
+	if params == nil {
+		log.Println("No players specified to compare")
+		http.Error(w, "No players specified to compare", http.StatusBadRequest)
+		return
+	}
+	ids, err := sliceAtoi(params)
+	if err != nil {
+		log.Println("Unable to convert params to int")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	stats, err := models.GetPlayersStatistics(ids)
+	if err != nil {
+		log.Println("Unable to get players statistics")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(stats)
+}
+
 // AddPlayer will create a new player
 func AddPlayer(w http.ResponseWriter, r *http.Request) {
 	var player models.Player
@@ -66,4 +92,16 @@ func AddPlayer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func sliceAtoi(sa []string) ([]int, error) {
+	si := make([]int, 0, len(sa))
+	for _, a := range sa {
+		i, err := strconv.Atoi(a)
+		if err != nil {
+			return si, err
+		}
+		si = append(si, i)
+	}
+	return si, nil
 }

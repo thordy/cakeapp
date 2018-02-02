@@ -18,3 +18,17 @@ func GetOwes(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(owes)
 }
+
+// RegisterPayback will register a payback between the given players
+func RegisterPayback(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
+	var owe models.Owe
+	err := json.NewDecoder(r.Body).Decode(&owe)
+
+	err = models.RegisterPayback(owe)
+	if err != nil {
+		log.Println("Unable to register payback", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

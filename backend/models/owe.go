@@ -1,6 +1,10 @@
 package models
 
-import "github.com/guregu/null"
+import (
+	"errors"
+
+	"github.com/guregu/null"
+)
 
 // Owe struct used for storing owes
 type Owe struct {
@@ -47,4 +51,23 @@ func GetOwes() ([]*Owe, error) {
 	}
 
 	return owes, nil
+}
+
+// RegisterPayback will register a payback between the given players
+func RegisterPayback(owe Owe) error {
+	stmt, err := db.Prepare(`UPDATE owes SET amount = amount - ? WHERE player_ower_id = ? AND player_owee_id = ? and owe_type_id = ?`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(owe.Amount, owe.PlayerOwerID, owe.PlayerOweeID, owe.OweType.ID)
+	if err != nil {
+		return err
+	}
+
+	updatedRows, err := res.RowsAffected()
+	if updatedRows == 0 {
+		return errors.New("No rows were updated when registering payback")
+	}
+	return nil
 }

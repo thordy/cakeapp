@@ -23,6 +23,12 @@ type StatisticsX01 struct {
 	Hits               map[int64]*Hits `json:"hits,omitempty"`
 	GamesPlayed        int             `json:"games_played,omitempty"`
 	GamesWon           int             `json:"games_won,omitempty"`
+	BestPPD            float32         `json:"best_ppd,omitempty"`
+	BestFirstNinePPD   float32         `json:"best_first_nine_ppd,omitempty"`
+	Best301            int             `json:"best_301,omitempty"`
+	Best501            int             `json:"best_501,omitempty"`
+	HighestCheckout    int             `json:"highest_checkout,omitempty"`
+	StartingScore      null.Int        `json:"-"`
 }
 
 // Hits sturct used to store summary of hits for players/matches

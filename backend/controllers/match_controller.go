@@ -50,6 +50,26 @@ func GetMatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(match)
 }
 
+// GetMatchPlayers will return a match specified by the given id
+func GetMatchPlayers(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w)
+	params := mux.Vars(r)
+	matchID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println("Invalid id parameter")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	match, err := models.GetMatchPlayers(matchID)
+	if err != nil {
+		log.Println("Unable to get players for match", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(match)
+}
+
 // GetX01StatisticsForMatch will return X01 statistics for all players in the given match
 func GetX01StatisticsForMatch(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)

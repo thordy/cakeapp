@@ -1,9 +1,6 @@
 package models
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/guregu/null"
 )
 
@@ -65,7 +62,7 @@ func GetGames() ([]*Game, error) {
 			g.OweType = ot
 		}
 
-		g.Players = stringToArray(players)
+		g.Players = stringToIntArray(players)
 		games = append(games, g)
 	}
 	if err = rows.Err(); err != nil {
@@ -99,7 +96,7 @@ func GetGame(id int) (*Game, error) {
 	if g.OweTypeID.Valid {
 		g.OweType = ot
 	}
-	g.Players = stringToArray(players)
+	g.Players = stringToIntArray(players)
 	matches, err := GetMatches(id)
 	if err != nil {
 		return nil, err
@@ -118,13 +115,4 @@ func NewGame() (*Game, error) {
 func DeleteGame(id int) (*Game, error) {
 	// TODO
 	return nil, nil
-}
-
-func stringToArray(s string) []int {
-	strs := strings.Split(s, ",")
-	ints := make([]int, len(strs))
-	for i, v := range strs {
-		ints[i], _ = strconv.Atoi(v)
-	}
-	return ints
 }

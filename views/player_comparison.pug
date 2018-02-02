@@ -8,66 +8,82 @@ block content
 			thead
 				tr
 					th
-					each player in players
-						th= player.name
+					each stats in statistics
+						th= players[stats.player_id].name
 			tbody
 				tr
 					td(class='col-sm-2') Won/Played
-					each player in players
-						td= player.gamesWon + '/' + player.gamesPlayed
+					each stats in statistics
+						td= players[stats.player_id].games_won + '/' + players[stats.player_id].games_played
 				tr
 					td(class='col-sm-2') Win %
-					each player in players
-						td= ((player.gamesWon * 100) / player.gamesPlayed).toFixed(2) + '%'
+					each stats in statistics
+						td= ((players[stats.player_id].games_won * 100) / players[stats.player_id].games_played).toFixed(2) + '%'
 				tr
 					td(class='col-sm-2') PPD
-					each player in players
-						td= player.ppd.toFixed(2)
+					each stats in statistics
+						td= stats.ppd.toFixed(2)
 				tr
 					td(class='col-sm-2') First 9 PPD
-					each player in players
-						td= player.first9ppd.toFixed(2)
+					each stats in statistics
+						td= stats.first_nine_ppd.toFixed(2)
 				tr
 					td(class='col-sm-2') Best PPD
-					each player in players
-						td= player.bestPpd.toFixed(2)
+					each stats in statistics
+						td= stats.best_ppd.toFixed(2)
 				tr
 					td(class='col-sm-2') Best First 9 PPD
-					each player in players
-						td= player.bestFirst9Ppd.toFixed(2)
+					each stats in statistics
+						td= stats.best_first_nine_ppd.toFixed(2)
 				tr
 					td(class='col-sm-2') Checkout%
-					each player in players
-						td= player.checkoutAttempts === 0 ? '0.00%' : (player.gamesWon * 100 / (player.checkoutAttempts === undefined ? 0 : player.checkoutAttempts)).toFixed(2) + '%'
+					each stats in statistics
+						td= stats.checkout_percentage.toFixed(2) + '%'
 				tr
 					td(class='col-sm-2') Highest Checkout
-					each player in players
-						td= player.highestCheckout === undefined ? '-' : player.highestCheckout
+					each stats in statistics
+						td= stats.highest_checkout === undefined ? '-' : stats.highest_checkout
 				tr
 					td(class='col-sm-2') Best 301
-					each player in players
-						td= player.best301 === undefined ? '-' : player.best301 + ' darts'
+					each stats in statistics
+						td= stats.best_301 == undefined ? '-' : stats.best_301
 				tr
 					td(class='col-sm-2') Best 501
-					each player in players
-						td= player.best501 === undefined ? '-' : player.best501 + ' darts'
+					each stats in statistics
+						td= stats.best_501 == undefined ? '-' : stats.best_501
 				tr
 					td(class='separator_row')
-						each player in players
-							td(class='separator_row') High Scores
+						each stats in statistics
+							th(class='separator_row') High Scores
 				tr
 					td(class='col-sm-2') 60+
-					each player in players
-						td= player['60+']
+					each stats in statistics
+						td= stats.scores_60s_plus
 				tr
 					td(class='col-sm-2') 100+
-					each player in players
-						td= player['100+']
+					each stats in statistics
+						td= stats.scores_100s_plus
 				tr
 					td(class='col-sm-2') 140+
-					each player in players
-						td= player['140+']
+					each stats in statistics
+						td= stats.scores_140s_plus
 				tr
 					td(class='col-sm-2') 180
-					each player in players
-						td= player['180s']
+					each stats in statistics
+						td= stats.scores_180s
+				tr
+					td(class='separator_row')
+						each stats in statistics
+							th(class='separator_row') Accuracy
+				tr
+					td(class='col-sm-2') Overall
+					each stats in statistics
+						td= stats.accuracy_overall.toFixed(2)
+				tr
+					td(class='col-sm-2') 20s
+					each stats in statistics
+						td= stats.accuracy_20.toFixed(2)
+				tr
+					td(class='col-sm-2') 19s
+					each stats in statistics
+						td= stats.accuracy_19.toFixed(2)

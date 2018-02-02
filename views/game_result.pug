@@ -43,9 +43,9 @@ block content
                                 span(class='glyphicon glyphicon-remove' aria-hidden='true')
                     td: button(type='button' class='btn btn-primary btn-block btn-view-results') View
             tr
-                th
+                td
                 each playerId in game.players
-                    th= players[playerId].name
+                    td= players[playerId].name
             tr
                 td(class='col-sm-2') PPD
                 each stat in stats

@@ -1,18 +1,18 @@
-var debug = require('debug')('dartapp:match-controller');
+const debug = require('debug')('kcapp:match-controller');
 
-var express = require('express');
-var bodyParser = require('body-parser');
+const express = require('express');
+const bodyParser = require('body-parser');
 var Bookshelf = require.main.require('./bookshelf.js');
-var router = express.Router();
-var moment = require('moment');
+const router = express.Router();
+const moment = require('moment');
 var Player = require.main.require('./models/Player');
 var Match = require.main.require('./models/Match');
 var Game = require.main.require('./models/Game');
 var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
-var helper = require('../helpers.js');
-var _ = require('underscore');
+const helper = require('../helpers.js');
+const _ = require('underscore');
 
 const axios = require('axios');
 
@@ -45,9 +45,9 @@ router.get('/list', function (req, res) {
  * or resuming a game with unfinished match
  */
 router.get('/:gameid', function (req, res) {
-    res.redirect('/game/' + req.params.gameid + '/results');
+    // res.redirect('/game/' + req.params.gameid + '/results');
     // Get game by id and check the current match id
-    /*new Game({ id: req.params.gameid })
+    new Game({ id: req.params.gameid })
         .fetch()
         .then(function (game) {
             var gameData = game.serialize();
@@ -141,21 +141,20 @@ router.get('/:gameid', function (req, res) {
         })
         .catch(function (err) {
             helper.renderError(res, err);
-        });*/
+        });
 });
 
-/* Spectate a given game */
+/* Spectate the given game */
 router.get('/:gameid/spectate', function (req, res) {
-    new Game({ id: req.params.gameid })
-        .fetch()
-        .then(function (game) {
-            var gameData = game.serialize();
-            var currentMatchId = gameData.current_match_id;
-            res.redirect('/match/' + currentMatchId + '/spectate');
-        })
-        .catch(function (err) {
-            helper.renderError(res, err);
-        });
+    axios.get('http://localhost:8001/game/' + req.params.gameid)
+    .then(response => {
+        var game = response.data;
+        res.redirect('/match/' + game.current_match_id + '/spectate');
+      })
+      .catch(error => {
+        debug('Error when getting game: ' + error);
+        helper.renderError(res, error);
+      });
 });
 
 /* Render the results view */

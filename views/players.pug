@@ -31,7 +31,7 @@ block scripts
 			});
 
 			function addPlayer() {
-				var player = { name: $('#playerNameInput').val() };
+				var player = { name: $('#playerNameInput').val(), nickname: $('#playerNicknameInput').val() };
 				executePost('/player', JSON.stringify(player), 'application/json',
 					function(response) {
 						location.href = '/player/list';
@@ -66,7 +66,7 @@ block content
 				each player in players
 					tr
 						th(hidden='true' scope='row')= player.id
-						td= player.name
+						td= player.name + (player.nickname !== null ? (" aka. '" + player.nickname + "'") : '')
 						td= player.games_played
 						td= player.games_won
 						td= player.games_played == 0 ? 0 : (player.games_won * 100 / player.games_played).toFixed(2)

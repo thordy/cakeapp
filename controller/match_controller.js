@@ -1,245 +1,143 @@
-var debug = require('debug')('dartapp:match-controller');
+var debug = require('debug')('kcapp:match-controller');
 
-var express = require('express');
-var bodyParser = require('body-parser');
+const express = require('express');
+const bodyParser = require('body-parser');
 var Bookshelf = require.main.require('./bookshelf.js');
-var router = express.Router();
-var moment = require('moment');
+const router = express.Router();
+const moment = require('moment');
 var Player = require.main.require('./models/Player');
 var Match = require.main.require('./models/Match');
 var Game = require.main.require('./models/Game');
 var Score = require.main.require('./models/Score');
 var Player2match = require.main.require('./models/Player2match');
 var StatisticsX01 = require.main.require('./models/StatisticsX01');
-var helper = require('../helpers.js');
-var _ = require('underscore');
+const helper = require('../helpers.js');
+const _ = require('underscore');
 
 const axios = require('axios');
 
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
-/* Get a list of all matches */
-router.get('/list', function (req, res) {
-	// Get collection of matches
-	var Matches = Bookshelf.Collection.extend({ model: Match });
-
-	// Fetch related players
-	new Matches()
-		.fetch({
-			withRelated: [
-				'players',
-				'game',
-				'game.game_type',
-			]
+/* Render the match view */
+router.get('/:id', function (req, res) {
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/match/' + req.params.id)
+				.then(response => {
+					var match = response.data;
+					axios.get('http://localhost:8001/game/' + match.game_id)
+						.then(response => {
+							var game = response.data;
+							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
+								.then(response => {
+									var matchPlayers = response.data;
+									res.render('match/button_entry', { match: match, players: playersMap, game: game, match_players: matchPlayers });
+								})
+								.catch(error => {
+							    	debug('Error when getting match players: ' + error);
+									helper.renderError(res, error);
+								});
+						})
+						.catch(error => {
+					    	debug('Error when getting game: ' + error);
+							helper.renderError(res, error);
+						});
+				})
+				.catch(error => {
+			    	debug('Error when getting match: ' + error);
+					helper.renderError(res, error);
+				});
 		})
-		.then(function (rows) {
-			var matches = rows.serialize();
-			var players = {};
-			for (var i = 0; i < matches.length; i++) {
-				var match = matches[i];
-				for (var j = 0; j < match.players.length; j++){
-					var player = match.players[j];
-					players[player.id] = { name: player.name }
-				}
-			}
-			res.render('matches', {
-				matches: matches,
-				players: players,
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+		.catch(function (error) {
+	    	debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
 		});
 });
 
-/* Render the match view */
-router.get('/:id', function (req, res) {
-	new Match().getMatch(req.params.id, function(err, match) {
-		if (err) {
-			return helper.renderError(res, err);
-		}
-
-		var players = match.related('players').serialize();
-		var scores = match.related('scores').serialize();
-		var match = match.serialize();
-
-		if (match.is_finished) {
-			// Do not allow to see match board if it is finished, redirect to that match results
-			res.redirect('/match/' + match.id + '/results');
-		}
-		else {
-			// Calculate remaining score and some statistics for each player
-			var playersMap = new Player().getPlayersMap(scores, match, players);
-
-			knex = Bookshelf.knex;
-			knex('match')
-			.select(knex.raw(`
-				match.winner_id,
-				count(match.winner_id) as wins,
-				game_type.matches_required`
-			))
-			.where(knex.raw('match.game_id = ?', [match.game_id]))
-			.join(knex.raw('game on game.id = match.game_id'))
-			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-			.groupBy('match.winner_id')
-			.orderByRaw('count(match.winner_id) DESC')
-			.then(function(rows) {
-				for (var i = 0; i < rows.length; i++) {
-					if (rows[i].winner_id) {
-						var playerId = rows[i].winner_id;
-						var wins = rows[i].wins;
-						var player = playersMap['p' + playerId];
-						player.wins = wins;
-						for (var j = 0; j < wins; j++) {
-							player.wins_string += '*';
-						}
-					}
-				}
-
-				// Set all scores and round number
-				scores = _.filter(scores, (score) => !scores.is_bust);
-				match.scores = scores;
-				match.round_number = Math.floor(scores.length / players.length) + 1;
-				res.render('match/button_entry', {
-					match: match,
-					players: playersMap,
-					game: match.game,
-					game_type: match.game.game_type,
-				});
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
-		}
-	});
-});
-
 router.get('/:id/keyboard', function (req, res) {
-	new Match().getMatch(req.params.id, function(err, match) {
-		if (err) {
-			return helper.renderError(res, err);
-		}
-
-		var players = match.related('players').serialize();
-		var scores = match.related('scores').serialize();
-		var match = match.serialize();
-
-		if (match.is_finished) {
-			// Do not allow to see match board if it is finished, redirect to that match results
-			res.redirect('/match/' + match.id + '/results');
-		}
-		else {
-			// Calculate remaining score and some statistics for each player
-			var playersMap = new Player().getPlayersMap(scores, match, players);
-
-			knex = Bookshelf.knex;
-			knex('match')
-			.select(knex.raw(`
-				match.winner_id,
-				count(match.winner_id) as wins,
-				game_type.matches_required`
-			))
-			.where(knex.raw('match.game_id = ?', [match.game_id]))
-			.join(knex.raw('game on game.id = match.game_id'))
-			.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-			.groupBy('match.winner_id')
-			.orderByRaw('count(match.winner_id) DESC')
-			.then(function(rows) {
-				for (var i = 0; i < rows.length; i++) {
-					if (rows[i].winner_id) {
-						var playerId = rows[i].winner_id;
-						var wins = rows[i].wins;
-						var player = playersMap['p' + playerId];
-						player.wins = wins;
-						for (var j = 0; j < wins; j++) {
-							player.wins_string += '*';
-						}
-					}
-				}
-
-				// Set all scores and round number
-				scores = _.filter(scores, (score) => !scores.is_bust);
-				match.scores = scores;
-				match.round_number = Math.floor(scores.length / players.length) + 1;
-				res.render('match/keyboard_entry', {
-					match: match,
-					players: playersMap,
-					game: match.game,
-					game_type: match.game.game_type,
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/match/' + req.params.id)
+				.then(response => {
+					var match = response.data;
+					axios.get('http://localhost:8001/game/' + match.game_id)
+						.then(response => {
+							var game = response.data;
+							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
+								.then(response => {
+									var matchPlayers = response.data;
+									res.render('match/keyboard_entry', { match: match, players: playersMap, game: game, match_players: matchPlayers });
+								})
+								.catch(error => {
+							    	debug('Error when getting match players: ' + error);
+									helper.renderError(res, error);
+								});
+						})
+						.catch(error => {
+					    	debug('Error when getting game: ' + error);
+							helper.renderError(res, error);
+						});
+				})
+				.catch(error => {
+			    	debug('Error when getting match: ' + error);
+					helper.renderError(res, error);
 				});
-			})
-			.catch(function (err) {
-				helper.renderError(res, err);
-			});
-		}
-	});
+		})
+		.catch(function (error) {
+	    	debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
+		});
 });
 
 /* Render the match spectate view */
 router.get('/:id/spectate', function (req, res) {
-	new Match().getMatch(req.params.id, function(err, match) {
-		if (err) {
-			return helper.renderError(res, err);
-		}
-
-		var players = match.related('players').serialize();
-		var scores = match.related('scores').serialize();
-		var match = match.serialize();
-		// Calculate remaining score and some statistics for each player
-		var playersMap = new Player().getPlayersMap(scores, match, players);
-
-		knex = Bookshelf.knex;
-		knex('match')
-		.select(knex.raw(`
-			match.winner_id,
-			count(match.winner_id) as wins,
-			game_type.matches_required`
-		))
-		.where(knex.raw('match.game_id = ?', [match.game_id]))
-		.join(knex.raw('game on game.id = match.game_id'))
-		.join(knex.raw('game_type on game_type.id = game.game_type_id'))
-		.groupBy('match.winner_id')
-		.orderByRaw('count(match.winner_id) DESC')
-		.then(function(rows) {
-			for (var i = 0; i < rows.length; i++) {
-				if (rows[i].winner_id) {
-					var playerId = rows[i].winner_id;
-					var wins = rows[i].wins;
-					var player = playersMap['p' + playerId];
-					player.wins = wins;
-					for (var j = 0; j < wins; j++) {
-						player.wins_string += '*';
-					}
-				}
-			}
-
-			// Set all scores and round number
-			match.scores = scores;
-			match.round_number = Math.floor(scores.length / players.length) + 1;
-			res.render('match/spectate', {
-				match: match,
-				players: playersMap,
-				game: match.game,
-				visits: scores,
-				game_type: match.game.game_type,
-			});
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
-		});
-	});
-});
-
-/* Method for getting results for a given leg */
-router.get('/:legid/leg', function (req, res) {
 	axios.get('http://localhost:8001/player')
 		.then(function (response) {
 			var playersMap = response.data;
-			axios.get('http://localhost:8001/match/' + req.params.legid)
+			axios.get('http://localhost:8001/match/' + req.params.id)
 				.then(response => {
 					var match = response.data;
-					axios.get('http://localhost:8001/match/' + req.params.legid + '/statistics')
+					axios.get('http://localhost:8001/game/' + match.game_id)
+						.then(response => {
+							var game = response.data;
+							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
+								.then(response => {
+									var matchPlayers = response.data;
+									res.render('match/spectate', { match: match, players: playersMap, game: game, match_players: matchPlayers });
+								})
+								.catch(error => {
+							    	debug('Error when getting match players: ' + error);
+									helper.renderError(res, error);
+								});
+						})
+						.catch(error => {
+					    	debug('Error when getting game: ' + error);
+							helper.renderError(res, error);
+						});
+				})
+				.catch(error => {
+			    	debug('Error when getting match: ' + error);
+					helper.renderError(res, error);
+				});
+		})
+		.catch(function (error) {
+	    	debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
+		});
+});
+
+/* Method for getting results for a given leg */
+router.get('/:id/leg', function (req, res) {
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/match/' + req.params.id)
+				.then(response => {
+					var match = response.data;
+					axios.get('http://localhost:8001/match/' + req.params.id + '/statistics')
 					.then(response => {
 						var stats = response.data;
 						res.render('leg_result', { match: match, players: playersMap, stats: stats });
@@ -247,7 +145,7 @@ router.get('/:legid/leg', function (req, res) {
 					.catch(error => {
 				    	debug('Error when getting statistics: ' + error);
 						helper.renderError(res, error);
-					});					
+					});
 				})
 				.catch(error => {
 			    	debug('Error when getting match: ' + error);
@@ -269,17 +167,17 @@ router.delete('/:id/leg/:visitid', function (req, res) {
 		.then(function(score) {
 			// TODO Only change current player if num_players > 2
 
-			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = (SELECT player_id FROM score WHERE match_id = :match_id ORDER BY id LIMIT 1)`, 
+			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = (SELECT player_id FROM score WHERE match_id = :match_id ORDER BY id LIMIT 1)`,
 				{ match_id: matchId })
-			.then(function(rows) {	
+			.then(function(rows) {
 				debug("Deleted visit id %s", visitId);
 				res.status(200)
 						.send()
-						.end();				
+						.end();
 			})
 			.catch(function (err) {
 				debug('Unable to set current player: %s', err);
-			});	
+			});
 		});
 });
 
@@ -390,7 +288,7 @@ router.post('/:id/finish', function (req, res) {
 					return helper.renderError(res, err);
 				}
 				debug('Set final score for player %s', currentPlayerId);
-				
+
 				// Update match with winner
 				Match.forge({ id: matchId })
 				.save({
@@ -482,7 +380,7 @@ router.post('/:id/finish', function (req, res) {
 				})
 				.catch(function (err) {
 					helper.renderError(res, err);
-				});				
+				});
 			});
 			Match.forge().finalizeMatch(matchId, currentPlayerId, function(err, rows) {
 				if (err) {
@@ -504,26 +402,26 @@ router.put('/:id/order', function(req, res) {
 			var currentPlayerId = _.findKey(playerOrder, (order) => order === 1);
 			debug('Chaning order of players to %s', JSON.stringify(playerOrder));
 			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = :player_id WHERE id = :match_id`, { player_id: currentPlayerId, match_id: matchId })
-			.then(function(rows) {	
+			.then(function(rows) {
 				for (var i = 0; i < players.length; i++) {
 					var player = players[i];
 					var order = playerOrder[player.player_id];
-					Bookshelf.knex.raw(`UPDATE player2match SET \`order\` = :order WHERE player_id = :player_id AND match_id = :match_id`, 
+					Bookshelf.knex.raw(`UPDATE player2match SET \`order\` = :order WHERE player_id = :player_id AND match_id = :match_id`,
 						{ order: order, player_id: player.player_id, match_id: matchId })
 					.then(function(rows) {
 						debug('Set order!');
 					})
 					.catch(function (err) {
 						debug('Unable to change order: %s', err);
-					});	
+					});
 				}
 				res.status(200)
 					.send()
-					.end();				
+					.end();
 			})
 			.catch(function (err) {
 				debug('Unable to change order: %s', err);
-			});		
+			});
 		});
 });
 

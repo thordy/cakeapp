@@ -18,7 +18,7 @@ type Visit struct {
 // Dart struct used for storing darts
 type Dart struct {
 	Value      null.Int `json:"value"`
-	Multiplier int      `json:"multiplier"`
+	Multiplier int64    `json:"multiplier"`
 	IsCheckout bool     `json:"is_checkout"`
 }
 

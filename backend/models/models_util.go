@@ -1,5 +1,10 @@
 package models
 
+import (
+	"strconv"
+	"strings"
+)
+
 // GetHitsMap will return a map where key is dart and value is count of single,double,triple hits
 func GetHitsMap(visits []*Visit) (map[int64]*Hits, int) {
 	hitsMap := make(map[int64]*Hits)
@@ -52,4 +57,14 @@ func GetHitsMap(visits []*Visit) (map[int64]*Hits, int) {
 		}
 	}
 	return hitsMap, dartsThrown
+}
+
+// StringToIntArray will convert the given comma separated string into a int array
+func stringToIntArray(s string) []int {
+	strs := strings.Split(s, ",")
+	ints := make([]int, len(strs))
+	for i, v := range strs {
+		ints[i], _ = strconv.Atoi(v)
+	}
+	return ints
 }

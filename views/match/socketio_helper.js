@@ -69,9 +69,10 @@ function setupSocketIO(matchId) {
                 label.removeAttr('data-current-player-id');
             }
 
+            // TODO Fix this
             // Update the popover with First 9 and PPD
-            var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2);
-            label.attr('data-content', popoverContent).data('bs.popover').setContent();
+            //var popoverContent = 'First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2);
+            //label.attr('data-content', popoverContent).data('bs.popover').setContent();
         }
         resetUIelements();
     });

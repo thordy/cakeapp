@@ -272,18 +272,19 @@ block content
                             span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
                 tr(class='row')
                     td(class='txt-center')
-                        label(id='round-number' class='match-information')= 'R' + match.round_number
-                        label(class='match-information')= '/' +game_type.short_name
-                    - var length = 12 / Object.keys(players).length
-                    each player in players
+                        label(id='round-number' class='match-information')= 'R' + (Math.floor(match.visits.length / match.players.length) + 1)
+                        label(class='match-information')= '/' +game.game_type.short_name
+                    - var length = 12 / Object.keys(match.players).length
+                    each player in match_players
                         mixin player_label(player)
                             - var modifier_class = player.modifier_class;
                             - var td_class = 'label-inactive-player ' + modifier_class;
-                            if player.current
+                            if player.is_current_player
                                 - td_class = 'label-active-player ' + modifier_class;
-                            td(id='player-score-' + player.id + '' colspan=length + '' class=td_class style='padding-right: 10px;')
-                                label(id=player.current ? 'current-player' : 'player-label-' + player.id class='label label-block label-player-score' data-container='body' data-toggle='popover' data-placement='top' data-content='First 9: ' + player.first9ppd.toFixed(2) + ', PPD: ' + player.ppd.toFixed(2))= player.current_score
-                                label(class='label-player-name')= player.name + player.wins_string
+                            td(id='player-score-' + player.player_id + '' colspan=length + '' class=td_class style='padding-right: 10px;')
+                                label(id=player.is_current_player ? 'current-player' : 'player-label-' + player.player_id class='label label-block label-player-score')= player.current_score
+                                label(class='label-player-name')= players[player.player_id].name
+                                // TODO need to display wins per player + player.wins
                         +player_label(player)
 
                 mixin score_button(value, multiplier, text, custom_class)

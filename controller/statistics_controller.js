@@ -1,4 +1,4 @@
-const debug = require('debug')('dartapp:statistics-controller');
+const debug = require('debug')('kcapp:statistics-controller');
 
 const express = require('express');
 const router = express.Router();

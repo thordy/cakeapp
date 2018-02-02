@@ -15,10 +15,10 @@ block scripts
 					return;
 				}
 				var payload = {
-					ower: ower,
-					owee: owee,
-					amount: $('#paybackAmount').val(),
-					item: $('#paybackItem').val()
+					player_ower_id: ower,
+					player_owee_id: owee,
+					amount: parseInt($('#paybackAmount').val()),
+					owe_type: { id: parseInt($('#paybackItem').val()) }
 				}
 				executePut('/cake/payback', JSON.stringify(payload), 'application/json',
 					function(response) {
@@ -69,13 +69,13 @@ block content
 				div(class='modal-body')
 					form(id='paybackForm')
 						div(class='form-group')
-							p Ower
+							p Buyer
 							select(id='ower_combo')
 								option(value='' selected disabled hidden) Choose ...
 								each player in players
 									option(value=player.id)= player.name
 						div(class='form-group')
-							p Owee
+							p Reciever
 							select(id='owee_combo')
 								option(value='' selected disabled hidden) Choose ...
 								each player in players
@@ -86,8 +86,8 @@ block content
 						div(class='form-group')
 							label(for='paybackItem') Item:
 							select(class='form-control' name='paybackItem' id='paybackItem')
-								option Cake
-								option Beer
+								option(value=1) Cake
+								option(value=2) Beer
 					div(class='modal-footer')
 						button(type='button' class='btn btn-default' data-dismiss='modal') Close
 						button(type='submit' name='submit' class='btn btn-primary' data-dismiss='modal' id='registerPaybackButton') Register
