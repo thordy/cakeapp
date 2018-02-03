@@ -169,9 +169,9 @@ block content
     div(class='clearfix')
         h2(class='pull-left') Leg Result (#{match.id})
 
-        //if game.is_finished
-        button(type='button' class='btn btn-primary pull-right mt-30' id='back-to-game' data-game=match.game_id) Back to Game
-        //else
+        if game.is_finished
+            button(type='button' class='btn btn-primary pull-right mt-30' id='back-to-game' data-game=match.game_id) Back to Game
+        else
             button(type='button' class='btn btn-primary pull-right mt-30' id='continue-game' data-game=game.id) Continue Game
 
     p.

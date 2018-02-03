@@ -29,12 +29,52 @@ type Player2Match struct {
 	Wins            int   `json:"wins,omitempty"`
 }
 
+// NewMatch will create a new match for the given game
+func NewMatch(gameID int, startingScore int, players []int) (*Match, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Shift players to get correct order
+	id, players := players[0], players[1:]
+	players = append(players, id)
+
+	res, err := tx.Exec("INSERT INTO `match` (starting_score, current_player_id, game_id, created_at) VALUES (?, ?, ?, NOW()) ",
+		startingScore, players[0], gameID)
+	if err != nil {
+		return nil, err
+	}
+	matchID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	tx.Exec("UPDATE game SET current_match_id = ? WHERE id = ?", matchID, gameID)
+
+	for idx, playerID := range players {
+		order := idx + 1
+		res, err = tx.Exec("INSERT INTO player2match (player_id, match_id, `order`, game_id) VALUES (?, ?, ?, ?)", playerID, matchID, order, gameID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tx.Commit()
+
+	return GetMatch(int(matchID))
+}
+
 // GetMatches returns all matches for the given game ID
 func GetMatches(gameID int) ([]*Match, error) {
 	rows, err := db.Query(`
 		SELECT
-			id, end_time, starting_score, is_finished, current_player_id, winner_id, created_at, updated_at, game_id
-		FROM `+"`match`"+` WHERE game_id = ?`, gameID)
+			m.id, end_time, starting_score, is_finished,
+			current_player_id, winner_id, m.created_at, m.updated_at, 
+			m.game_id, GROUP_CONCAT(p2m.player_id ORDER BY p2m.order ASC) 
+		FROM `+"`match`"+` m
+		LEFT JOIN player2match p2m ON p2m.match_id = m.id
+		WHERE m.game_id = ?
+		GROUP BY m.id
+		ORDER BY id ASC`, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +83,13 @@ func GetMatches(gameID int) ([]*Match, error) {
 	matches := make([]*Match, 0)
 	for rows.Next() {
 		m := new(Match)
-		err := rows.Scan(&m.ID, &m.Endtime, &m.StartingScore, &m.IsFinished, &m.CurrentPlayerID, &m.WinnerPlayerID, &m.CreatedAt, &m.UpdatedAt, &m.GameID)
+		var players string
+		err := rows.Scan(&m.ID, &m.Endtime, &m.StartingScore, &m.IsFinished, &m.CurrentPlayerID, &m.WinnerPlayerID, &m.CreatedAt, &m.UpdatedAt,
+			&m.GameID, &players)
 		if err != nil {
 			return nil, err
 		}
+		m.Players = stringToIntArray(players)
 		matches = append(matches, m)
 	}
 	if err = rows.Err(); err != nil {
@@ -62,7 +105,8 @@ func GetMatch(id int) (*Match, error) {
 	var players string
 	err := db.QueryRow(`
 		SELECT
-			m.id, end_time, starting_score, is_finished, current_player_id, winner_id, m.created_at, m.updated_at, m.game_id, GROUP_CONCAT(DISTINCT p2m.player_id) AS 'players'
+			m.id, end_time, starting_score, is_finished, current_player_id, winner_id, m.created_at, m.updated_at, m.game_id, 
+			GROUP_CONCAT(DISTINCT p2m.player_id ORDER BY p2m.order ASC) AS 'players'
 		FROM `+"`match` m"+`
 		LEFT JOIN player2match p2m ON p2m.match_id = m.id
 		WHERE m.id = ?`, id).Scan(&m.ID, &m.Endtime, &m.StartingScore, &m.IsFinished, &m.CurrentPlayerID, &m.WinnerPlayerID, &m.CreatedAt, &m.UpdatedAt, &m.GameID, &players)

@@ -14,8 +14,7 @@ router.post('/', function (req, res) {
 	axios.post('http://localhost:8001/player', req.body)
 		.then(function (response) {
 			res.redirect('/player/list');
-		})
-		.catch(function (error) {
+		}).catch(function (error) {
 			helper.renderError(res, error);
 		});
 });
@@ -30,13 +29,11 @@ router.get('/:id/stats', function(req, res) {
 				.then(response => {
 					var statistics = response.data;
 					res.render('player_statistics', { player: playersMap[statistics.player_id], statistics: statistics });
-				})
-				.catch(error => {
+				}).catch(error => {
 			    	debug('Error when getting player statistics: ' + error);
 					helper.renderError(res, error);
 				});
-		})
-		.catch(function (error) {
+		}).catch(function (error) {
 			helper.renderError(res, error);
 		});
 });
@@ -48,11 +45,10 @@ router.get('/list', function (req, res) {
 			var players = response.data;
 			players = _.sortBy(players, (player) => player.name )
 			res.render('players', { players: players });
-		  })
-		  .catch(error => {
+		}).catch(error => {
 		    debug('Error when getting players: ' + error);
 			helper.renderError(res, error);
-		  });
+		});
 });
 
 /* Get comparable statistics for the given players */
@@ -72,10 +68,9 @@ router.get('/compare', function (req, res) {
 			    	debug('Error when comparing players: ' + error);
 					helper.renderError(res, error);
 				});
-		})
-		.catch(function (error) {
+		}).catch(function (error) {
 			helper.renderError(res, error);
-		});	
+		});
 });
 
 module.exports = router

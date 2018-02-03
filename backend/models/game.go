@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+
 	"github.com/guregu/null"
 )
 
@@ -26,6 +28,41 @@ type GameType struct {
 	ShortName       string   `json:"short_name"`
 	WinsRequired    int      `json:"wins_required"`
 	MatchesRequired null.Int `json:"matches_required"`
+}
+
+// NewGame will insert a new game in the database
+func NewGame(game Game) (*Game, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	res, err := tx.Exec("INSERT INTO game (game_type_id, owe_type_id, created_at) VALUES (?, ?, NOW())", game.GameType.ID, game.OweTypeID)
+	if err != nil {
+		return nil, err
+	}
+	gameID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	res, err = tx.Exec("INSERT INTO `match` (starting_score, current_player_id, game_id, created_at) VALUES (?, ?, ?, NOW()) ", game.Matches[0].StartingScore, game.Players[0], gameID)
+	if err != nil {
+		return nil, err
+	}
+	matchID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	tx.Exec("UPDATE game SET current_match_id = ? WHERE id = ?", matchID, gameID)
+	for idx, playerID := range game.Players {
+		order := idx + 1
+		res, err = tx.Exec("INSERT INTO player2match (player_id, match_id, `order`, game_id) VALUES (?, ?, ?, ?)", playerID, matchID, order, gameID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tx.Commit()
+
+	return GetGame(int(gameID))
 }
 
 // GetGames returns all games
@@ -105,10 +142,25 @@ func GetGame(id int) (*Game, error) {
 	return g, nil
 }
 
-// NewGame will insert a new game in the database
-func NewGame() (*Game, error) {
-	// TODO
-	return nil, nil
+// ContinueGame will either return the current match or create a new match
+func ContinueGame(id int) (*Match, error) {
+	game, err := GetGame(id)
+	if err != nil {
+		return nil, err
+	}
+	if game.IsFinished {
+		return nil, errors.New("Cannot continue finished game")
+	}
+
+	matches, err := GetMatches(id)
+	if err != nil {
+		return nil, err
+	}
+	match := matches[len(matches)-1]
+	if match.IsFinished {
+		return NewMatch(id, match.StartingScore, match.Players)
+	}
+	return match, nil
 }
 
 // DeleteGame will delete the game with the given ID from the database

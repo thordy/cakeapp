@@ -138,14 +138,22 @@ router.get('/:id/leg', function (req, res) {
 				.then(response => {
 					var match = response.data;
 					axios.get('http://localhost:8001/match/' + req.params.id + '/statistics')
-					.then(response => {
-						var stats = response.data;
-						res.render('leg_result', { match: match, players: playersMap, stats: stats });
-					})
-					.catch(error => {
-				    	debug('Error when getting statistics: ' + error);
-						helper.renderError(res, error);
-					});
+						.then(response => {
+							var stats = response.data;
+							axios.get('http://localhost:8001/game/' + match.game_id)
+							.then(response => {
+								var game = response.data;
+								res.render('leg_result', { match: match, players: playersMap, stats: stats, game: game });
+							})
+							.catch(error => {
+						    	debug('Error when getting game: ' + error);
+								helper.renderError(res, error);
+							});							
+						})
+						.catch(error => {
+					    	debug('Error when getting statistics: ' + error);
+							helper.renderError(res, error);
+						});
 				})
 				.catch(error => {
 			    	debug('Error when getting match: ' + error);

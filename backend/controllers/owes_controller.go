@@ -24,6 +24,11 @@ func RegisterPayback(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
 	var owe models.Owe
 	err := json.NewDecoder(r.Body).Decode(&owe)
+	if err != nil {
+		log.Println("Unable to deserialize body", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	err = models.RegisterPayback(owe)
 	if err != nil {
