@@ -66,10 +66,10 @@ block content
                                     td= stats.games_won === undefined ? 0 : (stats.games_won / stats.games_played * 100).toFixed(2)
                                     td= stats.ppd.toFixed(2) + ' / ' + stats.first_nine_ppd.toFixed(2)
                                     td(style='width: 12%')= stats.checkout_percentage.toFixed(2)
-                                    td= stats.scores_60s_plus.toFixed(2) / stats.games_played
-                                    td= stats.scores_100s_plus.toFixed(2) / stats.games_played
-                                    td= stats.scores_140s_plus.toFixed(2) / stats.games_played
-                                    td= stats.scores_180s.toFixed(2) / stats.games_played
+                                    td= (stats.scores_60s_plus / stats.games_played).toFixed(2)
+                                    td= (stats.scores_100s_plus / stats.games_played).toFixed(2)
+                                    td= (stats.scores_140s_plus / stats.games_played).toFixed(2)
+                                    td= (stats.scores_180s / stats.games_played).toFixed(2)
                                     td= stats.accuracy_overall === null ? '-' : stats.accuracy_overall.toFixed(2)
                                     td= stats.accuracy_20 === null ? '-' : stats.accuracy_20.toFixed(2)
                                     td= stats.accuracy_19 === null ? '-' : stats.accuracy_19.toFixed(2)

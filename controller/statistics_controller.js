@@ -19,7 +19,7 @@ router.get('/:from/:to', function(req, res) {
 			axios.get('http://localhost:8001/statistics/x01/' + from + "/" + to)
 				.then(response => {
 					var statistics = response.data;
-					statistics = _.sortBy(statistics, (stats) => (stats.games_won / stats.games_played) )
+					statistics = sort(statistics);
 					statistics.from = from
 					statistics.to = to
 					res.render('weekly_overview', { players: playersMap, statistics: statistics });
@@ -43,7 +43,7 @@ router.get('/weekly', function (req, res) {
 			axios.get('http://localhost:8001/statistics/x01/' + from + "/" + to)
 				.then(response => {
 					var statistics = response.data;
-					statistics = _.sortBy(statistics, (stats) => -(stats.games_won / stats.games_played) )
+					statistics = sort(statistics);
 					statistics.from = from
 					statistics.to = to
 					res.render('weekly_overview', { players: playersMap, statistics: statistics });
@@ -55,5 +55,16 @@ router.get('/weekly', function (req, res) {
 			helper.renderError(res, error);
 		});
 });
+
+function sort(statistics) {
+	statistics = _.sortBy(statistics, (stats) => stats.player_id);
+	statistics = _.sortBy(statistics, (stats) => {
+		if (stats.games_won === undefined) {
+			return 0;
+		}
+		return -(stats.games_won / stats.games_played) 
+	});
+	return statistics;
+}
 
 module.exports = router
