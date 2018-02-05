@@ -45,27 +45,27 @@ function setupSocketIO(matchId) {
         $('#submit-score-button').prop('disabled', false);
 
         var match = data.match;
-        $('#round-number').text('R' + match.round_number);
+        $('#round-number').text('R' + (Math.floor(match.visits.length / match.players.length) + 1));
 
         // Set updated score per player
-        var currentPlayerId = data.current_player;
+        var currentPlayerId = match.current_player_id;
         var players = data.players;
-        for (key in players) {
-            var player = players[key];
-            var td = $('#player-score-' + player.id);
+        for (var i = 0; i < players.length; i++) {
+            var player = players[i];
+            var td = $('#player-score-' + player.player_id);
             var label = td.find('.label-player-score');
             label.text(player.current_score);
 
-            if (player.id === currentPlayerId) {
+            if (player.player_id === currentPlayerId) {
                 td.removeClass(1);
                 td.addClass('label-active-player ' + player.modifier_class)
                 label.attr('id', 'current-player');
-                $('#submit-score-button').data('current-player-id', player.id);
+                $('#submit-score-button').data('current-player-id', player.player_id);
             }
             else {
                 td.removeClass();
                 td.addClass('label-inactive-player ' + player.modifier_class);
-                label.attr('id', 'player-label-' + player.id);
+                label.attr('id', 'player-label-' + player.player_id);
                 label.removeAttr('data-current-player-id');
             }
 

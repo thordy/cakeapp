@@ -30,9 +30,9 @@ block scripts
                 var thirdDartValue = thirdDartField.data().score;
                 var thirdDartMultiplier = thirdDartField.data().multiplier;
 
-                var selector1 = $('#first_dart_selector-' + visitNumber);
-                var selector2 = $('#second_dart_selector-' + visitNumber);
-                var selector3 = $('#third_dart_selector-' + visitNumber);
+                var selector1 = $('#first-dart-visit-' + visitNumber + '-selector');
+                var selector2 = $('#second-dart-visit-' + visitNumber + '-selector');
+                var selector3 = $('#third-dart-visit-' + visitNumber + '-selector');
 
                 var firstDartLabel = $('#first-dart-visit-' + visitNumber + '-label');
                 var secondDartLabel = $('#second-dart-visit-' + visitNumber + '-label');
@@ -60,13 +60,11 @@ block scripts
 
                     // Save the data
                     var data = JSON.stringify({
-                        'scoreId': visitNumber,
-                        'firstDart': firstScoreChanged,
-                        'secondDart': secondScoreChanged,
-                        'thirdDart': thirdScoreChanged,
-                        'firstDartMultiplier': firstMultiplierChanged,
-                        'secondDartMultiplier': secondMultiplierChanged,
-                        'thirdDartMultiplier': thirdMultiplierChanged,
+                        id: visitNumber,
+                        match_id: match.id,
+                        first_dart: { value: parseInt(firstScoreChanged), multiplier: parseInt(firstMultiplierChanged) },
+                        second_dart: { value: parseInt(secondScoreChanged), multiplier: parseInt(secondMultiplierChanged) },
+                        third_dart: { value: parseInt(thirdScoreChanged), multiplier: parseInt(thirdMultiplierChanged) }
                     });
                     $(this).children('span').removeClass('glyphicon-floppy-disk').addClass('glyphicon-edit');
                     $(this).data('issave', 0);
@@ -76,15 +74,13 @@ block scripts
                     var routeRedirect = window.location.pathname;
                     executePost(route, data, 'application/json',
                         function (response) {
-                            if (response.statusCode == 200) {
-                                location.reload();
-                            } else {
-                                alert('Error changing score.');
-                            }
+                            location.href = '/match/' + match.id;
                         },
                         function (error) {
                             // TODO Error handling
                             console.log("Unable to proceed: " + error.responseText);
+                            alert('Error changing score.');
+                            location.reload();
                         }
                     )
                 }
@@ -111,7 +107,7 @@ block scripts
                 showConfirm('Visit will be deleted.', function() {
                     executeDelete(window.location.pathname + '/' + visitNumber,
                         function (response) {
-                            location.reload();
+                            location.href = '/match/' + match.id;
                         },
                         function (error) {
                             alert('Error deleting score. Please reload');
@@ -125,9 +121,9 @@ block scripts
             $('#change-order-button').click(function (e) {
                 var players = $('.form-check-input');
                 var order = {}
-                order.players = {};
+                order = {};
                 for (var i = 0; i < players.length; i++) {
-                    order.players[players[i].value] = i + 1;
+                    order[players[i].value] = i + 1;
                 }
                 executePut(window.origin + '/match/' + match.id + '/order', JSON.stringify(order), 'application/json', function() {
                     location.href = '/match/' + match.id;

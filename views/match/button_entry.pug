@@ -37,12 +37,10 @@ block scripts
                     var currentPlayerId = $(this).data('current-player-id');
                     var data = JSON.stringify({
                         match_id: matchId,
-                        current_player_id: currentPlayerId,
-                        throws: {
-                            first: { score: firstScore, multiplier: firstMultiplier },
-                            second: { score: secondScore, multiplier: secondMultiplier },
-                            third: { score: thirdScore, multiplier: thirdMultiplier }
-                        }
+                        player_id: currentPlayerId,
+                        first_dart: { value: firstScore, multiplier: firstMultiplier },
+                        second_dart: { value: secondScore, multiplier: secondMultiplier },
+                        third_dart: { value: thirdScore, multiplier: thirdMultiplier }
                     });
 
                     var isFinished = $(this).data('finished');
@@ -52,7 +50,7 @@ block scripts
                                 location.href = window.location.origin + '/match/' + matchId + '/leg';
                             },
                             function (error) {
-                                console.log("Unable to proceed: " + error.responseText);
+                                consol1e.log("Unable to proceed: " + error.responseText);
                             }
                         )
                     }

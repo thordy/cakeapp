@@ -19,77 +19,19 @@ const axios = require('axios');
 router.use(bodyParser.json()); // Accept incoming JSON entities
 router.use(bodyParser.urlencoded({extended: true}));
 
-/* Render the match view */
+/* Render the match view (button entry) */
 router.get('/:id', function (req, res) {
-	axios.get('http://localhost:8001/player')
-		.then(function (response) {
-			var playersMap = response.data;
-			axios.get('http://localhost:8001/match/' + req.params.id)
-				.then(response => {
-					var match = response.data;
-					axios.get('http://localhost:8001/game/' + match.game_id)
-						.then(response => {
-							var game = response.data;
-							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
-								.then(response => {
-									var matchPlayers = response.data;
-									res.render('match/button_entry', { match: match, players: playersMap, game: game, match_players: matchPlayers });
-								})
-								.catch(error => {
-							    	debug('Error when getting match players: ' + error);
-									helper.renderError(res, error);
-								});
-						})
-						.catch(error => {
-					    	debug('Error when getting game: ' + error);
-							helper.renderError(res, error);
-						});
-				})
-				.catch(error => {
-			    	debug('Error when getting match: ' + error);
-					helper.renderError(res, error);
-				});
-		})
-		.catch(function (error) {
-	    	debug('Error when getting players: ' + error);
-			helper.renderError(res, error);
-		});
+	renderMatchView('match/button_entry', req, res);
 });
 
+/** Render the match view (keyboard entry) */
 router.get('/:id/keyboard', function (req, res) {
-	axios.get('http://localhost:8001/player')
-		.then(function (response) {
-			var playersMap = response.data;
-			axios.get('http://localhost:8001/match/' + req.params.id)
-				.then(response => {
-					var match = response.data;
-					axios.get('http://localhost:8001/game/' + match.game_id)
-						.then(response => {
-							var game = response.data;
-							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
-								.then(response => {
-									var matchPlayers = response.data;
-									res.render('match/keyboard_entry', { match: match, players: playersMap, game: game, match_players: matchPlayers });
-								})
-								.catch(error => {
-							    	debug('Error when getting match players: ' + error);
-									helper.renderError(res, error);
-								});
-						})
-						.catch(error => {
-					    	debug('Error when getting game: ' + error);
-							helper.renderError(res, error);
-						});
-				})
-				.catch(error => {
-			    	debug('Error when getting match: ' + error);
-					helper.renderError(res, error);
-				});
-		})
-		.catch(function (error) {
-	    	debug('Error when getting players: ' + error);
-			helper.renderError(res, error);
-		});
+	renderMatchView('match/keyboard_entry', req, res);
+});
+
+/** Render the match view (player view) */
+router.get('/:id/player', function (req, res) {
+	renderMatchView('match/player_view', req, res);
 });
 
 /* Render the match spectate view */
@@ -107,23 +49,19 @@ router.get('/:id/spectate', function (req, res) {
 								.then(response => {
 									var matchPlayers = response.data;
 									res.render('match/spectate', { match: match, players: playersMap, game: game, match_players: matchPlayers });
-								})
-								.catch(error => {
+								}).catch(error => {
 							    	debug('Error when getting match players: ' + error);
 									helper.renderError(res, error);
 								});
-						})
-						.catch(error => {
+						}).catch(error => {
 					    	debug('Error when getting game: ' + error);
 							helper.renderError(res, error);
 						});
-				})
-				.catch(error => {
+				}).catch(error => {
 			    	debug('Error when getting match: ' + error);
 					helper.renderError(res, error);
 				});
-		})
-		.catch(function (error) {
+		}).catch(function (error) {
 	    	debug('Error when getting players: ' + error);
 			helper.renderError(res, error);
 		});
@@ -141,26 +79,22 @@ router.get('/:id/leg', function (req, res) {
 						.then(response => {
 							var stats = response.data;
 							axios.get('http://localhost:8001/game/' + match.game_id)
-							.then(response => {
-								var game = response.data;
-								res.render('leg_result', { match: match, players: playersMap, stats: stats, game: game });
-							})
-							.catch(error => {
-						    	debug('Error when getting game: ' + error);
-								helper.renderError(res, error);
-							});							
-						})
-						.catch(error => {
+								.then(response => {
+									var game = response.data;
+									res.render('leg_result', { match: match, players: playersMap, stats: stats, game: game });
+								}).catch(error => {
+							    	debug('Error when getting game: ' + error);
+									helper.renderError(res, error);
+								});
+						}).catch(error => {
 					    	debug('Error when getting statistics: ' + error);
 							helper.renderError(res, error);
 						});
-				})
-				.catch(error => {
+				}).catch(error => {
 			    	debug('Error when getting match: ' + error);
 					helper.renderError(res, error);
 				});
-		})
-		.catch(function (error) {
+		}).catch(function (error) {
 	    	debug('Error when getting players: ' + error);
 			helper.renderError(res, error);
 		});
@@ -168,58 +102,23 @@ router.get('/:id/leg', function (req, res) {
 
 /* Delete the given visit */
 router.delete('/:id/leg/:visitid', function (req, res) {
-	var visitId = req.params.visitid;
-	var matchId = req.params.id;
-	Score.forge({ id: visitId })
-		.destroy()
-		.then(function(score) {
-			// TODO Only change current player if num_players > 2
-
-			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = (SELECT player_id FROM score WHERE match_id = :match_id ORDER BY id LIMIT 1)`,
-				{ match_id: matchId })
-			.then(function(rows) {
-				debug("Deleted visit id %s", visitId);
-				res.status(200)
-						.send()
-						.end();
-			})
-			.catch(function (err) {
-				debug('Unable to set current player: %s', err);
-			});
+	axios.delete('http://localhost:8001/visit/' + req.params.visitid)
+		.then(response => {
+			res.status(200).send().end();
+		}).catch(error => {
+			debug('Unable to set current player: %s', err);
+			helper.renderError(res, error);
 		});
 });
 
 /* Modify the score */
 router.post('/:id/leg', function (req, res) {
-	// TODO Only allow if match is not finished
-
-	// Assign those values to vars since they will be used in other places
-	var scoreId = req.body.scoreId;
-	var firstDartScore = req.body.firstDart;
-	var secondDartScore = req.body.secondDart;
-	var thirdDartScore = req.body.thirdDart;
-	var firstDartMultiplier = req.body.firstDartMultiplier;
-	var secondDartMultiplier = req.body.secondDartMultiplier;
-	var thirdDartMultiplier = req.body.thirdDartMultiplier;
-	debug('Updating score %s to  (%s-%s, %s-%s, %s-%s)', scoreId, firstDartScore,
-		firstDartMultiplier, secondDartScore, secondDartMultiplier, thirdDartScore, thirdDartMultiplier);
-
-	new Score({id: scoreId})
-		.save({
-			first_dart: firstDartScore,
-			second_dart: secondDartScore,
-			third_dart: thirdDartScore,
-			first_dart_multiplier: firstDartMultiplier,
-			second_dart_multiplier: secondDartMultiplier,
-			third_dart_multiplier: thirdDartMultiplier
-		})
-		.then(function (match) {
-			res.status(200)
-				.send({'statusCode': 200})
-				.end();
-		})
-		.catch(function (err) {
-			helper.renderError(res, err);
+	axios.put('http://localhost:8001/visit/' + req.body.id + '/modify', req.body)
+		.then(response => {
+			res.status(200).end();
+		}).catch(error => {
+	    	debug('Error when modifying scores: ' + error);
+			helper.renderError(res, error);
 		});
 });
 
@@ -399,37 +298,14 @@ router.post('/:id/finish', function (req, res) {
 	});
 });
 
+/** Method to change player order */
 router.put('/:id/order', function(req, res) {
-	var matchId = req.params.id;
-	Player2match
-		.where('match_id', '=', matchId)
-		.fetchAll()
-		.then(function(rows) {
-			var players = rows.serialize();
-			var playerOrder = req.body.players;
-			var currentPlayerId = _.findKey(playerOrder, (order) => order === 1);
-			debug('Chaning order of players to %s', JSON.stringify(playerOrder));
-			Bookshelf.knex.raw(`UPDATE \`match\` SET current_player_id = :player_id WHERE id = :match_id`, { player_id: currentPlayerId, match_id: matchId })
-			.then(function(rows) {
-				for (var i = 0; i < players.length; i++) {
-					var player = players[i];
-					var order = playerOrder[player.player_id];
-					Bookshelf.knex.raw(`UPDATE player2match SET \`order\` = :order WHERE player_id = :player_id AND match_id = :match_id`,
-						{ order: order, player_id: player.player_id, match_id: matchId })
-					.then(function(rows) {
-						debug('Set order!');
-					})
-					.catch(function (err) {
-						debug('Unable to change order: %s', err);
-					});
-				}
-				res.status(200)
-					.send()
-					.end();
-			})
-			.catch(function (err) {
-				debug('Unable to change order: %s', err);
-			});
+	axios.put('http://localhost:8001/match/' + req.params.id + '/order', req.body)
+		.then(response => {
+			res.status(200).end();
+		}).catch(error => {
+			debug('Unable to change order: %s', error);
+			helper.renderError(res, error);
 		});
 });
 
@@ -646,6 +522,41 @@ function getAccuracyStats(score, multiplier, stats, remainingScore) {
 			stats.misses += 1;
 			break;
 	}
+}
+
+/** TODO Comments */
+function renderMatchView(pugFile, req, res) {
+	axios.get('http://localhost:8001/player')
+		.then(function (response) {
+			var playersMap = response.data;
+			axios.get('http://localhost:8001/match/' + req.params.id)
+				.then(response => {
+					var match = response.data;
+					axios.get('http://localhost:8001/game/' + match.game_id)
+						.then(response => {
+							var game = response.data;
+							axios.get('http://localhost:8001/match/' + req.params.id + '/players')
+								.then(response => {
+									var matchPlayers = response.data;
+									// Sort players based on order
+									matchPlayers = _.sortBy(matchPlayers, (player) => player.order )
+									res.render(pugFile, { match: match, players: playersMap, game: game, match_players: matchPlayers });
+								}).catch(error => {
+							    	debug('Error when getting match players: ' + error);
+									helper.renderError(res, error);
+								});
+						}).catch(error => {
+					    	debug('Error when getting game: ' + error);
+							helper.renderError(res, error);
+						});
+				}).catch(error => {
+			    	debug('Error when getting match: ' + error);
+					helper.renderError(res, error);
+				});
+		}).catch(function (error) {
+	    	debug('Error when getting players: ' + error);
+			helper.renderError(res, error);
+		});
 }
 
 module.exports = function (socketHandler) {

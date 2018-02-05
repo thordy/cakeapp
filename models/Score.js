@@ -52,14 +52,6 @@ var Score = bookshelf.Model.extend({
             });
         });
     },
-    isCheckoutAttempt: function (currentScore, thrw) {
-        if (currentScore == 50 || (currentScore <= 40 && currentScore % 2 == 0)) {
-            thrw.is_checkout = true;
-        }
-        else {
-            thrw.is_checkout = false;
-        }
-    },
     getPlayerScore: function(playerId, match, callback) {
         Score.forge()
             .where({ player_id: playerId, match_id: match.id })
