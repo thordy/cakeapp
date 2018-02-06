@@ -30,7 +30,11 @@ block scripts
                         dart = $('#third');
                     }
                     else {
+<<<<<<< HEAD
                         console.log("Incorrect number of darts thrown: " + data.darts_thrown);
+=======
+                        console.log("Unknown darts_thrown: " + data.darts_thrown);
+>>>>>>> 547ff02e784ba79504abf923edf8044ff479a30f
                         return;
                     }
                     dart.text(data.dart_text);
@@ -46,7 +50,7 @@ block scripts
                     }
 
                     // Update player score
-                    var playerScore = $('#player_id_' + data.current_player_id);
+                    var playerScore = $('#player-id-' + data.current_player_id);
                     playerScore.text(parseInt(playerScore.text()) - data.score);
                     $('#total').text(data.score + parseInt($('#total').text()));
 
@@ -63,15 +67,15 @@ block scripts
                     var players = data.players;
                     for (key in players) {
                         var player = players[key];
-                        var playerLabel = $('#player_id_' + player.id);
-                        var playerTD = $('#player_score_' + player.id);
+                        var playerLabel = $('#player-id-' + player.id);
+                        var playerTD = $('#player-score-' + player.id);
                         playerLabel.text(player.current_score);
-                        $('#player_id_' + player.id + '_ppd').text(player.ppd.toFixed(2));
+                        $('#player-id-' + player.id + '-ppd').text(player.ppd.toFixed(2));
 
                         if (player.current) {
                             playerTD.addClass('label-active-player')
                             playerTD.removeClass('label-inactive-player');
-                            $('#current_player').text(player.name);
+                            $('#current-player').text(player.name);
                         }
                         else {
                             playerTD.addClass('label-inactive-player');
@@ -79,7 +83,7 @@ block scripts
                         }
                     }
                     // Set round number
-                    $('#round_number').text('R' + data.match.round_number);
+                    $('#round-number').text('R' + data.match.round_number);
 
                     // Reset UI elements
                     $('#first').text('');
@@ -124,7 +128,7 @@ block scripts
                 if (!match.is_finished) {
                     var html =
                         "<tr>" +
-                            "<td id='current_player' style='height: 50px;'>" + playersMap[match.current_player_id].name + "</td>" +
+                            "<td id='current-player' style='height: 50px;'>" + playersMap['p' + match.current_player_id].name + "</td>" +
                             "<td class='dart-score-container no-border'><label id='first' text='0'></label></td>" +
                             "<td class='dart-score-container no-border'><label id='second' text='0'></label></td>" +
                             "<td class='dart-score-container no-border'><label id='third' text='0'></label></td>" +
@@ -163,21 +167,21 @@ block content
     h2 Spectate
 
     mixin get_player_cell(player)
-        td(id='player_score_' + player.player_id colspan='3' class=player.is_current_player ? 'label-active-player' : 'label-inactive-player' style='padding-right: 10px;')
-            label(id='player_id_' + player.player_id class='label label-block label-player-score')= player.current_score
-            label(id='player_name_' + players[player.player_id].name class='label-player-name')= players[player.player_id].name
-            //- TODO Need to display number of wins per player + player.wins
+        td(id='player-score-' + player.id class=player.current ? 'label-active-player' : 'label-inactive-player')
+            label(id='player-id_' + player.id class='label label-block label-player-score')= player.current_score
+            label(id='player-name-' + player.name class='label-player-name')= player.name + player.wins_string
 
     h3 Players
     div(class='table-responsive')
-        table(class='table table-striped table-bordered' id='player-spectate-table')
+        table(class='table table-striped table-bordered' id='player-spectate-table' style='table-layout: fixed')
             tbody
                 tr
-                    td(colspan='1' class='txt-center' style='width: 10%;')
-                        label(id='round_number' class='match_information')= 'R' + (Math.floor(match.visits.length / match.players.length) + 1)
-                        label(class='match_information')= '/' + game.game_type.short_name
-                    each player in match_players
+                    td(class='txt-center' style='width: 6%;')
+                        label(id='round-number' class='match_information')= 'R' + match.round_number
+                        label(class='match_information')= game_type.short_name
+                    each player in players
                         +get_player_cell(player)
+               
     
     mixin get_dart_label(dart)
         if dart.multiplier == 3
@@ -197,7 +201,7 @@ block content
     
     h3 Visits
     div(class='table-responsive')
-        table(class='table table-striped table-bordered' id='visits-table')
+        table(class='table table-striped table-bordered' id='visits-table' style='table-layout: fixed;')
             thead
                 tr
                     th Player

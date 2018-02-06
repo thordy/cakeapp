@@ -77,7 +77,7 @@ block scripts
                             location.href = '/match/' + match.id;
                         },
                         function (error) {
-                            // TODO Error handling
+                            alert("Error when updating score, please reload!");
                             console.log("Unable to proceed: " + error.responseText);
                             alert('Error changing score.');
                             location.reload();
