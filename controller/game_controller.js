@@ -233,8 +233,8 @@ router.get('/:id/results', function (req, res) {
                     player.ppd += stats.ppd;
                     player.first_nine_ppd += stats.first_nine_ppd;
                     player.checkout_percentage += stats.checkout_percentage;
-                    player.accuracy_19s += stats.accuracy_19s == null ? 0 : stats.accuracy_19s;
-                    player.accuracy_20s += stats.accuracy_20s == null ? 0 : stats.accuracy_20s;
+                    player.accuracy_19s += stats.accuracy_19 == null ? 0 : stats.accuracy_19;
+                    player.accuracy_20s += stats.accuracy_20 == null ? 0 : stats.accuracy_20;
                     player.overall_accuracy += stats.overall_accuracy;
                 }
             }

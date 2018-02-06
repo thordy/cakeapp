@@ -292,7 +292,7 @@ block scripts
                     event.preventDefault();
                 });
 
-                $('#score-selector-table .throw_buttons :button').click(function () {
+                $('#score-selector-table .throw-buttons :button').click(function () {
                     $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
 
                     var dart;
@@ -329,7 +329,7 @@ block scripts
                     dart.attr('data-multiplier', multiplier);
 
                     var submitButton = $('#submit-score-button');
-                    var currentPlayer = $('#current_player');
+                    var currentPlayer = $('#current-player');
                     var currentPlayerScore = parseInt(currentPlayer.text());
                     var scoreNumeric = parseInt($(this).attr('title'));
                     var dartScore = scoreNumeric ? scoreNumeric : 0;
