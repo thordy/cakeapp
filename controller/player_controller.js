@@ -59,7 +59,7 @@ router.get('/compare', function (req, res) {
 	axios.get('http://localhost:8001/player')
 		.then(function (response) {
 			var players = response.data;
-			axios.get('http://localhost:8001/player/compare/?id=' + playerIds.join("&id="))
+			axios.get('http://localhost:8001/player/compare?id=' + playerIds.join("&id="))
 				.then(response => {
 					var statistics = response.data;
 					res.render('player_comparison', { players: players, statistics: statistics });
