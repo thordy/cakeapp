@@ -164,7 +164,7 @@ block content
 
     mixin get_player_cell(player)
         td(id='player-score-' + player.id class=player.current ? 'label-active-player' : 'label-inactive-player')
-            label(id='player-id_' + player.id class='label label-block label-player-score')= player.current_score
+            label(id='player-id-' + player.id class='label label-block label-player-score')= player.current_score
             label(id='player-name-' + player.name class='label-player-name')= player.name + player.wins_string
 
     h3 Players
