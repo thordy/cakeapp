@@ -200,7 +200,9 @@ block content
                             p= statistic.scores_100s_plus === 0 ? "" : "100+: " + statistic.scores_100s_plus
                             p= statistic.scores_140s_plus=== 0 ? "" : "140+: " + statistic.scores_140s_plus
                             p= statistic.scores_180s === 0 ? "" : "180:  " + statistic.scores_180s
-                        td: p= statistic.accuracy_overall.toFixed(2)
+                        - var accuracy_20 = statistic.accuracy_20 === null ? '-' : statistic.accuracy_20.toFixed(2)
+                        - var accuracy_19 = statistic.accuracy_19 === null ? '-' : statistic.accuracy_19.toFixed(2)
+                        td: p= statistic.accuracy_overall.toFixed(2) + ' / ' + accuracy_20 + ' / ' + accuracy_19
                         if statistic.player_id === match.winner_player_id
                             td: span(class='glyphicon glyphicon-ok' aria-hidden='true')
                         else

@@ -14,11 +14,11 @@ var Score = bookshelf.Model.extend({
     addVisit: function (visit, match, callback) {
         var matchId = visit.match_id;
 
-        var firstDart = visit.throws.first;
-        var secondDart = visit.throws.second;
-        var thirdDart = visit.throws.third;
+        var firstDart = visit.first_dart;
+        var secondDart = visit.second_dart;
+        var thirdDart = visit.third_dart;
 
-        var currentPlayerId = visit.current_player_id;
+        var currentPlayerId = visit.player_id;
 
         this.getPlayerScore(currentPlayerId, match, function(err, player) {
             if (err) {
@@ -31,20 +31,20 @@ var Score = bookshelf.Model.extend({
                 match_id: matchId,
                 player_id: currentPlayerId,
                 is_bust: isBust,
-                first_dart: firstDart.score,
+                first_dart: firstDart.value,
                 first_dart_multiplier: firstDart.multiplier,
                 is_checkout_first: firstDart.is_checkout_attempt,
-                second_dart: secondDart.score,
+                second_dart: secondDart.value,
                 second_dart_multiplier: secondDart.multiplier,
                 is_checkout_second: secondDart.is_checkout_attempt,
-                third_dart: thirdDart.score,
+                third_dart: thirdDart.value,
                 third_dart_multiplier: thirdDart.multiplier,
                 is_checkout_third: thirdDart.is_checkout_attempt
             })
             .save(null, { method: 'insert' })
             .then(function(row) {
-                debug('Added score for player %s (%s-%s, %s-%s, %s-%s)', currentPlayerId, firstDart.score, firstDart.multiplier, secondDart.score, 
-                    secondDart.multiplier, thirdDart.score, thirdDart.multiplier);
+                debug('Added score for player %s (%s-%s, %s-%s, %s-%s)', currentPlayerId, firstDart.value, firstDart.multiplier, secondDart.value, 
+                    secondDart.multiplier, thirdDart.value, thirdDart.multiplier);
                 callback(null, row);
             })
             .catch(function (err) {

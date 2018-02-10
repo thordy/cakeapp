@@ -117,7 +117,7 @@ router.post('/new', function (req, res) {
 	axios.post('http://localhost:8001/game', body)
 		.then(response => {
 			var game = response.data;
-			socketHandler.setupNamespace(game.current_player_id);
+			socketHandler.setupNamespace(game.current_match_id);
 			res.redirect('/match/' + game.current_match_id);
 		}).catch(error => {
 			debug('Error when getting statistics: ' + error);
