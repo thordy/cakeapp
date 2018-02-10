@@ -23,6 +23,8 @@ app.use('/cake', cakeController);
 app.use('/player', playerController);
 app.use('/statistics', statisticsController);
 
+const axios = require('axios');
+
 app.use(bodyParser.json()); // Accept incoming JSON entities
 app.use(compression());  // Enable gzip Compression
 app.set('view engine', 'pug');
@@ -32,23 +34,28 @@ app.locals.moment = require('moment');
 
 /** Entry point for application, main route */
 app.get('/', function (req, res, next) {
-  var Player = require('./models/Player');
-  var GameType = require('./models/GameType');
-  var OweType = require('./models/OweType');
-	Player.forge().orderBy('name', 'ASC').fetchAll().then(function(players) {
-      GameType.fetchAll().then(function(gameTypes) {
-        OweType.fetchAll().then(function(gameStakes) {
-          res.render('index', {
-            players: players.serialize(),
-            gameTypes: gameTypes.serialize(),
-            gameStakes: gameStakes.serialize(),
-          });
-        });
-      });
-	})
-  .catch(function(err) {
-    helper.renderError(res, err);
-	});
+  axios.get('http://localhost:8001/player')
+    .then(response => {
+      var players = response.data
+      axios.get('http://localhost:8001/gametype')
+        .then(response => {
+          var gameTypes = response.data;
+          axios.get('http://localhost:8001/owetype')
+            .then(response => {
+              var oweTypes = response.data;
+              res.render('index', { players: players, game_types: gameTypes, owe_types: oweTypes });
+            }).catch(error => {
+              debug('Error when getting owe types: ' + error);
+              helper.renderError(res, error);
+            });          
+        }).catch(error => {
+         	debug('Error when getting game types: ' + error);
+          helper.renderError(res, error);
+        });      
+    }).catch(error => {
+      debug('Error when getting match players: ' + error);
+      helper.renderError(res, error);
+    });
 });
 
 // Catch all route used to display custom 404 page
@@ -72,5 +79,5 @@ app.use(function(req, res, next){
 });
 
 server.listen(3000, function () {
-  debug('K-Capp listening on port 3000');
+  debug('kcapp listening on port 3000');
 });

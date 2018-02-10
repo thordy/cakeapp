@@ -563,15 +563,14 @@ module.exports = function (socketHandler) {
 	this.socketHandler = socketHandler;
 
 	// Create socket.io namespaces for all matches which are currently active
-	Match.forge().where('is_finished', '<>', 1).fetchAll().then(function (rows) {
-		var matches = rows.serialize();
-		for (var i = 0; i < matches.length; i++) {
-			socketHandler.setupNamespace(matches[i].id);
-		}
-	})
-	.catch(function (err) {
-		debug('Unable to get active matches from database: %s', err);
-	});
-
+	axios.get('http://localhost:8001/match/active')
+		.then(response => {
+			var matches = response.data;
+			for (var i = 0; i < matches.length; i++) {
+				socketHandler.setupNamespace(matches[i].id);
+			}
+		}).catch(error => {
+	    	debug('Unable to get active matches: %s', error);
+		});
 	return router;
 };
