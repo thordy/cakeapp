@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+var _ = require('underscore');
 
 var helper = require('./helpers.js');
 
@@ -37,6 +38,7 @@ app.get('/', function (req, res, next) {
   axios.get('http://localhost:8001/player')
     .then(response => {
       var players = response.data
+      players = _.sortBy(players, (player) => player.name);
       axios.get('http://localhost:8001/gametype')
         .then(response => {
           var gameTypes = response.data;

@@ -1,29 +1,18 @@
-extends ../layout.pug
+extends score_layout.pug
 
-block scripts
-    script
-        include socketio_helper.js
+block append scripts
     script.
         $(function () {
-            FastClick.attach(document.body);
-            var numSpectators = 0;
-
-            var match = !{JSON.stringify(match)}
-            var matchId = match.id;
-            var socket = setupSocketIO(matchId);
-
+            var disableEnter = false;
             var dartText = '';
             var currentMultiplier = 1;
-            var scores = {};
-            var disableEnter = false;
 
             $(document).keydown(function(e) {
                 if (e.key === 'Backspace') {
                     if (dartText !== '') {
                         dartText = dartText.substring(0, dartText.length - 1);
-                        updateScore(getCurrentDart(), dartText);
-                    }
-                    else {
+                        updateScore(getCurrentDart(), dartText * currentMultiplier, currentMultiplier);
+                    } else {
                         $('#undo-button').trigger('click');
                     }
                     e.preventDefault();
@@ -39,14 +28,13 @@ block scripts
                             disableEnter = false;
                             return;
                         }
-                        console.log('Enter Pressed');
                         if (window.darts_thrown === 3) {
                             $('#submit-score-button').trigger('click');
                         }
                         else {
                             var scoreNumeric = 0;
                             if (dartText === '') {
-                                updateScore(dart, 'Miss');
+                                updateScore(dart, 'Miss', 1);
                             }
                             else {
                                 var currentPlayer = $('#current-player');
@@ -80,41 +68,19 @@ block scripts
                         }
                         currentMultiplier++;
                         currentMultiplier = currentMultiplier > 3 ? 1 : currentMultiplier;
-                        updateScore(dart, dartText);
+                        updateScore(dart, dartText * currentMultiplier, currentMultiplier);
                         return;
-                    case '1':
-                        dartText += '1';
-                        break;
-                    case '2':
-                        dartText += '2';
-                        break;
-                    case '3':
-                        dartText += '3';
-                        break;
-                    case '4':
-                        dartText += '4';
-                        break;
-                    case '5':
-                        dartText += '5';
-                        break;
-                    case '6':
-                        dartText += '6';
-                        break;
-                    case '7':
-                        dartText += '7';
-                        break;
-                    case '8':
-                        dartText += '8';
-                        break;
-                    case '9':
-                        dartText += '9';
-                        break;
-                    case '0':
-                        dartText += '0';
-                        break;
-                    default:
-                        console.log(e);
-                        break;
+                    case '1': dartText += '1'; break;
+                    case '2': dartText += '2'; break;
+                    case '3': dartText += '3'; break;
+                    case '4': dartText += '4'; break;
+                    case '5': dartText += '5'; break;
+                    case '6': dartText += '6'; break;
+                    case '7': dartText += '7'; break;
+                    case '8': dartText += '8'; break;
+                    case '9': dartText += '9'; break;
+                    case '0': dartText += '0'; break;
+                    default: console.log(e); break;
                 }
                 var value = parseInt(dartText);
                 if (value > 20 && value !== 25) {
@@ -122,433 +88,18 @@ block scripts
                     disableEnter = true;
                     showAlert('Invalid value', function() { });
                 }
-                updateScore(dart, dartText);
+                updateScore(dart, dartText * currentMultiplier, currentMultiplier);
             });
 
-            function getCurrentDart() {
-                var dart;
-                if (window.darts_thrown === 0) {
-                    dart = $('#first');
-                }
-                else if (window.darts_thrown === 1) {
-                    dart = $('#second');
-                }
-                else if (window.darts_thrown === 2) {
-                    dart = $('#third');
-                }
-                return dart;
-            }
-
-            function updateScore(dart, score) {
-                var scoreInt = parseInt(score);
-                var multiplierText = score
-
-                if (scoreInt === 0 || score.indexOf('Miss') !== -1) {
-                    currentMultiplier = 1;
-                    score = 0;
-                }
-                dart.css('background-color', 'black');
-                if (multiplierText !== '') {
-                    if (currentMultiplier == 3) {
-                        multiplierText = 'T-' + dartText;
-                        dart.css('background-color', '#d9534f');
-                    }
-                    else if (currentMultiplier == 2) {
-                        multiplierText = 'D-' + dartText;
-                        dart.css('background-color', 'orange');
-                    }
-                    else if (score === 0) {
-                        multiplierText = 'Miss';
-                    }
-                }
-                dart.text(multiplierText);
-                dart.attr('data-score', score);
-                dart.attr('data-multiplier', currentMultiplier);
-            }
-
-            function checkVisitFinished(dart, currentPlayerScore, currentPlayerId, scoreNumeric) {
-                // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
-                if (currentPlayerScore == 50 || (currentPlayerScore <= 40 && currentPlayerScore % 2 == 0)) {
-                    dart.attr('data-checkout', 1);
-                }
-
-                var isBust = false;
-                var isFinished = false;
-
-                // Is the game over
-                var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
-                if (scoreAfterThrow == 0) {
-                    if (dart.attr('data-multiplier') == 2) {
-                        disableEnter = true;
-                        showConfirm('Game will be finished.', function() {
-                            isFinished = true;
-                            socket.emit('possible_throw', {
-                                    current_player_id: currentPlayerId,
-                                    score: scoreNumeric,
-                                    dart_text: dart.text(),
-                                    multiplier: dart.attr('data-multiplier'),
-                                    is_bust: isBust,
-                                    is_finished: isFinished,
-                                    darts_thrown: window.darts_thrown + 1
-                            });
-
-                            // End game, 'click' submit
-                            $('#submit-score-button').data('finished', 1).trigger('click');
-                        }, function(){
-                            $('#undoButton').trigger('click');
-                        });
-                        return;
-                    }                   
-                    else {
-                        isBust = true;
-                    }
-                }
-                else if (scoreAfterThrow <= 1) {
-                    isBust = true;
-                }
-                
-                if (isBust) {
-                    disableEnter = true;
-                    showConfirm('Player busted', function() {
-                        // Emit a dart throw for spectators
-                        socket.emit('possible_throw', {
-                                current_player_id: currentPlayerId,
-                                score: scoreNumeric,
-                                dart_text: dart.text(),
-                                multiplier: dart.attr('data-multiplier'),
-                                is_bust: isBust,
-                                is_finished: isFinished,
-                                darts_thrown: window.darts_thrown + 1
-                        });
-                        alertify.success('Player busted');
-                        $('#submit-score-button').data('busted', 1).trigger('click');
-                    }, function(){
-                        // Clear the score for thrown dart
-                        $('#undo-button').trigger('click');
-                    });
-                }
-                else {
-                    // Emit a dart throw for spectators
-                    socket.emit('possible_throw', {
-                            current_player_id: currentPlayerId,
-                            score: scoreNumeric,
-                            dart_text: dart.text(),
-                            multiplier: dart.attr('data-multiplier'),
-                            is_bust: isBust,
-                            is_finished: isFinished,
-                            darts_thrown: window.darts_thrown + 1
-                    });
-                }
-            }
-
-            $(document).ready(function(){
-                window.darts_thrown = 0;
-                $(document).scrollTop(170);
-
-                $('[data-toggle="popover"]').popover();
-
-                $('#submit-score-button').click(function (event) {
-                    $('#submit-score-button').prop('disabled', true);
-
-                    $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
-                    // Scores
-                    var firstScore = parseInt($('#first').attr('data-score'));
-                    var firstMultiplier = parseInt($('#first').attr('data-multiplier'));
-                    var secondScore = parseInt($('#second').attr('data-score'));
-                    var secondMultiplier = parseInt($('#second').attr('data-multiplier'));
-                    var thirdScore = parseInt($('#third').attr('data-score'));
-                    var thirdMultiplier =  parseInt($('#third').attr('data-multiplier'));
-
-                    var darts = {
-                        first: { score: firstScore, multiplier: firstMultiplier },
-                        second: { score: secondScore, multiplier: secondMultiplier },
-                        third: { score: thirdScore, multiplier: thirdMultiplier }
-                    }
-                    var currentPlayerId = $(this).data('current-player-id');
-                    var data = JSON.stringify({
-                        match_id: matchId,
-                        current_player_id: currentPlayerId,
-                        throws: {
-                            first: { score: firstScore, multiplier: firstMultiplier },
-                            second: { score: secondScore, multiplier: secondMultiplier },
-                            third: { score: thirdScore, multiplier: thirdMultiplier }
-                        }
-                    });
-
-                    var isFinished = $(this).data('finished');
-                    if (isFinished) {
-                        executePost(window.location.origin + '/match/' + matchId + '/finish', data, 'application/json',
-                            function (response) {
-                                location.href = window.location.origin + '/match/' + matchId + '/leg';
-                            },
-                            function (error) {
-                                console.log("Unable to proceed: " + error.responseText);
-                            }
-                        )
-                    }
-                    else {
-                        socket.emit('throw', data);
-                    }
-                    event.preventDefault();
-                });
-
-                $('#score-selector-table .throw-buttons :button').click(function () {
-                    $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
-
-                    var dart;
-                    if (window.darts_thrown === 0) {
-                        dart = $('#first');
-                    }
-                    else if (window.darts_thrown === 1) {
-                        dart = $('#second');
-                    }
-                    else if (window.darts_thrown === 2) {
-                        dart = $('#third');
-                    }
-                    else {
-                        alert('Please submit previous score!');
-                        return;
-                    }
-                    var multiplier = $(this).data('multiplier');
-                    var multiplierText = '';
-                    if (multiplier == 3) {
-                        multiplierText = 'T-' + $(this).text().substring(0, $(this).text().length - 3);
-                        dart.css('background-color', '#d9534f');
-                    }
-                    else if (multiplier == 2) {
-                        multiplierText = 'D-' + $(this).text().substring(0, $(this).text().length - 2);
-                        dart.css('background-color', 'orange');
-                    }
-                    else {
-                        multiplierText = $(this).text().substring(0, $(this).text().length - 1);
-                        dart.css('background-color', 'black');
-                    }
-                    dart.text(multiplierText);
-
-                    dart.attr('data-score', $(this).attr('title') / multiplier);
-                    dart.attr('data-multiplier', multiplier);
-
-                    var submitButton = $('#submit-score-button');
-                    var currentPlayer = $('#current-player');
-                    var currentPlayerScore = parseInt(currentPlayer.text());
-                    var scoreNumeric = parseInt($(this).attr('title'));
-                    var dartScore = scoreNumeric ? scoreNumeric : 0;
-                    var currentPlayerId = $('#submit-score-button').data('current-player-id');
-                    var scoreAfterThrow = parseInt(currentPlayerScore - scoreNumeric);
-
-                    // If the current score for the player is equal to 50 or even and <= 40, then it is a checkout attempt
-                    if (currentPlayerScore == 50 || (currentPlayerScore <= 40 && currentPlayerScore % 2 == 0)) {
-                        dart.attr('data-checkout', 1);
-                    }
-
-                    var isBust = false;
-                    var isFinished = false;
-
-                    // Is the game over
-                    if (scoreAfterThrow == 0) {
-                        if (multiplier == 2) {
-                            showConfirm('Game will be finished.', function() {
-                                isFinished = true;
-                                socket.emit('possible_throw', {
-                                        current_player_id: currentPlayerId,
-                                        score: scoreNumeric,
-                                        dart_text: multiplierText,
-                                        multiplier: multiplier,
-                                        is_bust: isBust,
-                                        is_finished: isFinished,
-                                        darts_thrown: window.darts_thrown + 1
-                                });
-
-                                // End game, 'click' submit
-                                submitButton.data('finished', 1).trigger('click');
-                            }, function(){
-                                // Clear the score for thrown dart
-                                dart.text('');
-                            });
-                            return;
-                        }
-                        else {
-                            isBust = true;
-                        }
-                    }
-                    else if (scoreAfterThrow <= 1) {
-                        isBust = true;
-                    }
-
-                    if (isBust) {
-                        showConfirm('Player busted', function() {
-                            // Emit a dart throw for spectators
-                            socket.emit('possible_throw', {
-                                    current_player_id: currentPlayerId,
-                                    score: scoreNumeric,
-                                    dart_text: multiplierText,
-                                    multiplier: multiplier,
-                                    is_bust: isBust,
-                                    is_finished: isFinished,
-                                    darts_thrown: window.darts_thrown + 1
-                            });
-                            alertify.success('Player busted');
-                            submitButton.data('busted', 1).trigger('click');
-                        }, function(){
-                            // Clear the score for thrown dart
-                            dart.text('');
-                        });
-                    }
-                    else {
-                        // Emit a dart throw for spectators
-                        socket.emit('possible_throw', {
-                                current_player_id: currentPlayerId,
-                                score: scoreNumeric,
-                                dart_text: multiplierText,
-                                multiplier: multiplier,
-                                is_bust: isBust,
-                                is_finished: isFinished,
-                                darts_thrown: window.darts_thrown + 1
-                        });
-                        currentPlayer.text(scoreAfterThrow);
-                        scores[window.darts_thrown] = dartScore;
-                        window.darts_thrown++;
-                    }
-                });
-
-                $('#undo-button').click(function () {
-                    $('[data-toggle=popover]').popover('hide'); // Hide the popover when a button is pressed
-                    if (window.darts_thrown < 1) {
-                        return;
-                    }
-                    var currentPlayerId = $('#submit-score-button').data('current-player-id');
-                    var currentPlayer = $('#current-player');
-                    var currentPlayerScore = parseInt(currentPlayer.text());
-                    window.darts_thrown--;
-                    currentPlayer.text(currentPlayerScore + scores[window.darts_thrown]);
-
-                    // Emit a undo throw to spectators
-                    socket.emit('undo_throw', {
-                            current_player_id: currentPlayerId,
-                            score: -scores[window.darts_thrown],
-                            dart_text: '',
-                            multiplier: 1,
-                            is_bust: false,
-                            is_finished: false,
-                            darts_thrown: window.darts_thrown + 1
-                    });
-
-                    var dart;
-                    if (window.darts_thrown === 0) {
-                        dart = $('#first');
-                    }
-                    else if (window.darts_thrown === 1) {
-                        dart = $('#second');
-                    }
-                    else if (window.darts_thrown === 2) {
-                        dart = $('#third');
-                    }
-                    dart.text('');
-                    dart.removeAttr('data-score');
-                });
-            });
-            
             $('#toggle-keyboard-button').click(function () {
                 location.href = '/match/' + matchId;
             });
-
-            $('#edit-scores-button').click(function () {
-                location.href = '/match/' + matchId + '/leg';
-            });
-
-            $('#cancel-match-button').click(function () {
-                showConfirm('Game will be cancelled.', function() {
-                    executeDelete(window.location.protocol + '//' + window.location.host + '/match/' + matchId + '/cancel',
-                        function (response) {
-                            location.href = '/game/list';
-                        },
-                        function (error) {
-                            var alert = $('#cancel-match-failed-alert');
-                            alert.show();
-                            alert.text('Unable to cancel match, see log for details (' + error.statusText + ')');
-                        }
-                    );
-                }, function(){ /* NOOP */ });
-            });
         });
 
-block content
-    div(id='cancel-match-failed-alert' class='alert alert-danger' role='alert' hidden='true').
-        Unable to cancel match
-
+block title
     h2 Match (Keyboard Entry)
-    div(class='table-responsive')
-        table(id='score-selector-table' class='table')
-            tbody
-                tr(class='row')
-                    td(colspan='3' class='no-border')
-                    td(colspan='2' class='dart-score-container no-border'): label(id='first' text='0' data-multiplier='1' data-checkout='0')
-                    td(colspan='2' class='dart-score-container no-border'): label(id='second' text='0' data-multiplier='1' data-checkout='0')
-                    td(colspan='2' class='dart-score-container no-border'): label(id='third' text='0' data-multiplier='1' data-checkout='0')
-                    td(colspan='2')
-                        button(id='submit-score-button' type='button' style='line-height:1.5' class='needsclick btn-score btn-info btn-lg btn-block' data-match-id=match.id data-current-player-id=match.current_player_id data-players-in-match=match.player2match data-busted='0' data-finished='0') Submit
-                    td(colspan='2')
-                        button(id='undo-button' type='button' class='btn-score btn-info btn-lg btn-block')
-                            span(class='glyphicon glyphicon-arrow-left' style='line-height:1.5' aria-hidden='true')
-                tr(class='row')
-                    td(class='txt-center')
-                        label(id='round-number' class='match-information')= 'R' + (Math.floor(match.visits.length / match.players.length) + 1)
-                        label(class='match-information')= '/' +game.game_type.short_name
-                    - var length = 12 / Object.keys(match.players).length
-                    each player in match_players
-                        mixin player_label(player)
-                            - var modifier_class = player.modifier_class;
-                            - var td_class = 'label-inactive-player ' + modifier_class;
-                            if player.is_current_player
-                                - td_class = 'label-active-player ' + modifier_class;
-                            td(id='player-score-' + player.player_id + '' colspan=length + '' class=td_class style='padding-right: 10px;')
-                                label(id=player.is_current_player ? 'current-player' : 'player-label-' + player.player_id class='label label-block label-player-score')= player.current_score
-                                label(class='label-player-name')= players[player.player_id].name
-                                // TODO need to display wins per player + player.wins
-                        +player_label(player)
 
-                mixin score_button(value, multiplier, text, custom_class)
-                    - var score_button_class = 'btn-score btn-info btn-lg btn-block'
-                    if custom_class
-                        - score_button_class += ' ' + custom_class
-                    else if multiplier === 3
-                        - score_button_class += ' btn-triple'
-                    else if multiplier === 2
-                        - score_button_class += ' btn-double'
-                    - text = text === undefined ? value : text;
-                    button(type='button' class=score_button_class title=value * multiplier data-multiplier=multiplier)!= text + '<br>' + '.'.repeat(multiplier)
-
-                mixin button_row(values)
-                    //- Mixin to generate each row of single, double and tripple buttons
-                    for value in values
-                        td: +score_button(value, 1)
-                    for value in values
-                        td: +score_button(value, 2)
-                    for value in values
-                        td: +score_button(value, 3)
-
-                tr(class='throw-buttons row')
-                    td: +score_button(0, 1, 'Miss')
-                    +button_row([ 20, 19, 18, 17 ])
-                tr(class='throw-buttons row')
-                    td(rowspan='2' style='height:100%; background-color: #ffe6cc;')
-                        +score_button(25, 1, 'Bull', 'btn-double')
-                    +button_row([ 16, 15, 14, 13 ])
-                tr(class='throw-buttons row')
-                    +button_row([ 12, 11, 10, 9 ])
-                tr(class='throw-buttons row')
-                    td(rowspan='2' style='height:100%; background-color: #ffcc66;')
-                        +score_button(25, 2, 'Bull', 'btn-triple')
-                    +button_row([ 8, 7, 6, 5 ])
-                tr(class='throw-buttons row')
-                    +button_row([ 4, 3, 2, 1 ])
-
-    div(class='btn-group')
-        button(type='button' class='btn btn-primary btn-block dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false') Advanced
-            span(class='caret')
-        ul(class='dropdown-menu')
-            li: a(id='toggle-keyboard-button') Disable keyboard mode
-            li: a(id='edit-scores-button') Edit scores
-            li: a(id='cancel-match-button') Cancel Match
-    // div
-        p(id='spectator_count') Spectator Count: 0
+block advanced_options
+    li: a(id='toggle-keyboard-button') Disable keyboard mode
+    li: a(id='edit-scores-button') Edit scores
+    li: a(id='cancel-match-button') Cancel Match

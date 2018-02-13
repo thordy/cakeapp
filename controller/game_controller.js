@@ -39,6 +39,7 @@ router.get('/:gameid', function (req, res) {
 			axios.put('http://localhost:8001/game/' + req.params.gameid + '/continue')
 				.then(response => {
 					var match = response.data;
+					// TODO Do we need to setup nsp here?
 					socketHandler.setupNamespace(match.id);
 
 					// Forward all spectating clients to next match

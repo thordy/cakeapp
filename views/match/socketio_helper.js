@@ -1,3 +1,5 @@
+var socket = null;
+
 function resetUIelements() {
     // Reset UI elements
     window.darts_thrown = 0;
@@ -34,6 +36,11 @@ function setupSocketIO(matchId) {
 
     socket.on('connected', function(data) {
         console.log(data);
+    });
+
+    socket.on('error', function(data) {
+        console.log(data);
+        alert('Error: ' + data.message);
     });
 
     socket.on('match_finished', function(data) {
@@ -77,5 +84,6 @@ function setupSocketIO(matchId) {
         resetUIelements();
     });
 
+    this.socket = socket;
     return socket;
 }
